@@ -11,7 +11,7 @@ namespace model.Services;
 // Buy Sell Dividend
 public class AccountManager : IAccountManager
 {
-    private TransactionService _transactionService;
+    private ITransactionService _transactionService;
     private TradeCostService _costService;
     private CashFlowService _cashFlowService;
     private Instrument _cadCash = new Instrument(Symbol.From("CASH.CAD"), "Canadian Dollar", AssetClass.Cash);

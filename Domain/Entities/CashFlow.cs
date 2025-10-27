@@ -1,6 +1,7 @@
-using model.Domain.Values;
+using PM.Domain.Enums;
+using PM.Domain.Values;
 
-namespace model.Domain.Entities;
+namespace PM.Domain.Entities;
 
 public class CashFlow
 {

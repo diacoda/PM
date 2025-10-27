@@ -4,17 +4,23 @@ namespace PM.Domain.Entities
 {
     public class Holding
     {
+        // EF requires parameterless constructor
+        private Holding() { } // <- EF Core uses this
 
+        // Convenience constructor for domain usage
         public Holding(Instrument instrument, decimal quantity)
         {
-            Instrument = instrument;
+            Instrument = instrument ?? throw new ArgumentNullException(nameof(instrument));
             Quantity = quantity;
         }
+
         public int Id { get; private set; }
+
         public Instrument Instrument { get; set; } = default!;
+
         public decimal Quantity { get; set; }
 
-        public int AccountId { get; set; } // FK
+        public int AccountId { get; set; }
         public Account? Account { get; set; }
 
         public List<Tag> Tags { get; set; } = new();

@@ -55,8 +55,11 @@ namespace PM.Services
 
         public async Task<decimal> GetCashBalanceAsync(int accountId, Currency currency, CancellationToken ct = default)
         {
-            // No real "cash" concept yet — stub for later cash tracking integration
-            return 0m;
+            var symbol = Symbol.From($"CASH.{currency}");
+            var account = await _accountRepo.GetByIdAsync(accountId, ct);
+            if (account == null) return 0.0m;
+            var holding = account.Holdings.FirstOrDefault(h => h.Instrument.Symbol == symbol);
+            return holding?.Quantity ?? 0;
         }
 
         public async Task<IEnumerable<Holding>> ListHoldingsAsync(int accountId, CancellationToken ct = default)

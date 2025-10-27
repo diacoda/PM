@@ -1,8 +1,9 @@
 using Microsoft.EntityFrameworkCore;
 using PM.Application.Interfaces;
 using PM.Domain.Entities;
+using PM.Infrastructure.Data;
 
-namespace PM.Infrastructure.Data.Repositories
+namespace PM.Infrastructure.Repositories
 {
     public class TransactionRepository : ITransactionRepository
     {

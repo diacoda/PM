@@ -1,9 +1,10 @@
 using model.Domain.Entities;
 using model.Domain.Values;
+using model.Interfaces;
 
 namespace model.Services;
 
-public class TransactionService
+public class TransactionService : ITransactionService
 {
     /// <summary>
     /// Factory to build a transaction record (no side effects). Set Costs later if needed.

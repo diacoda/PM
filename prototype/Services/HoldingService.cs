@@ -1,9 +1,10 @@
 using model.Domain.Entities;
 using model.Domain.Values;
+using model.Interfaces;
 
 namespace model.Services;
 
-public class HoldingService
+public class HoldingService : IHoldingService
 {
     public void AddHolding(Account account, Instrument instrument, decimal quantity)
     {
