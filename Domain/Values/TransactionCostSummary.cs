@@ -1,6 +1,4 @@
-using PM.Domain.Values;
-
-namespace PM.Domain.Entities;
+namespace PM.Domain.Values;
 
 /// <summary>
 /// Compact view of trading costs and simple effectiveness ratios per currency.

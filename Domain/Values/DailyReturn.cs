@@ -1,6 +1,6 @@
 using PM.Domain.Values;
 
-namespace PM.Domain.Entities;
+namespace PM.Domain.Values;
 
 public record DailyReturn(
     DateTime Date,

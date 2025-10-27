@@ -23,7 +23,7 @@ public class AppDbContextFactory : IDesignTimeDbContextFactory<AppDbContext>
         // Otherwise, build a minimal config (EF CLI or fallback)
         var configuration = _configuration ?? BuildMinimalConfiguration();
 
-        var absolutePath = DatabasePathResolver.ResolveAbsolutePath(configuration);
+        var absolutePath = DatabasePathResolver.ResolveAbsolutePath("portfolio", configuration);
         var connString = DatabasePathResolver.BuildSqliteConnectionString(absolutePath);
 
         var optionsBuilder = new DbContextOptionsBuilder<AppDbContext>();

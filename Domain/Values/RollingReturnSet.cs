@@ -1,6 +1,4 @@
-using System;
-
-namespace PM.Domain.Entities;
+namespace PM.Domain.Values;
 
 /// <summary>
 /// Linked performance over standard rolling windows as of a specific date.

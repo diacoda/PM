@@ -10,18 +10,13 @@ public static class DatabasePathResolver
     /// 2) Database:RelativePath in configuration (relative to solution root)
     /// 3) Fallback to AppContext.BaseDirectory (for EF CLI)
     /// </summary>
-    public static string ResolveAbsolutePath(IConfiguration configuration)
+    public static string ResolveAbsolutePath(string dbType, IConfiguration configuration)
     {
-        // 1️⃣ Environment override
-        var envOverride = Environment.GetEnvironmentVariable("DB_PATH");
-        if (!string.IsNullOrWhiteSpace(envOverride))
-            return Path.GetFullPath(envOverride);
-
         // 2️⃣ Solution root detection
         var solutionRoot = TryFindSolutionRoot() ?? AppContext.BaseDirectory;
 
         // 3️⃣ Relative path from config
-        var relative = configuration["Database:RelativePath"] ?? "db/portfolio.db";
+        string relative = configuration[$"Database:RelativePath:{dbType}"] ?? $"db/{dbType}.db";
         var absolute = Path.GetFullPath(Path.Combine(solutionRoot, relative));
 
         Directory.CreateDirectory(Path.GetDirectoryName(absolute)!);

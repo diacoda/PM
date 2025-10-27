@@ -38,11 +38,102 @@ namespace PM.Services
             if (account == null)
                 throw new ArgumentNullException(nameof(account));
 
+
+
             account.AddTransaction(transaction);
+
+            Holding EnsureCash(Currency ccy)
+            {
+                var sym = Symbol.From($"CASH.{ccy}");
+                var h = account.Holdings.FirstOrDefault(x => x.Instrument.Symbol == sym);
+                if (h == null)
+                {
+                    h = new Holding(new Instrument(sym, $"{ccy} Cash", AssetClass.Cash), 0m);
+                    //account.Holdings.Add(h);
+                    account.AddHolding(h);
+                }
+                return h;
+            }
+
+            Holding? FindPosition() =>
+                account.Holdings.FirstOrDefault(h => h.Instrument.Symbol == transaction.Instrument.Symbol);
+
+            decimal CostOrZero() => transaction.Costs?.Amount ?? 0m;
+
+            switch (transaction.Type)
+            {
+                case TransactionType.Deposit:
+                    if (applyToCash)
+                    {
+                        var cash = EnsureCash(transaction.Amount.Currency);
+                        cash.Quantity += transaction.Amount.Amount;
+                    }
+                    break;
+
+                case TransactionType.Withdrawal:
+                    if (applyToCash)
+                    {
+                        var cash = EnsureCash(transaction.Amount.Currency);
+                        cash.Quantity -= transaction.Amount.Amount;
+                    }
+                    break;
+
+                case TransactionType.Buy:
+                    {
+                        var pos = FindPosition();
+                        if (pos == null)
+                        {
+                            pos = new Holding(transaction.Instrument, 0m);
+                            //account.Holdings.Add(pos);
+                            account.AddHolding(pos);
+                        }
+                        pos.Quantity += transaction.Quantity;
+
+                        if (applyToCash)
+                        {
+                            var cash = EnsureCash(transaction.Amount.Currency);
+                            cash.Quantity -= (transaction.Amount.Amount + CostOrZero());
+                        }
+                        break;
+                    }
+
+                case TransactionType.Sell:
+                    {
+                        var pos = FindPosition();
+                        if (pos == null) break; // KISS: ignore invalid sell
+
+                        pos.Quantity -= transaction.Quantity;
+                        if (pos.Quantity <= 0m)
+                        {
+                            pos.Quantity = 0m;
+                            //account.Holdings.Remove(pos);
+                            account.RemoveHolding(pos);
+                        }
+
+                        if (applyToCash)
+                        {
+                            var cash = EnsureCash(transaction.Amount.Currency);
+                            cash.Quantity += (transaction.Amount.Amount - CostOrZero());
+                        }
+                        break;
+                    }
+
+                case TransactionType.Dividend:
+                    {
+                        if (applyToCash)
+                        {
+                            var cash = EnsureCash(transaction.Amount.Currency);
+                            cash.Quantity += (transaction.Amount.Amount - CostOrZero()); // net of withholding
+                        }
+                        break;
+                    }
+
+                default:
+                    // Other types ignored in this KISS version.
+                    break;
+            }
             await _accountRepo.UpdateAsync(account, ct);
             await _accountRepo.SaveChangesAsync(ct);
-
-            // Apply to cash balance logic can go here later if Money or Ledger added
         }
 
         public async Task<IEnumerable<Transaction>> ListTransactionsAsync(int accountId, CancellationToken ct = default)

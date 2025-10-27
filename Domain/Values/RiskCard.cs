@@ -1,6 +1,4 @@
-using System;
-
-namespace PM.Domain.Entities;
+namespace PM.Domain.Values;
 
 /// <summary>
 /// Compact risk summary computed from daily returns (and optionally vs benchmark).
