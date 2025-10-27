@@ -1,13 +1,15 @@
-using model.Domain.Entities;
-using model.Domain.Values;
+using PM.Application.Interfaces;
+using PM.Domain.Entities;
+using PM.Domain.Enums;
+using PM.Domain.Values;
 
-namespace model.Services;
+namespace PM.Application.Services;
 
-public class ReportingService
+public class ReportingService : IReportingService
 {
-    private readonly ValuationService _valuationService;
+    private readonly IPricingService _valuationService;
 
-    public ReportingService(ValuationService valuationService)
+    public ReportingService(IPricingService valuationService)
     {
         _valuationService = valuationService;
     }
@@ -140,17 +142,17 @@ public class ReportingService
             .Select(g =>
             {
                 var ccy = g.Key;
-                var buys      = g.Where(t => t.Type == TransactionType.Buy).ToList();
-                var sells     = g.Where(t => t.Type == TransactionType.Sell).ToList();
+                var buys = g.Where(t => t.Type == TransactionType.Buy).ToList();
+                var sells = g.Where(t => t.Type == TransactionType.Sell).ToList();
                 var dividends = g.Where(t => t.Type == TransactionType.Dividend).ToList();
 
-                decimal buyCosts  = buys.Sum(t => t.Costs!.Amount);
+                decimal buyCosts = buys.Sum(t => t.Costs!.Amount);
                 decimal sellCosts = sells.Sum(t => t.Costs!.Amount);
-                decimal divCosts  = dividends.Sum(t => t.Costs!.Amount);
+                decimal divCosts = dividends.Sum(t => t.Costs!.Amount);
 
-                decimal buyGross   = buys.Sum(t => t.Amount.Amount);
-                decimal sellGross  = sells.Sum(t => t.Amount.Amount);
-                decimal divGross   = dividends.Sum(t => t.Amount.Amount);
+                decimal buyGross = buys.Sum(t => t.Amount.Amount);
+                decimal sellGross = sells.Sum(t => t.Amount.Amount);
+                decimal divGross = dividends.Sum(t => t.Amount.Amount);
 
                 var total = buyCosts + sellCosts + divCosts;
 
@@ -218,14 +220,14 @@ public class ReportingService
 
         return tx
             // group by symbol + cost currency + type
-            .GroupBy(t => new { Sym = t.Instrument.Symbol.Code, Cur = t.Costs!.Currency, t.Type })
+            .GroupBy(t => new { Sym = t.Instrument.Symbol.Value, Cur = t.Costs!.Currency, t.Type })
             // NAME the tuple fields here ⬇
             .Select(g => (
-                Symbol:     g.Key.Sym,
-                Currency:   g.Key.Cur,
+                Symbol: g.Key.Sym,
+                Currency: g.Key.Cur,
                 TotalCosts: g.Sum(t => t.Costs!.Amount),
-                Gross:      g.Sum(t => t.Amount.Amount),
-                Type:       g.Key.Type
+                Gross: g.Sum(t => t.Amount.Amount),
+                Type: g.Key.Type
             ))
             .OrderByDescending(x => x.TotalCosts);
     }
@@ -239,11 +241,11 @@ public class ReportingService
             .SelectMany(acct => GetTransactionCostsBySecurity(acct, from, to))
             .GroupBy(x => new { x.Symbol, Cur = x.Currency, x.Type })
             .Select(g => (
-                Symbol:     g.Key.Symbol,
-                Currency:   g.Key.Cur,
+                Symbol: g.Key.Symbol,
+                Currency: g.Key.Cur,
                 TotalCosts: g.Sum(v => v.TotalCosts),
-                Gross:      g.Sum(v => v.Gross),
-                Type:       g.Key.Type
+                Gross: g.Sum(v => v.Gross),
+                Type: g.Key.Type
             ))
             .OrderByDescending(x => x.TotalCosts);
     }
@@ -282,35 +284,35 @@ public class ReportingService
         }
     }
 
-        public void PrintTransactionCostReport(Portfolio portfolio, DateTime from, DateTime to)
+    public void PrintTransactionCostReport(Portfolio portfolio, DateTime from, DateTime to)
+    {
+        var summaries = GetTransactionCostSummaries(portfolio, from, to).ToList();
+        Console.WriteLine($"\nTransaction Costs — Portfolio: {portfolio.Owner}  [{from:yyyy-MM-dd} .. {to:yyyy-MM-dd}]");
+        if (summaries.Count == 0)
         {
-            var summaries = GetTransactionCostSummaries(portfolio, from, to).ToList();
-            Console.WriteLine($"\nTransaction Costs — Portfolio: {portfolio.Owner}  [{from:yyyy-MM-dd} .. {to:yyyy-MM-dd}]");
-            if (summaries.Count == 0)
-            {
-                Console.WriteLine("  (no transaction costs in range)");
-                return;
-            }
+            Console.WriteLine("  (no transaction costs in range)");
+            return;
+        }
 
-            foreach (var s in summaries)
-            {
-                Console.WriteLine($"  Currency: {s.Currency.Code}");
-                Console.WriteLine($"    Total Costs: {s.TotalCosts:0.##} {s.Currency}");
-                Console.WriteLine($"    Buys:    {s.BuyCount,3}  Cost={s.BuyCosts:0.##}  Gross={s.BuyGross:0.##}  CostRate={s.BuyCostRate:P3}");
-                Console.WriteLine($"    Sells:   {s.SellCount,3}  Cost={s.SellCosts:0.##}  Gross={s.SellGross:0.##}  CostRate={s.SellCostRate:P3}");
-                Console.WriteLine($"    Dividends: {s.DividendCount,3}  Withholding={s.DividendWithholding:0.##}  Gross={s.DividendGross:0.##}  Rate={s.DividendWithholdRate:P3}");
-            }
+        foreach (var s in summaries)
+        {
+            Console.WriteLine($"  Currency: {s.Currency.Code}");
+            Console.WriteLine($"    Total Costs: {s.TotalCosts:0.##} {s.Currency}");
+            Console.WriteLine($"    Buys:    {s.BuyCount,3}  Cost={s.BuyCosts:0.##}  Gross={s.BuyGross:0.##}  CostRate={s.BuyCostRate:P3}");
+            Console.WriteLine($"    Sells:   {s.SellCount,3}  Cost={s.SellCosts:0.##}  Gross={s.SellGross:0.##}  CostRate={s.SellCostRate:P3}");
+            Console.WriteLine($"    Dividends: {s.DividendCount,3}  Withholding={s.DividendWithholding:0.##}  Gross={s.DividendGross:0.##}  Rate={s.DividendWithholdRate:P3}");
+        }
 
-            var top = GetTransactionCostsBySecurity(portfolio, from, to).Take(12).ToList();
-            if (top.Count > 0)
+        var top = GetTransactionCostsBySecurity(portfolio, from, to).Take(12).ToList();
+        if (top.Count > 0)
+        {
+            Console.WriteLine("  Top by security (portfolio):");
+            foreach (var row in top)
             {
-                Console.WriteLine("  Top by security (portfolio):");
-                foreach (var row in top)
-                {
-                    var rate = row.Gross == 0m ? 0m : row.TotalCosts / row.Gross;
-                    var type = row.Type.ToString();
-                    Console.WriteLine($"    {row.Symbol,-10}  {type,-9}  Cost={row.TotalCosts:0.##} {row.Currency}  Gross={row.Gross:0.##}  Rate={rate:P3}");
-                }
+                var rate = row.Gross == 0m ? 0m : row.TotalCosts / row.Gross;
+                var type = row.Type.ToString();
+                Console.WriteLine($"    {row.Symbol,-10}  {type,-9}  Cost={row.TotalCosts:0.##} {row.Currency}  Gross={row.Gross:0.##}  Rate={rate:P3}");
             }
         }
     }
+}
