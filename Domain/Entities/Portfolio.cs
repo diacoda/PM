@@ -34,6 +34,7 @@ namespace PM.Domain.Entities
             if (_accounts.Any(a => a.Id == account.Id))
                 throw new InvalidOperationException($"Account with ID {account.Id} is already in this portfolio.");
 
+            account.LinkToPortfolio(this);
             _accounts.Add(account);
         }
 

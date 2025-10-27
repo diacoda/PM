@@ -1,8 +1,6 @@
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
-using PM.Application.Services;
+using PM.Application.Interfaces;
 using PM.Domain.Mappers;
-using PM.Domain.Values;
 using PM.DTO;
 
 namespace PM.API.Controllers;
@@ -11,10 +9,10 @@ namespace PM.API.Controllers;
 [Route("api/[controller]")]
 public class PortfoliosController : ControllerBase
 {
-    private readonly PortfolioService _portfolioService;
-    private readonly AccountService _accountService;
+    private readonly IPortfolioService _portfolioService;
+    private readonly IAccountService _accountService;
 
-    public PortfoliosController(PortfolioService portfolioService, AccountService accountService)
+    public PortfoliosController(IPortfolioService portfolioService, IAccountService accountService)
     {
         _portfolioService = portfolioService;
         _accountService = accountService;

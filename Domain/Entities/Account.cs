@@ -26,6 +26,10 @@ namespace PM.Domain.Entities
         private readonly List<Tag> _tags = new();
         public IReadOnlyCollection<Tag> Tags => _tags.AsReadOnly();
 
+        // 🔹 Add this navigation + FK
+        public int PortfolioId { get; private set; }   // foreign key
+        public Portfolio Portfolio { get; private set; } = null!;
+
         public void UpdateName(string newName)
         {
             Name = newName;
@@ -68,7 +72,10 @@ namespace PM.Domain.Entities
             var holding = Holdings.FirstOrDefault(h => h.Instrument.Symbol == symbol);
             return holding?.Quantity ?? 0;
         }
-
+        public void LinkToPortfolio(Portfolio portfolio)
+        {
+            Portfolio = portfolio ?? throw new ArgumentNullException(nameof(portfolio));
+        }
         public override string ToString() =>
             $"Account {Id}: {Name} ({Currency}) @ {FinancialInstitution}";
     }

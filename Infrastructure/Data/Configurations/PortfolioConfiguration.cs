@@ -14,8 +14,10 @@ public class PortfolioConfiguration : IEntityTypeConfiguration<Portfolio>
             .HasMaxLength(100)
             .IsRequired();
 
+        // Proper one-to-many
         b.HasMany(p => p.Accounts)
-            .WithOne()
+            .WithOne(a => a.Portfolio)
+            .HasForeignKey(a => a.PortfolioId)
             .OnDelete(DeleteBehavior.Cascade);
     }
 }
