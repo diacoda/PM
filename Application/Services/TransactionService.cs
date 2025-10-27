@@ -3,7 +3,7 @@ using PM.Domain.Entities;
 using PM.Domain.Enums;
 using PM.Domain.Values;
 
-namespace PM.Services
+namespace PM.Application.Services
 {
     public class TransactionService : ITransactionService
     {

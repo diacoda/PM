@@ -17,6 +17,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Infrastructure", "Infrastru
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WebApi", "WebApi\WebApi.csproj", "{313486BA-77D4-4D50-A188-7235451DE880}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DTO", "DTO\DTO.csproj", "{3D4BA273-85AE-49FC-AFFC-CF383FE2589C}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -99,6 +101,18 @@ Global
 		{313486BA-77D4-4D50-A188-7235451DE880}.Release|x64.Build.0 = Release|Any CPU
 		{313486BA-77D4-4D50-A188-7235451DE880}.Release|x86.ActiveCfg = Release|Any CPU
 		{313486BA-77D4-4D50-A188-7235451DE880}.Release|x86.Build.0 = Release|Any CPU
+		{3D4BA273-85AE-49FC-AFFC-CF383FE2589C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3D4BA273-85AE-49FC-AFFC-CF383FE2589C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3D4BA273-85AE-49FC-AFFC-CF383FE2589C}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{3D4BA273-85AE-49FC-AFFC-CF383FE2589C}.Debug|x64.Build.0 = Debug|Any CPU
+		{3D4BA273-85AE-49FC-AFFC-CF383FE2589C}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{3D4BA273-85AE-49FC-AFFC-CF383FE2589C}.Debug|x86.Build.0 = Debug|Any CPU
+		{3D4BA273-85AE-49FC-AFFC-CF383FE2589C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3D4BA273-85AE-49FC-AFFC-CF383FE2589C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3D4BA273-85AE-49FC-AFFC-CF383FE2589C}.Release|x64.ActiveCfg = Release|Any CPU
+		{3D4BA273-85AE-49FC-AFFC-CF383FE2589C}.Release|x64.Build.0 = Release|Any CPU
+		{3D4BA273-85AE-49FC-AFFC-CF383FE2589C}.Release|x86.ActiveCfg = Release|Any CPU
+		{3D4BA273-85AE-49FC-AFFC-CF383FE2589C}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

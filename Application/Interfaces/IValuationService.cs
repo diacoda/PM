@@ -11,6 +11,7 @@ namespace PM.Application.Interfaces;
 /// </summary>
 public interface IValuationService
 {
+    Task<IEnumerable<ValuationRecord>> GetByPortfolioAsync(int portfolioId, ValuationPeriod period);
     // ---------------------------------------------------------------------
     // TOTAL SNAPSHOTS (Portfolio / Account)
     // ---------------------------------------------------------------------

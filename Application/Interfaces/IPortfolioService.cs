@@ -7,7 +7,7 @@ public interface IPortfolioService
 {
     Task<Portfolio> CreateAsync(string owner, CancellationToken ct = default);
 
-    Task<Portfolio?> GetById(int portfolioId, CancellationToken ct = default);
+    Task<Portfolio?> GetByIdAsync(int portfolioId, CancellationToken ct = default);
 
     Task<IEnumerable<Portfolio>> ListAsync(CancellationToken ct = default);
 

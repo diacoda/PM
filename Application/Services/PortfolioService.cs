@@ -1,7 +1,7 @@
 using PM.Application.Interfaces;
 using PM.Domain.Entities;
 
-namespace PM.Services
+namespace PM.Application.Services
 {
     public class PortfolioService : IPortfolioService
     {
@@ -20,7 +20,7 @@ namespace PM.Services
             return portfolio;
         }
 
-        public async Task<Portfolio?> GetById(int portfolioId, CancellationToken ct = default) =>
+        public async Task<Portfolio?> GetByIdAsync(int portfolioId, CancellationToken ct = default) =>
             await _repo.GetByIdAsync(portfolioId, ct);
 
         public async Task<IEnumerable<Portfolio>> ListAsync(CancellationToken ct = default) =>

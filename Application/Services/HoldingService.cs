@@ -2,7 +2,7 @@ using PM.Application.Interfaces;
 using PM.Domain.Entities;
 using PM.Domain.Values;
 
-namespace PM.Services
+namespace PM.Application.Services
 {
     public class HoldingService : IHoldingService
     {

@@ -21,6 +21,14 @@ public class ValuationService : IValuationService
         _repository = repository;
     }
 
+    public async Task<IEnumerable<ValuationRecord>> GetByPortfolioAsync(int portfolioId, ValuationPeriod period)
+    {
+        // optional: business logic, validation, caching, transformations, etc.
+        if (portfolioId <= 0)
+            throw new ArgumentException("Invalid portfolio ID", nameof(portfolioId));
+
+        return await _repository.GetByPortfolioAsync(portfolioId, period);
+    }
     // ---------------------------------------------------------------------
     // TOTAL SNAPSHOTS (Portfolio / Account)
     // ---------------------------------------------------------------------

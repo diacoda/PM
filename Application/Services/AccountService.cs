@@ -3,7 +3,7 @@ using PM.Domain.Enums;
 using PM.Domain.Values;
 using PM.Application.Interfaces;
 
-namespace model.Application.Services
+namespace PM.Application.Services
 {
     public class AccountService : IAccountService
     {
