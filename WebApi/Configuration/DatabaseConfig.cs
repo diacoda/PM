@@ -1,6 +1,7 @@
 using PM.Infrastructure.Configuration;
 using PM.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 
 namespace PM.API.Configuration;
 
@@ -8,28 +9,35 @@ public static class DatabaseConfig
 {
     public static IServiceCollection AddDatabase(this IServiceCollection services, IConfiguration config, IHostEnvironment env)
     {
-        var dbAbsolutePath = DatabasePathResolver.ResolveAbsolutePath("portfolio", config);
-        var connString = DatabasePathResolver.BuildSqliteConnectionString(dbAbsolutePath);
+        // Resolve all DB paths at startup using the same resolver (deterministic).
+        var portfolioPath = DatabasePathResolver.ResolveAbsolutePath("portfolio", config);
+        var cashFlowPath = DatabasePathResolver.ResolveAbsolutePath("cashFlow", config);
+        var valuationPath = DatabasePathResolver.ResolveAbsolutePath("valuation", config);
 
+        // Register and log connection strings
         services.AddDbContext<AppDbContext>((sp, options) =>
         {
-            options.UseSqlite(connString);
+            var conn = DatabasePathResolver.BuildSqliteConnectionString(portfolioPath);
+            options.UseSqlite(conn);
         }, ServiceLifetime.Scoped);
 
-        dbAbsolutePath = DatabasePathResolver.ResolveAbsolutePath("cashFlow", config);
-        connString = DatabasePathResolver.BuildSqliteConnectionString(dbAbsolutePath);
         services.AddDbContext<CashFlowDbContext>((sp, options) =>
         {
-            options.UseSqlite(connString);
+            var conn = DatabasePathResolver.BuildSqliteConnectionString(cashFlowPath);
+            options.UseSqlite(conn);
         }, ServiceLifetime.Scoped);
 
-        dbAbsolutePath = DatabasePathResolver.ResolveAbsolutePath("valuation", config);
-        connString = DatabasePathResolver.BuildSqliteConnectionString(dbAbsolutePath);
         services.AddDbContext<ValuationDbContext>((sp, options) =>
         {
-            options.UseSqlite(connString);
+            var conn = DatabasePathResolver.BuildSqliteConnectionString(valuationPath);
+            options.UseSqlite(conn);
         }, ServiceLifetime.Scoped);
+
+        // Optional: register a startup action to log actual DB files used (useful for troubleshooting)
+        //services.AddSingleton(new DatabasePaths(portfolioPath, cashFlowPath, valuationPath));
 
         return services;
     }
 }
+
+

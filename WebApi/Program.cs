@@ -48,8 +48,12 @@ app.MapControllers();
 
 using (var scope = app.Services.CreateScope())
 {
-    var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-    Console.WriteLine($"[DB] Using SQLite file: {db.Database.GetDbConnection().DataSource}");
+    var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
+    var dbPaths = scope.ServiceProvider.GetRequiredService<DatabasePaths>();
+    logger.LogInformation("Portfolio DB: {path}", dbPaths.PortfolioPath);
+    logger.LogInformation("CashFlow DB : {path}", dbPaths.CashFlowPath);
+    logger.LogInformation("Valuation DB: {path}", dbPaths.ValuationPath);
 }
+
 app.Run();
 
