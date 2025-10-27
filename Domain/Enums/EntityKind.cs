@@ -1,4 +1,4 @@
-namespace Domain.Values;
+namespace PM.Domain.Values;
 
 public enum EntityKind
 {

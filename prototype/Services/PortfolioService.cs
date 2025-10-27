@@ -14,13 +14,13 @@ public class PortfolioService
         return portfolio;
     }
 
-    public Portfolio? Get(int id) => _portfolios.FirstOrDefault(p => p.Id == id);
+    public Portfolio? GetById(int id) => _portfolios.FirstOrDefault(p => p.Id == id);
 
     public IEnumerable<Portfolio> List() => _portfolios;
 
     public void UpdateOwner(int id, string newOwner)
     {
-        var portfolio = Get(id);
+        var portfolio = GetById(id);
         if (portfolio != null)
         {
             portfolio.Owner = newOwner;
@@ -29,7 +29,7 @@ public class PortfolioService
 
     public void Delete(int id)
     {
-        var portfolio = Get(id);
+        var portfolio = GetById(id);
         if (portfolio != null)
         {
             _portfolios.Remove(portfolio);

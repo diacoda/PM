@@ -1,12 +1,22 @@
-namespace Domain.Values;
-
-public readonly record struct Currency(string Code)
+namespace PM.Domain.Values
 {
-    public override string ToString() => Code;
+    public class Currency
+    {
+        public string Code { get; private set; }
 
-    public static Currency CAD => new("CAD");
-    public static Currency USD => new("USD");
-    public static Currency EUR => new("EUR");
+        private Currency() { } // EF
 
-    public static Currency From(string code) => new(code.ToUpperInvariant());
+        public Currency(string code)
+        {
+            if (string.IsNullOrWhiteSpace(code))
+                throw new ArgumentException("Currency code cannot be empty.", nameof(code));
+
+            Code = code.ToUpperInvariant();
+        }
+        public static Currency CAD => new("CAD");
+        public static Currency USD => new("USD");
+        public static Currency EUR => new("EUR");
+
+        public override string ToString() => Code;
+    }
 }
