@@ -96,4 +96,23 @@ public class PortfoliosController : ControllerBase
         if (portfolio == null) return NotFound();
         return Ok(PortfolioMapper.ToDTO(portfolio));
     }
+
+    /// <summary>
+    /// Lists all existing portfolios.
+    /// </summary>
+    /// <returns>A list of all portfolios.</returns>
+    /// <response code="200">List of portfolios returned successfully.</response>
+    /// <response code="404">No portfolios found.</response>
+    [HttpGet("")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> List()
+    {
+        var portfolios = await _portfolioService.ListAsync();
+        if (portfolios == null || !portfolios.Any())
+            return NotFound();
+
+        var portfolioDtos = portfolios.Select(PortfolioMapper.ToDTO);
+        return Ok(portfolioDtos);
+    }
 }
