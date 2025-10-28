@@ -2,7 +2,7 @@ using PM.DTO.Prices;
 using PM.Application.Interfaces;
 using PM.Domain.Values;
 
-namespace InvestmentPortfolio.Application.Services;
+namespace PM.Application.Services;
 
 public class PriceService : IPriceService
 {

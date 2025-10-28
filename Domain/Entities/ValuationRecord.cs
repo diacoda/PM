@@ -2,7 +2,9 @@ namespace PM.Domain.Entities;
 
 using PM.Domain.Enums;
 using PM.Domain.Values;
-public class ValuationRecord
+using PM.SharedKernel;
+
+public class ValuationRecord : Entity
 {
     public Guid Id { get; set; } = Guid.NewGuid();
     public DateTime Date { get; set; }

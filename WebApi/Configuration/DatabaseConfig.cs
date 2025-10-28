@@ -34,7 +34,7 @@ public static class DatabaseConfig
         }, ServiceLifetime.Scoped);
 
         // Optional: register a startup action to log actual DB files used (useful for troubleshooting)
-        //services.AddSingleton(new DatabasePaths(portfolioPath, cashFlowPath, valuationPath));
+        services.AddSingleton(new DatabasePaths(portfolioPath, cashFlowPath, valuationPath));
 
         return services;
     }

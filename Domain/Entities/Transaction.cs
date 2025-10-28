@@ -1,25 +1,25 @@
 using PM.Domain.Enums;
 using PM.Domain.Values;
+using PM.SharedKernel;
 
-namespace PM.Domain.Entities
+namespace PM.Domain.Entities;
+
+public class Transaction : Entity
 {
-    public class Transaction
-    {
-        public int Id { get; private set; }
+    public int Id { get; private set; }
 
-        public DateTime Date { get; set; }
+    public DateTime Date { get; set; }
 
-        public TransactionType Type { get; set; }
+    public TransactionType Type { get; set; }
 
-        public Instrument Instrument { get; set; } = default!; // Owned type
+    public Instrument Instrument { get; set; } = default!; // Owned type
 
-        public decimal Quantity { get; set; }
+    public decimal Quantity { get; set; }
 
-        public Money Amount { get; set; } = default!; // Owned type
+    public Money Amount { get; set; } = default!; // Owned type
 
-        public Money? Costs { get; set; } // Owned type, optional
+    public Money? Costs { get; set; } // Owned type, optional
 
-        public int AccountId { get; set; }
-        public Account? Account { get; set; }
-    }
+    public int AccountId { get; set; }
+    public Account? Account { get; set; }
 }

@@ -4,7 +4,7 @@ using PM.Domain.Values;
 using PM.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 
-namespace InvestmentPortfolio.Infrastructure.Repositories;
+namespace PM.Infrastructure.Repositories;
 
 public class PriceRepository : IPriceRepository
 {

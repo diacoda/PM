@@ -1,4 +1,4 @@
-﻿namespace SharedKernel;
+﻿namespace PM.SharedKernel;
 
 public enum ErrorType
 {

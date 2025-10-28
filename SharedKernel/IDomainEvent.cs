@@ -1,3 +1,3 @@
-﻿namespace SharedKernel;
+﻿namespace PM.SharedKernel;
 
 public interface IDomainEvent;

@@ -4,7 +4,7 @@ using PM.Domain.Values;
 using PM.Application.Interfaces;
 using PM.Domain.Enums;
 
-namespace model.Services
+namespace PM.Application.Services
 {
     public class CashFlowService : ICashFlowService
     {

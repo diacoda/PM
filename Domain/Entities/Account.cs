@@ -1,9 +1,10 @@
 using PM.Domain.Enums;
 using PM.Domain.Values;
+using PM.SharedKernel;
 
 namespace PM.Domain.Entities
 {
-    public class Account
+    public class Account : Entity
     {
         public Account(string name, Currency currency, FinancialInstitutions financialInstitution)
         {

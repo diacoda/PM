@@ -1,9 +1,10 @@
 using PM.Domain.Enums;
 using PM.Domain.Values;
+using PM.SharedKernel;
 
 namespace PM.Domain.Entities;
 
-public class CashFlow
+public class CashFlow : Entity
 {
     public int Id { get; set; }
     public int AccountId { get; set; }
