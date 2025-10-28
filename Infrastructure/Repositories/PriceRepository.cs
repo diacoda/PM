@@ -83,10 +83,11 @@ public class PriceRepository : IPriceRepository
     }
     public async Task<List<InstrumentPrice>> GetAllByDateAsync(DateOnly date)
     {
-        return await _db.Prices
+        var prices = await _db.Prices
             .AsNoTracking()
             .Where(p => p.Date == date)
-            .OrderBy(p => (double)p.Price.Amount)  // 👈 convert decimal to double for SQLite compatibility
             .ToListAsync();
+
+        return prices.OrderBy(p => p.Price.Amount).ToList();
     }
 }
