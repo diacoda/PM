@@ -6,6 +6,7 @@ public sealed class Symbol : IEquatable<Symbol>
     public string Currency { get; }
     public string Exchange { get; }
     public AssetClass AssetClass { get; }   // 👈 NEW
+    private Symbol() { } // 👈 EF Core will use this
 
     public Symbol(string value, string currency = "CAD", string exchange = "TSX")
         : this(value, currency, exchange, ResolveAssetClass(value)) { }

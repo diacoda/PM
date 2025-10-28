@@ -5,7 +5,9 @@ using PM.Domain.Values;
 namespace PM.API.Controllers;
 
 [ApiController]
-[Route("api/v{version:apiVersion}/[controller]")]
+//[Route("api/v{version:apiVersion}/[controller]")]
+[Route("api/[controller]")]
+
 [Produces("application/json")]
 public class FxRatesController : ControllerBase
 {

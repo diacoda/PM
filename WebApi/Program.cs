@@ -6,6 +6,8 @@ using PM.Infrastructure.Services;
 using PM.Domain.Values;
 using PM.Application.Commands;
 using PM.API.HostedServices;
+using Serilog;
+using NSwag;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -14,7 +16,6 @@ builder.Services
     .AddHttpClient()
     .AddDatabase(builder.Configuration, builder.Environment)
     .AddTelemetry(builder.Configuration, builder.Environment)
-    .AddSwaggerWithVersioning()
     .AddHealthChecksWithDependencies(builder.Configuration);
 
 // Symbols
@@ -63,19 +64,33 @@ builder.Services.AddScoped<IFxRateService, FxRateService>();
 builder.Services.AddScoped<IAccountManager, AccountManager>();
 
 builder.Services.AddControllers();
-builder.Services.AddOpenApi();
-builder.Services.AddSwaggerUI();
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddOpenApiDocument(options =>
+{
+    options.PostProcess = document =>
+    {
+        document.Info = new OpenApiInfo
+        {
+            Version = "v1",
+            Title = "Portfolio Management API"
+        };
+    };
+});
 
 var app = builder.Build();
 
 if (app.Environment.IsDevelopment())
 {
-    app.MapOpenApi();
-    app.MapSwaggerUI();
+    app.UseOpenApi();
+    app.UseSwaggerUi();
 }
 
+app.UseGlobalExceptionHandler();
+app.UseSerilogRequestLogging();
 app.UseHttpsRedirection();
+app.UseAuthorization();
 
+app.MapHealthChecksWithUI();
+app.UseOpenTelemetryPrometheusScrapingEndpoint();
 app.MapControllers();
 app.Run();
-
