@@ -34,7 +34,7 @@ public class PortfoliosController : ControllerBase
     public async Task<IActionResult> Create([FromBody] CreatePortfolioDTO dto)
     {
         var createdPortfolio = await _portfolioService.CreateAsync(dto.Owner);
-        return Ok(createdPortfolio);
+        return Ok(PortfolioMapper.ToDTO(createdPortfolio));
     }
 
     /// <summary>
@@ -94,7 +94,6 @@ public class PortfoliosController : ControllerBase
     {
         var portfolio = await _portfolioService.GetByIdAsync(portfolioId);
         if (portfolio == null) return NotFound();
-
-        return Ok(portfolio);
+        return Ok(PortfolioMapper.ToDTO(portfolio));
     }
 }
