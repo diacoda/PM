@@ -1,6 +1,6 @@
 namespace PM.Domain.Values
 {
-    public class Currency
+    public sealed record Currency
     {
         public string Code { get; private set; }
 
@@ -9,9 +9,14 @@ namespace PM.Domain.Values
         public Currency(string code)
         {
             if (string.IsNullOrWhiteSpace(code))
-                throw new ArgumentException("Currency code cannot be empty.", nameof(code));
+                throw new System.ArgumentException("Currency code is required.", nameof(code));
 
-            Code = code.ToUpperInvariant();
+            code = code.Trim().ToUpperInvariant();
+
+            if (code.Length != 3)
+                throw new System.ArgumentException("Currency code must be 3 characters (ISO 4217).", nameof(code));
+
+            Code = code;
         }
         public static Currency CAD => new("CAD");
         public static Currency USD => new("USD");

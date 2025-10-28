@@ -16,9 +16,9 @@ public class PricingService : IPricingService
         _fxRateProvider = fxRateProvider;
     }
 
-    public Money CalculateHoldingValue(Holding holding, DateTime date, Currency reportingCurrency)
+    public async Task<Money> CalculateHoldingValueAsync(Holding holding, DateTime date, Currency reportingCurrency)
     {
-        var price = _priceProvider.GetPrice(holding.Instrument.Symbol, date);
+        var price = await _priceProvider.GetPriceAsync(holding.Instrument.Symbol, DateOnly.FromDateTime(date));
         if (price == null) return new Money(0, reportingCurrency);
 
         FxRate? fx = null;
@@ -36,26 +36,26 @@ public class PricingService : IPricingService
         return new Money(value, reportingCurrency);
     }
 
-    public Money CalculateAccountValue(Account account, DateTime date, Currency reportingCurrency)
+    public async Task<Money> CalculateAccountValueAsync(Account account, DateTime date, Currency reportingCurrency)
     {
         decimal total = 0m;
 
         foreach (var holding in account.Holdings)
         {
-            var value = CalculateHoldingValue(holding, date, reportingCurrency);
+            var value = await CalculateHoldingValueAsync(holding, date, reportingCurrency);
             total += value.Amount;
         }
 
         return new Money(total, reportingCurrency);
     }
 
-    public Money CalculatePortfolioValue(Portfolio portfolio, DateTime date, Currency reportingCurrency)
+    public async Task<Money> CalculatePortfolioValueAsync(Portfolio portfolio, DateTime date, Currency reportingCurrency)
     {
         decimal total = 0m;
 
         foreach (var account in portfolio.Accounts)
         {
-            var accountValue = CalculateAccountValue(account, date, reportingCurrency);
+            var accountValue = await CalculateAccountValueAsync(account, date, reportingCurrency);
             total += accountValue.Amount;
         }
 

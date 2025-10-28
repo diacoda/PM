@@ -6,7 +6,7 @@ namespace PM.Application.Interfaces;
 
 public interface IPricingService
 {
-    Money CalculateHoldingValue(Holding holding, DateTime date, Currency reportingCurrency);
-    Money CalculateAccountValue(Account account, DateTime date, Currency reportingCurrency);
-    Money CalculatePortfolioValue(Portfolio portfolio, DateTime date, Currency reportingCurrency);
+    Task<Money> CalculateHoldingValueAsync(Holding holding, DateTime date, Currency reportingCurrency);
+    Task<Money> CalculateAccountValueAsync(Account account, DateTime date, Currency reportingCurrency);
+    Task<Money> CalculatePortfolioValueAsync(Portfolio portfolio, DateTime date, Currency reportingCurrency);
 }

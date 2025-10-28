@@ -2,10 +2,12 @@ namespace PM.Domain.Values;
 
 public enum AssetClass
 {
-    Equity,
+    USEquity,
+    CanadianEquity,
+    DevelopedEquity,
     FixedIncome,
-    Cash,
     Commodity,
-    RealEstate,
+    Crypto,
+    Cash,
     Other
 }

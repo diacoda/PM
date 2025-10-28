@@ -38,18 +38,15 @@ namespace PM.Application.Services
             if (account == null)
                 throw new ArgumentNullException(nameof(account));
 
-
-
             account.AddTransaction(transaction);
 
             Holding EnsureCash(Currency ccy)
             {
-                var sym = Symbol.From($"CASH.{ccy}");
+                var sym = new Symbol(ccy.Code);
                 var h = account.Holdings.FirstOrDefault(x => x.Instrument.Symbol == sym);
                 if (h == null)
                 {
                     h = new Holding(new Instrument(sym, $"{ccy} Cash", AssetClass.Cash), 0m);
-                    //account.Holdings.Add(h);
                     account.AddHolding(h);
                 }
                 return h;
@@ -84,7 +81,6 @@ namespace PM.Application.Services
                         if (pos == null)
                         {
                             pos = new Holding(transaction.Instrument, 0m);
-                            //account.Holdings.Add(pos);
                             account.AddHolding(pos);
                         }
                         pos.Quantity += transaction.Quantity;
@@ -106,14 +102,13 @@ namespace PM.Application.Services
                         if (pos.Quantity <= 0m)
                         {
                             pos.Quantity = 0m;
-                            //account.Holdings.Remove(pos);
                             account.RemoveHolding(pos);
                         }
 
                         if (applyToCash)
                         {
                             var cash = EnsureCash(transaction.Amount.Currency);
-                            cash.Quantity += (transaction.Amount.Amount - CostOrZero());
+                            cash.Quantity += transaction.Amount.Amount - CostOrZero();
                         }
                         break;
                     }
@@ -123,7 +118,7 @@ namespace PM.Application.Services
                         if (applyToCash)
                         {
                             var cash = EnsureCash(transaction.Amount.Currency);
-                            cash.Quantity += (transaction.Amount.Amount - CostOrZero()); // net of withholding
+                            cash.Quantity += transaction.Amount.Amount - CostOrZero(); // net of withholding
                         }
                         break;
                     }

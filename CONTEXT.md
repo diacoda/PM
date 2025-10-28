@@ -8,7 +8,13 @@ dotnet ef migrations add Initial \
  --startup-project WebApi/WebApi.csproj \
  --context AppDbContext
 
-dotnet ef migrations add InitialValuations \
+# ValuationDbContext
+
+dotnet ef migrations add SOMETEXT \
  --project Infrastructure/Infrastructure.csproj \
  --startup-project WebApi/WebApi.csproj \
  --context ValuationDbContext
+
+dotnet ef migrations list --project Infrastructure/Infrastructure.csproj --startup-project WebApi/WebApi.csproj --context ValuationDbContext
+
+dotnet ef database update --context ValuationDbContext --project Infrastructure/Infrastructure.csproj --startup-project WebApi/WebApi.csproj

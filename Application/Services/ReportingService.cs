@@ -1,3 +1,4 @@
+using System.Threading.Tasks;
 using PM.Application.Interfaces;
 using PM.Domain.Entities;
 using PM.Domain.Enums;
@@ -7,21 +8,21 @@ namespace PM.Application.Services;
 
 public class ReportingService : IReportingService
 {
-    private readonly IPricingService _valuationService;
+    private readonly IPricingService _pricingService;
 
-    public ReportingService(IPricingService valuationService)
+    public ReportingService(IPricingService pricingService)
     {
-        _valuationService = valuationService;
+        _pricingService = pricingService;
     }
 
     // 1. Aggregation by Asset Class
-    public Dictionary<AssetClass, Money> AggregateByAssetClass(Account account, DateTime date, Currency reportingCurrency)
+    public async Task<Dictionary<AssetClass, Money>> AggregateByAssetClassAsync(Account account, DateTime date, Currency reportingCurrency)
     {
         var result = new Dictionary<AssetClass, Money>();
 
         foreach (var holding in account.Holdings)
         {
-            var value = _valuationService.CalculateHoldingValue(holding, date, reportingCurrency);
+            var value = await _pricingService.CalculateHoldingValueAsync(holding, date, reportingCurrency);
             var assetClass = holding.Instrument.AssetClass;
 
             if (result.ContainsKey(assetClass))
@@ -38,13 +39,13 @@ public class ReportingService : IReportingService
         return result;
     }
 
-    public Dictionary<AssetClass, Money> AggregateByAssetClass(Portfolio portfolio, DateTime date, Currency reportingCurrency)
+    public async Task<Dictionary<AssetClass, Money>> AggregateByAssetClassAsync(Portfolio portfolio, DateTime date, Currency reportingCurrency)
     {
         var result = new Dictionary<AssetClass, Money>();
 
         foreach (var account in portfolio.Accounts)
         {
-            var accountAggregation = AggregateByAssetClass(account, date, reportingCurrency);
+            var accountAggregation = await AggregateByAssetClassAsync(account, date, reportingCurrency);
 
             foreach (var kvp in accountAggregation)
             {
@@ -88,18 +89,18 @@ public class ReportingService : IReportingService
             Console.WriteLine($"- {tx.Date:yyyy-MM-dd} | {tx.Type} | {tx.Instrument.Symbol} | Qty: {tx.Quantity} | Amount: {tx.Amount.Amount} {tx.Amount.Currency}");
         }
     }
-    public Dictionary<AssetClass, decimal> GetAssetClassPercentages(Account account, DateTime date, Currency reportingCurrency)
+    public async Task<Dictionary<AssetClass, decimal>> GetAssetClassPercentagesAsync(Account account, DateTime date, Currency reportingCurrency)
     {
-        var totals = AggregateByAssetClass(account, date, reportingCurrency);
+        var totals = await AggregateByAssetClassAsync(account, date, reportingCurrency);
         var grand = totals.Values.Sum(m => m.Amount);
         if (grand <= 0m) return new();
 
         return totals.ToDictionary(k => k.Key, v => v.Value.Amount / grand);
     }
 
-    public Dictionary<AssetClass, decimal> GetAssetClassPercentages(Portfolio portfolio, DateTime date, Currency reportingCurrency)
+    public async Task<Dictionary<AssetClass, decimal>> GetAssetClassPercentagesAsync(Portfolio portfolio, DateTime date, Currency reportingCurrency)
     {
-        var totals = AggregateByAssetClass(portfolio, date, reportingCurrency);
+        var totals = await AggregateByAssetClassAsync(portfolio, date, reportingCurrency);
         var grand = totals.Values.Sum(m => m.Amount);
         if (grand <= 0m) return new();
 

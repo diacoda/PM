@@ -68,7 +68,7 @@ namespace PM.Domain.Entities
 
         public decimal GetCashBalance(Currency currency)
         {
-            var symbol = Symbol.From($"CASH.{currency}");
+            var symbol = new Symbol("CAD");
             var holding = Holdings.FirstOrDefault(h => h.Instrument.Symbol == symbol);
             return holding?.Quantity ?? 0;
         }

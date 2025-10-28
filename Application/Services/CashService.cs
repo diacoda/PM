@@ -16,14 +16,14 @@ public class CashService : ICashService
 
     public async Task DepositAsync(Account account, Money amount)
     {
-        var symbol = Symbol.From($"CASH.{amount.Currency}");
+        var symbol = new Symbol(amount.Currency.Code);
         var instrument = new Instrument(symbol, $"{amount.Currency} Cash", AssetClass.Cash);
         await _holdingService.AddHoldingAsync(account.Id, instrument, amount.Amount);
     }
 
     public async Task WithdrawAsync(Account account, Money amount)
     {
-        var symbol = Symbol.From($"CASH.{amount.Currency}");
+        var symbol = new Symbol(amount.Currency.Code);
         var holding = account.Holdings.FirstOrDefault(h => h.Instrument.Symbol == symbol);
         if (holding != null)
         {

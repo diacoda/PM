@@ -4,5 +4,6 @@ namespace PM.Application.Interfaces;
 
 public interface IPriceProvider
 {
-    InstrumentPrice? GetPrice(Symbol symbol, DateTime date);
+    Task<InstrumentPrice?> GetPriceAsync(Symbol symbol, DateOnly date);
+    string ProviderName { get; }
 }

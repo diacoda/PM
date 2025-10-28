@@ -6,7 +6,7 @@ namespace PM.Application.Interfaces;
 
 public interface IAttributionService
 {
-    IEnumerable<ContributionRecord> ContributionBySecurity(Account account, DateTime start, DateTime end, Currency ccy);
-    IEnumerable<ContributionRecord> ContributionBySecurity(Portfolio portfolio, DateTime start, DateTime end, Currency ccy);
-    IEnumerable<ContributionRecord> ContributionByAssetClass(Portfolio portfolio, DateTime start, DateTime end, Currency ccy);
+    Task<IEnumerable<ContributionRecord>> ContributionBySecurityAsync(Account account, DateTime start, DateTime end, Currency ccy);
+    Task<IEnumerable<ContributionRecord>> ContributionBySecurityAsync(Portfolio portfolio, DateTime start, DateTime end, Currency ccy);
+    Task<IEnumerable<ContributionRecord>> ContributionByAssetClassAsync(Portfolio portfolio, DateTime start, DateTime end, Currency ccy);
 }

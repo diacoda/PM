@@ -7,12 +7,12 @@ namespace PM.Application.Interfaces;
 
 public interface IReportingService
 {
-    Dictionary<AssetClass, Money> AggregateByAssetClass(Account account, DateTime date, Currency reportingCurrency);
-    Dictionary<AssetClass, Money> AggregateByAssetClass(Portfolio portfolio, DateTime date, Currency reportingCurrency);
+    Task<Dictionary<AssetClass, Money>> AggregateByAssetClassAsync(Account account, DateTime date, Currency reportingCurrency);
+    Task<Dictionary<AssetClass, Money>> AggregateByAssetClassAsync(Portfolio portfolio, DateTime date, Currency reportingCurrency);
     void PrintHoldingsSummary(Account account);
     void PrintTransactionHistory(Account account, DateTime from, DateTime to);
-    Dictionary<AssetClass, decimal> GetAssetClassPercentages(Account account, DateTime date, Currency reportingCurrency);
-    Dictionary<AssetClass, decimal> GetAssetClassPercentages(Portfolio portfolio, DateTime date, Currency reportingCurrency);
+    Task<Dictionary<AssetClass, decimal>> GetAssetClassPercentagesAsync(Account account, DateTime date, Currency reportingCurrency);
+    Task<Dictionary<AssetClass, decimal>> GetAssetClassPercentagesAsync(Portfolio portfolio, DateTime date, Currency reportingCurrency);
     Dictionary<Currency, decimal> GetTradingCostsByCurrency(Account account, DateTime from, DateTime to);
     Dictionary<Currency, decimal> GetTradingCostsByCurrency(Portfolio portfolio, DateTime from, DateTime to);
     IEnumerable<TransactionCostSummary> GetTransactionCostSummaries(Account account, DateTime from, DateTime to);

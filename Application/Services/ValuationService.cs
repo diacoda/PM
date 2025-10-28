@@ -43,13 +43,13 @@ public class ValuationService : IValuationService
         foreach (var date in GetDatesByPeriod(startDate, endDate, period))
         {
             // TOTAL portfolio value in reporting currency
-            var total = _pricingService.CalculatePortfolioValue(portfolio, date, reportingCurrency);
+            var total = await _pricingService.CalculatePortfolioValueAsync(portfolio, date, reportingCurrency);
 
             // CASH = sum of all accounts' cash holdings (CASH.*) as of date
             decimal cashAmt = 0m;
             foreach (var account in portfolio.Accounts)
             {
-                cashAmt += SumAccountCash(account, date, reportingCurrency);
+                cashAmt += await SumAccountCashAsync(account, date, reportingCurrency);
             }
 
             var cash = new Money(cashAmt, reportingCurrency);
@@ -89,10 +89,10 @@ public class ValuationService : IValuationService
         foreach (var date in GetDatesByPeriod(startDate, endDate, period))
         {
             // TOTAL account value in reporting currency
-            var total = _pricingService.CalculateAccountValue(account, date, reportingCurrency);
+            var total = await _pricingService.CalculateAccountValueAsync(account, date, reportingCurrency);
 
             // CASH
-            var cashAmt = SumAccountCash(account, date, reportingCurrency);
+            var cashAmt = await SumAccountCashAsync(account, date, reportingCurrency);
             var cash = new Money(cashAmt, reportingCurrency);
             var secs = new Money(total.Amount - cashAmt, reportingCurrency);
 
@@ -129,10 +129,11 @@ public class ValuationService : IValuationService
     {
         foreach (var date in GetDatesByPeriod(startDate, endDate, period))
         {
-            var total = _pricingService.CalculatePortfolioValue(portfolio, date, reportingCurrency).Amount;
+            var totalMoney = await _pricingService.CalculatePortfolioValueAsync(portfolio, date, reportingCurrency);
+            var total = totalMoney.Amount;
             if (total <= 0m) continue;
 
-            var byClass = AggregateByAssetClass(portfolio, date, reportingCurrency);
+            var byClass = await AggregateByAssetClassAsync(portfolio, date, reportingCurrency);
             foreach (var kvp in byClass)
             {
                 var value = kvp.Value;
@@ -162,10 +163,11 @@ public class ValuationService : IValuationService
     {
         foreach (var date in GetDatesByPeriod(startDate, endDate, period))
         {
-            var total = _pricingService.CalculateAccountValue(account, date, reportingCurrency).Amount;
+            var totalMoney = await _pricingService.CalculateAccountValueAsync(account, date, reportingCurrency);
+            var total = totalMoney.Amount;
             if (total <= 0m) continue;
 
-            var byClass = AggregateByAssetClass(account, date, reportingCurrency);
+            var byClass = await AggregateByAssetClassAsync(account, date, reportingCurrency);
             foreach (var kvp in byClass)
             {
                 var value = kvp.Value;
@@ -209,12 +211,12 @@ public class ValuationService : IValuationService
         return dates;
     }
 
-    private Dictionary<AssetClass, Money> AggregateByAssetClass(Account account, DateTime date, Currency reportingCurrency)
+    private async Task<Dictionary<AssetClass, Money>> AggregateByAssetClassAsync(Account account, DateTime date, Currency reportingCurrency)
     {
         var result = new Dictionary<AssetClass, Money>();
         foreach (var holding in account.Holdings)
         {
-            var value = _pricingService.CalculateHoldingValue(holding, date, reportingCurrency);
+            var value = await _pricingService.CalculateHoldingValueAsync(holding, date, reportingCurrency);
             var cls = holding.Instrument.AssetClass;
             if (result.TryGetValue(cls, out var existing))
                 result[cls] = new Money(existing.Amount + value.Amount, reportingCurrency);
@@ -224,12 +226,12 @@ public class ValuationService : IValuationService
         return result;
     }
 
-    private Dictionary<AssetClass, Money> AggregateByAssetClass(Portfolio portfolio, DateTime date, Currency reportingCurrency)
+    private async Task<Dictionary<AssetClass, Money>> AggregateByAssetClassAsync(Portfolio portfolio, DateTime date, Currency reportingCurrency)
     {
         var result = new Dictionary<AssetClass, Money>();
         foreach (var account in portfolio.Accounts)
         {
-            var accAgg = AggregateByAssetClass(account, date, reportingCurrency);
+            var accAgg = await AggregateByAssetClassAsync(account, date, reportingCurrency);
             foreach (var kvp in accAgg)
             {
                 if (result.TryGetValue(kvp.Key, out var existing))
@@ -241,12 +243,12 @@ public class ValuationService : IValuationService
         return result;
     }
 
-    private decimal SumAccountCash(Account account, DateTime date, Currency reportingCurrency)
+    private async Task<decimal> SumAccountCashAsync(Account account, DateTime date, Currency reportingCurrency)
     {
         decimal cash = 0m;
         foreach (var h in account.Holdings.Where(h => h.Instrument.Symbol.Value.StartsWith("CASH.", StringComparison.OrdinalIgnoreCase)))
         {
-            var val = _pricingService.CalculateHoldingValue(h, date, reportingCurrency);
+            var val = await _pricingService.CalculateHoldingValueAsync(h, date, reportingCurrency);
             cash += val.Amount;
         }
         return cash;

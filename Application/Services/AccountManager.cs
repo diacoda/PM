@@ -15,8 +15,8 @@ public class AccountManager : IAccountManager
     private ITransactionService _transactionService;
     private ITradeCostService _costService;
     private ICashFlowService _cashFlowService;
-    private Instrument _cadCash = new Instrument(Symbol.From("CASH.CAD"), "Canadian Dollar", AssetClass.Cash);
-    private Instrument _usdCash = new Instrument(Symbol.From("CASH.USD"), "US Dollar", AssetClass.Cash);
+    private Instrument _cadCash = new Instrument(new Symbol("CAD"), "Canadian Dollar", AssetClass.Cash);
+    private Instrument _usdCash = new Instrument(new Symbol("USD"), "US Dollar", AssetClass.Cash);
 
     public AccountManager(ITransactionService transactionService, ITradeCostService costService, ICashFlowService cashFlowService)
     {

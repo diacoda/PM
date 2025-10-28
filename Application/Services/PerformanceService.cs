@@ -8,12 +8,12 @@ namespace PM.Application.Services;
 
 public class PerformanceService : IPerformanceService
 {
-    private readonly IPricingService _valuationService;
+    private readonly IPricingService _pricingService;
     private readonly ICashFlowService _cashFlowService;
 
-    public PerformanceService(IPricingService valuationService, ICashFlowService cashFlowService)
+    public PerformanceService(IPricingService pricingService, ICashFlowService cashFlowService)
     {
-        _valuationService = valuationService;
+        _pricingService = pricingService;
         _cashFlowService = cashFlowService;
     }
 
@@ -39,8 +39,10 @@ public class PerformanceService : IPerformanceService
         for (var d = start.Date.AddDays(1); d <= end.Date; d = d.AddDays(1))
         {
             var prev = d.AddDays(-1);
-            var mvStart = _valuationService.CalculateAccountValue(account, prev, ccy).Amount;
-            var mvEnd = _valuationService.CalculateAccountValue(account, d, ccy).Amount;
+            var moneyStart = await _pricingService.CalculateAccountValueAsync(account, prev, ccy);
+            var mvStart = moneyStart.Amount;
+            var moneyEnd = await _pricingService.CalculateAccountValueAsync(account, d, ccy);
+            var mvEnd = moneyEnd.Amount;
             var flowsForDay = byDayFlows.TryGetValue(d, out var f) ? f : 0m;
 
             var r = mvStart == 0m ? 0m : (mvEnd - mvStart - flowsForDay) / mvStart;
@@ -78,8 +80,10 @@ public class PerformanceService : IPerformanceService
         for (var d = start.Date.AddDays(1); d <= end.Date; d = d.AddDays(1))
         {
             var prev = d.AddDays(-1);
-            var mvStart = _valuationService.CalculatePortfolioValue(portfolio, prev, ccy).Amount;
-            var mvEnd = _valuationService.CalculatePortfolioValue(portfolio, d, ccy).Amount;
+            var moneyStart = await _pricingService.CalculatePortfolioValueAsync(portfolio, prev, ccy);
+            var mvStart = moneyStart.Amount;
+            var moneyEnd = await _pricingService.CalculatePortfolioValueAsync(portfolio, prev, ccy);
+            var mvEnd = moneyEnd.Amount;
             var flows = flowsByDay.TryGetValue(d, out var f) ? f : 0m;
 
             var r = mvStart == 0m ? 0m : (mvEnd - mvStart - flows) / mvStart;
@@ -126,8 +130,8 @@ public class PerformanceService : IPerformanceService
     private async Task<(Money B, Money E, Money netFlows, decimal weightedFlows)>
         GetInputsForDietzAsync(Account account, DateTime start, DateTime end, Currency ccy)
     {
-        var B = _valuationService.CalculateAccountValue(account, start, ccy);
-        var E = _valuationService.CalculateAccountValue(account, end, ccy);
+        var B = await _pricingService.CalculateAccountValueAsync(account, start, ccy);
+        var E = await _pricingService.CalculateAccountValueAsync(account, end, ccy);
 
         var flows = await _cashFlowService.GetCashFlowsAsync(account, start, end);
         var relevant = flows
@@ -156,8 +160,8 @@ public class PerformanceService : IPerformanceService
     private async Task<(Money B, Money E, Money netFlows, decimal weightedFlows)>
         GetInputsForDietzAsync(Portfolio portfolio, DateTime start, DateTime end, Currency ccy)
     {
-        var B = _valuationService.CalculatePortfolioValue(portfolio, start, ccy);
-        var E = _valuationService.CalculatePortfolioValue(portfolio, end, ccy);
+        var B = await _pricingService.CalculatePortfolioValueAsync(portfolio, start, ccy);
+        var E = await _pricingService.CalculatePortfolioValueAsync(portfolio, end, ccy);
 
         var totalDays = Math.Max(1, (end.Date - start.Date).Days);
         decimal net = 0m, weighted = 0m;

@@ -7,67 +7,112 @@ namespace PM.Application.Services;
 
 public class AttributionService : IAttributionService
 {
-    private readonly IPricingService _valuationService;
+    private readonly IPricingService _pricingService;
 
-    public AttributionService(IPricingService valuationService)
+    public AttributionService(IPricingService pricingService)
     {
-        _valuationService = valuationService;
+        _pricingService = pricingService;
     }
 
     // SECURITY-LEVEL for an Account
-    public IEnumerable<ContributionRecord> ContributionBySecurity(Account account, DateTime start, DateTime end, Currency ccy)
+    public async Task<IEnumerable<ContributionRecord>> ContributionBySecurityAsync(
+        Account account, DateTime start, DateTime end, Currency ccy)
     {
-        var accountStart = _valuationService.CalculateAccountValue(account, start, ccy).Amount;
-        if (accountStart == 0m) yield break;
+        var results = new List<ContributionRecord>();
+
+        var moneyStart = await _pricingService.CalculateAccountValueAsync(account, start, ccy);
+        var accountStart = moneyStart.Amount;
+        if (accountStart == 0m)
+            return results;
 
         foreach (var h in account.Holdings)
         {
-            var v0 = _valuationService.CalculateHoldingValue(h, start, ccy).Amount;
-            var v1 = _valuationService.CalculateHoldingValue(h, end, ccy).Amount;
+            var v0Money = await _pricingService.CalculateHoldingValueAsync(h, start, ccy);
+            var v0 = v0Money.Amount;
+            var v1Money = await _pricingService.CalculateHoldingValueAsync(h, end, ccy);
+            var v1 = v1Money.Amount;
+
             if (v0 <= 0m) continue;
 
             var r = (v1 - v0) / v0;
             var w = v0 / accountStart;
-            yield return new ContributionRecord(
+
+            results.Add(new ContributionRecord(
                 start, end, ccy, ContributionLevel.Security, h.Instrument.Symbol.Value, w, r, w * r
-            );
+            ));
         }
+
+        return results;
     }
 
-    // SECURITY-LEVEL for a Portfolio (sum across accounts)
-    public IEnumerable<ContributionRecord> ContributionBySecurity(Portfolio portfolio, DateTime start, DateTime end, Currency ccy)
-    {
-        var p0 = _valuationService.CalculatePortfolioValue(portfolio, start, ccy).Amount;
-        if (p0 == 0m) yield break;
 
-        var all = portfolio.Accounts.SelectMany(a => a.Holdings).GroupBy(h => h.Instrument.Symbol.Value);
-        foreach (var g in all)
+    // SECURITY-LEVEL for a Portfolio (sum across accounts)
+    public async Task<IEnumerable<ContributionRecord>> ContributionBySecurityAsync(
+        Portfolio portfolio, DateTime start, DateTime end, Currency ccy)
+    {
+        var results = new List<ContributionRecord>();
+
+        var p0Money = await _pricingService.CalculatePortfolioValueAsync(portfolio, start, ccy);
+        var p0 = p0Money.Amount;
+        if (p0 == 0m)
+            return results;
+
+        var groupedHoldings = portfolio.Accounts
+            .SelectMany(a => a.Holdings)
+            .GroupBy(h => h.Instrument.Symbol.Value);
+
+        foreach (var g in groupedHoldings)
         {
             decimal v0 = 0m, v1 = 0m;
+
             foreach (var hh in g)
             {
-                v0 += _valuationService.CalculateHoldingValue(hh, start, ccy).Amount;
-                v1 += _valuationService.CalculateHoldingValue(hh, end, ccy).Amount;
+                var tmpV0Money = await _pricingService.CalculateHoldingValueAsync(hh, start, ccy);
+                v0 += tmpV0Money.Amount;
+
+                var tmpV1Money = await _pricingService.CalculateHoldingValueAsync(hh, end, ccy);
+                v1 += tmpV1Money.Amount;
             }
-            if (v0 <= 0m) continue;
+
+            if (v0 <= 0m)
+                continue;
 
             var r = (v1 - v0) / v0;
             var w = v0 / p0;
-            yield return new ContributionRecord(start, end, ccy, ContributionLevel.Security, g.Key, w, r, w * r);
+
+            results.Add(new ContributionRecord(
+                start, end, ccy,
+                ContributionLevel.Security,
+                g.Key, w, r, w * r
+            ));
         }
+
+        return results;
     }
 
+
     // ASSET CLASS aggregation for Portfolio
-    public IEnumerable<ContributionRecord> ContributionByAssetClass(Portfolio portfolio, DateTime start, DateTime end, Currency ccy)
-        => ContributionBySecurity(portfolio, start, end, ccy)
-           .GroupBy(c => SymbolToAssetClass(c.Key, portfolio))
-           .Select(g =>
-           {
-               var startWeight = g.Sum(x => x.StartWeight);
-               var contrib = g.Sum(x => x.Contribution);
-               var ret = startWeight == 0m ? 0m : contrib / startWeight;
-               return new ContributionRecord(start, end, ccy, ContributionLevel.AssetClass, g.Key, startWeight, ret, contrib);
-           });
+    public async Task<IEnumerable<ContributionRecord>> ContributionByAssetClassAsync(
+        Portfolio portfolio, DateTime start, DateTime end, Currency ccy)
+    {
+        var securities = await ContributionBySecurityAsync(portfolio, start, end, ccy);
+
+        return securities
+            .GroupBy(c => SymbolToAssetClass(c.Key, portfolio))
+            .Select(g =>
+            {
+                var startWeight = g.Sum(x => x.StartWeight);
+                var contrib = g.Sum(x => x.Contribution);
+                var ret = startWeight == 0m ? 0m : contrib / startWeight;
+
+                return new ContributionRecord(
+                    start, end, ccy,
+                    ContributionLevel.AssetClass,
+                    g.Key, startWeight, ret, contrib
+                );
+            });
+    }
+
 
     private static string SymbolToAssetClass(string symbol, Portfolio portfolio)
     {

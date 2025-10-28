@@ -10,9 +10,11 @@ using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddDatabase(builder.Configuration, builder.Environment);
+builder.Services.AddHttpClient();
 
 builder.Services.AddSingleton<IFxRateProvider, DynamicFxRateProvider>();
-builder.Services.AddSingleton<IPriceProvider, DynamicPriceProvider>();
+builder.Services.AddSingleton<IPriceProvider, InvestingPriceProvider>();
+builder.Services.AddSingleton<IPriceProvider, YahooPriceProvider>();
 builder.Services.AddScoped<IPricingService, PricingService>();
 
 builder.Services.AddScoped<IAccountRepository, AccountRepository>();
