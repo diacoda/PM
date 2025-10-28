@@ -1,12 +1,24 @@
-dotnet ef migrations add InitialCashFlows \
+# CashFlowDbContext
+
+dotnet ef migrations add SOMETEXT \
  --project Infrastructure/Infrastructure.csproj \
  --startup-project WebApi/WebApi.csproj \
  --context CashFlowDbContext
 
-dotnet ef migrations add Initial \
+dotnet ef migrations list --project Infrastructure/Infrastructure.csproj --startup-project WebApi/WebApi.csproj --context AppDbContext
+
+dotnet ef database update --context AppDbContext --project Infrastructure/Infrastructure.csproj --startup-project WebApi/WebApi.csproj
+
+# AppDbContext
+
+dotnet ef migrations add SOMETEXT \
  --project Infrastructure/Infrastructure.csproj \
  --startup-project WebApi/WebApi.csproj \
  --context AppDbContext
+
+dotnet ef migrations list --project Infrastructure/Infrastructure.csproj --startup-project WebApi/WebApi.csproj --context AppDbContext
+
+dotnet ef database update --context AppDbContext --project Infrastructure/Infrastructure.csproj --startup-project WebApi/WebApi.csproj
 
 # ValuationDbContext
 
