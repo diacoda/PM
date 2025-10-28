@@ -3,10 +3,6 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.0.31903.59
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "prototype", "prototype", "{AA5FA980-1721-759C-0A11-57B00F49D76F}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "demo", "prototype\demo.csproj", "{AEBC4C4F-803A-4AB5-AEEC-8239C6FEC1D8}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SharedKernel", "SharedKernel\SharedKernel.csproj", "{EE79A715-DD53-451D-827B-C8CC2AB948F2}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Domain", "Domain\Domain.csproj", "{9C920F4A-1F11-4E7F-A284-29EC4DC21CC1}"
@@ -29,18 +25,6 @@ Global
 		Release|x86 = Release|x86
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{AEBC4C4F-803A-4AB5-AEEC-8239C6FEC1D8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{AEBC4C4F-803A-4AB5-AEEC-8239C6FEC1D8}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{AEBC4C4F-803A-4AB5-AEEC-8239C6FEC1D8}.Debug|x64.ActiveCfg = Debug|Any CPU
-		{AEBC4C4F-803A-4AB5-AEEC-8239C6FEC1D8}.Debug|x64.Build.0 = Debug|Any CPU
-		{AEBC4C4F-803A-4AB5-AEEC-8239C6FEC1D8}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{AEBC4C4F-803A-4AB5-AEEC-8239C6FEC1D8}.Debug|x86.Build.0 = Debug|Any CPU
-		{AEBC4C4F-803A-4AB5-AEEC-8239C6FEC1D8}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{AEBC4C4F-803A-4AB5-AEEC-8239C6FEC1D8}.Release|Any CPU.Build.0 = Release|Any CPU
-		{AEBC4C4F-803A-4AB5-AEEC-8239C6FEC1D8}.Release|x64.ActiveCfg = Release|Any CPU
-		{AEBC4C4F-803A-4AB5-AEEC-8239C6FEC1D8}.Release|x64.Build.0 = Release|Any CPU
-		{AEBC4C4F-803A-4AB5-AEEC-8239C6FEC1D8}.Release|x86.ActiveCfg = Release|Any CPU
-		{AEBC4C4F-803A-4AB5-AEEC-8239C6FEC1D8}.Release|x86.Build.0 = Release|Any CPU
 		{EE79A715-DD53-451D-827B-C8CC2AB948F2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{EE79A715-DD53-451D-827B-C8CC2AB948F2}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{EE79A715-DD53-451D-827B-C8CC2AB948F2}.Debug|x64.ActiveCfg = Debug|Any CPU
@@ -116,8 +100,5 @@ Global
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
-	EndGlobalSection
-	GlobalSection(NestedProjects) = preSolution
-		{AEBC4C4F-803A-4AB5-AEEC-8239C6FEC1D8} = {AA5FA980-1721-759C-0A11-57B00F49D76F}
 	EndGlobalSection
 EndGlobal
