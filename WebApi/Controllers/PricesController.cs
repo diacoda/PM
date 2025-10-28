@@ -7,7 +7,7 @@ using PM.Application.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 
 [ApiController]
-[Route("api/[controller]")]
+[Route("api/v{version:apiVersion}/[controller]")]
 [Produces("application/json")]
 public class PricesController : ControllerBase
 {

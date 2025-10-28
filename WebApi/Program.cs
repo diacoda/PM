@@ -8,8 +8,14 @@ using PM.Application.Commands;
 using PM.API.HostedServices;
 
 var builder = WebApplication.CreateBuilder(args);
-builder.Services.AddDatabase(builder.Configuration, builder.Environment);
-builder.Services.AddHttpClient();
+
+builder.Host.UseSerilogLogging(builder.Configuration);
+builder.Services
+    .AddHttpClient()
+    .AddDatabase(builder.Configuration, builder.Environment)
+    .AddTelemetry(builder.Configuration, builder.Environment)
+    .AddSwaggerWithVersioning()
+    .AddHealthChecksWithDependencies(builder.Configuration);
 
 // Symbols
 var symbols = builder.Configuration
@@ -28,11 +34,7 @@ var holidays = builder.Configuration
         x => x.Get<List<string>>()!.Select(DateOnly.Parse).ToList()
     );
 builder.Services.AddSingleton<IMarketCalendar>(new MarketCalendar(holidays));
-
-// Hosted Services
 builder.Services.AddHostedService<DailyPriceService>();
-
-// Commands / Providers / Repositories
 builder.Services.AddScoped<FetchDailyPricesCommand>();
 
 builder.Services.AddSingleton<IFxRateProvider, DynamicFxRateProvider>();
@@ -47,6 +49,7 @@ builder.Services.AddScoped<IPortfolioRepository, PortfolioRepository>();
 builder.Services.AddScoped<IValuationRepository, ValuationRepository>();
 builder.Services.AddScoped<ICashFlowRepository, CashFlowRepository>();
 builder.Services.AddScoped<IPriceRepository, PriceRepository>();
+builder.Services.AddScoped<IFxRateRepository, FxRateRepository>();
 
 builder.Services.AddScoped<IAccountService, AccountService>();
 builder.Services.AddScoped<IHoldingService, HoldingService>();
@@ -56,11 +59,13 @@ builder.Services.AddScoped<IValuationService, ValuationService>();
 builder.Services.AddScoped<ITradeCostService, TradeCostService>();
 builder.Services.AddScoped<ICashFlowService, CashFlowService>();
 builder.Services.AddScoped<IPriceService, PriceService>();
+builder.Services.AddScoped<IFxRateService, FxRateService>();
 builder.Services.AddScoped<IAccountManager, AccountManager>();
 
 builder.Services.AddControllers();
 builder.Services.AddOpenApi();
 builder.Services.AddSwaggerUI();
+
 var app = builder.Build();
 
 if (app.Environment.IsDevelopment())
@@ -72,15 +77,5 @@ if (app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 
 app.MapControllers();
-
-using (var scope = app.Services.CreateScope())
-{
-    var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
-    var dbPaths = scope.ServiceProvider.GetRequiredService<DatabasePaths>();
-    logger.LogInformation("Portfolio DB: {path}", dbPaths.PortfolioPath);
-    logger.LogInformation("CashFlow DB : {path}", dbPaths.CashFlowPath);
-    logger.LogInformation("Valuation DB: {path}", dbPaths.ValuationPath);
-}
-
 app.Run();
 

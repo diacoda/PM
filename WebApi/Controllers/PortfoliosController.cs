@@ -6,7 +6,7 @@ using PM.DTO;
 namespace PM.API.Controllers;
 
 [ApiController]
-[Route("api/[controller]")]
+[Route("api/v{version:apiVersion}/[controller]")]
 public class PortfoliosController : ControllerBase
 {
     private readonly IPortfolioService _portfolioService;

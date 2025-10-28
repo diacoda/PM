@@ -8,7 +8,7 @@ using PM.DTO;
 namespace PM.API.Controllers;
 
 [ApiController]
-[Route("api/[controller]")]
+[Route("api/v{version:apiVersion}/[controller]")]
 public class ValuationsController : ControllerBase
 {
     private readonly IValuationService _valuationService;

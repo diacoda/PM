@@ -11,12 +11,39 @@ namespace PM.Infrastructure.Data
 
         public DbSet<ValuationRecord> ValuationRecords => Set<ValuationRecord>();
         public DbSet<InstrumentPrice> Prices => Set<InstrumentPrice>();
+        public DbSet<FxRate> FxRates => Set<FxRate>();
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             var currencyConverter = ValueConverters.CurrencyConverter;
             var moneyAmountConverter = ValueConverters.MoneyAmountConverter;
             var symbolStringConverter = ValueConverters.SymbolStringConverter;
+
+            modelBuilder.Entity<FxRate>(b =>
+            {
+                // Composite primary key
+                b.HasKey(f => new { f.FromCurrency, f.ToCurrency, f.Date });
+
+                b.Property(f => f.FromCurrency)
+                    .HasConversion(currencyConverter)
+                    .HasMaxLength(3)
+                    .IsRequired();
+
+                b.Property(f => f.ToCurrency)
+                    .HasConversion(currencyConverter)
+                    .HasMaxLength(3)
+                    .IsRequired();
+
+                b.Property(f => f.Date)
+                    .IsRequired();
+
+                b.Property(f => f.Rate)
+                    .HasPrecision(18, 6)
+                    .IsRequired();
+
+                // Optional index for faster queries by pair
+                b.HasIndex(f => new { f.FromCurrency, f.ToCurrency });
+            });
 
             // --- InstrumentPrice ---
             modelBuilder.Entity<InstrumentPrice>(builder =>

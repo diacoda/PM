@@ -1,0 +1,31 @@
+using PM.Domain.Values;
+
+namespace PM.Application.Interfaces;
+
+public interface IFxRateService
+{
+    /// <summary>
+    /// Insert or update an FX rate for a currency pair and date.
+    /// </summary>
+    Task<FxRate> UpdateRateAsync(string fromCurrencyCode, string toCurrencyCode, decimal rate, DateTime date);
+
+    /// <summary>
+    /// Get an FX rate for a currency pair on a specific date.
+    /// </summary>
+    Task<FxRate?> GetRateAsync(string fromCurrencyCode, string toCurrencyCode, DateTime date);
+
+    /// <summary>
+    /// Get all historical FX rates for a currency pair.
+    /// </summary>
+    Task<List<FxRate>> GetAllRatesForPairAsync(string fromCurrencyCode, string toCurrencyCode);
+
+    /// <summary>
+    /// Delete an FX rate for a currency pair and date.
+    /// </summary>
+    Task<bool> DeleteRateAsync(string fromCurrencyCode, string toCurrencyCode, DateTime date);
+
+    /// <summary>
+    /// Get all FX rates for a given date.
+    /// </summary>
+    Task<List<FxRate>> GetAllRatesByDateAsync(DateTime date);
+}

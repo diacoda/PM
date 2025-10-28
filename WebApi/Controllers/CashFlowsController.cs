@@ -5,7 +5,7 @@ using PM.DTO;
 namespace PM.API.Controllers;
 
 [ApiController]
-[Route("api/[controller]")]
+[Route("api/v{version:apiVersion}/[controller]")]
 public class CashFlowsController : ControllerBase
 {
     private readonly IAccountManager _accountManager;
