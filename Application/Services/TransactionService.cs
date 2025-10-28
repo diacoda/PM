@@ -16,12 +16,12 @@ namespace PM.Application.Services
             _accountRepo = accountRepo;
         }
 
-        public async Task<Transaction> CreateAsync(TransactionType type, Instrument instrument, decimal quantity, Money amount, DateTime date, CancellationToken ct = default)
+        public async Task<Transaction> CreateAsync(TransactionType type, Symbol instrument, decimal quantity, Money amount, DateTime date, CancellationToken ct = default)
         {
             var tx = new Transaction
             {
                 Type = type,
-                Instrument = instrument,
+                Symbol = instrument,
                 Quantity = quantity,
                 Amount = amount,
                 Date = date
@@ -43,17 +43,17 @@ namespace PM.Application.Services
             Holding EnsureCash(Currency ccy)
             {
                 var sym = new Symbol(ccy.Code);
-                var h = account.Holdings.FirstOrDefault(x => x.Instrument.Symbol == sym);
+                var h = account.Holdings.FirstOrDefault(x => x.Symbol == sym);
                 if (h == null)
                 {
-                    h = new Holding(new Instrument(sym, $"{ccy} Cash", AssetClass.Cash), 0m);
+                    h = new Holding(sym, 0m);
                     account.AddHolding(h);
                 }
                 return h;
             }
 
             Holding? FindPosition() =>
-                account.Holdings.FirstOrDefault(h => h.Instrument.Symbol == transaction.Instrument.Symbol);
+                account.Holdings.FirstOrDefault(h => h.Symbol == transaction.Symbol);
 
             decimal CostOrZero() => transaction.Costs?.Amount ?? 0m;
 
@@ -80,7 +80,7 @@ namespace PM.Application.Services
                         var pos = FindPosition();
                         if (pos == null)
                         {
-                            pos = new Holding(transaction.Instrument, 0m);
+                            pos = new Holding(transaction.Symbol, 0m);
                             account.AddHolding(pos);
                         }
                         pos.Quantity += transaction.Quantity;

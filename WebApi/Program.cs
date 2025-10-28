@@ -51,6 +51,7 @@ builder.Services.AddScoped<IValuationRepository, ValuationRepository>();
 builder.Services.AddScoped<ICashFlowRepository, CashFlowRepository>();
 builder.Services.AddScoped<IPriceRepository, PriceRepository>();
 builder.Services.AddScoped<IFxRateRepository, FxRateRepository>();
+builder.Services.AddScoped<ITagRepository, TagRepository>();
 
 builder.Services.AddScoped<IAccountService, AccountService>();
 builder.Services.AddScoped<IHoldingService, HoldingService>();
@@ -62,8 +63,15 @@ builder.Services.AddScoped<ICashFlowService, CashFlowService>();
 builder.Services.AddScoped<IPriceService, PriceService>();
 builder.Services.AddScoped<IFxRateService, FxRateService>();
 builder.Services.AddScoped<IAccountManager, AccountManager>();
+builder.Services.AddScoped<ITagService, TagService>();
 
-builder.Services.AddControllers();
+builder.Services
+    .AddControllers()
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.WriteIndented = true;
+    });
+;
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddOpenApiDocument(options =>
 {

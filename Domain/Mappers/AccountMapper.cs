@@ -11,4 +11,13 @@ public static class AccountMapper
             dto.Name,
             new Currency(dto.Currency),
             Enum.Parse<Domain.Enums.FinancialInstitutions>(dto.Institution));
+
+    public static AccountDTO ToDTO(Account account) => new AccountDTO
+    {
+        Id = account.Id,
+        Name = account.Name,
+        Currency = account.Currency.Code,
+        FinancialInstitution = account.FinancialInstitution.ToString(),
+        PortfolioId = account.PortfolioId
+    };        
 }

@@ -1,3 +1,3 @@
 namespace PM.Domain.Values;
 
-public record BenchmarkComponent(Instrument Instrument, decimal Weight);
+public record BenchmarkComponent(Symbol Symbol, decimal Weight);

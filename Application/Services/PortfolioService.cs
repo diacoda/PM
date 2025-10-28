@@ -37,8 +37,9 @@ namespace PM.Application.Services
 
         public async Task DeleteAsync(int portfolioId, CancellationToken ct = default)
         {
-            var portfolio = await _repo.GetByIdAsync(portfolioId, ct);
-            if (portfolio == null) return;
+            var portfolio = await _repo.GetByIdAsync(portfolioId, ct)
+                ?? throw new KeyNotFoundException($"Portfolio with ID {portfolioId} not found.");
+
             await _repo.DeleteAsync(portfolio, ct);
             await _repo.SaveChangesAsync(ct);
         }

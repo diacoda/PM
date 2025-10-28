@@ -14,6 +14,11 @@ public class Tag : Entity
     {
         Name = name.Trim();
     }
+    
+    public void UpdateName(string newName)
+    {
+        Name = newName?.Trim() ?? string.Empty;
+    }
 
     public override string ToString() => Name;
 

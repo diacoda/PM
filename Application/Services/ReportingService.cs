@@ -23,7 +23,7 @@ public class ReportingService : IReportingService
         foreach (var holding in account.Holdings)
         {
             var value = await _pricingService.CalculateHoldingValueAsync(holding, date, reportingCurrency);
-            var assetClass = holding.Instrument.AssetClass;
+            var assetClass = holding.Symbol.AssetClass;
 
             if (result.ContainsKey(assetClass))
             {
@@ -71,7 +71,7 @@ public class ReportingService : IReportingService
 
         foreach (var holding in account.Holdings)
         {
-            Console.WriteLine($"- {holding.Instrument.Symbol} ({holding.Instrument.Name}) | Asset Class: {holding.Instrument.AssetClass} | Quantity: {holding.Quantity}");
+            Console.WriteLine($"- {holding.Symbol} | Asset Class: {holding.Symbol.AssetClass} | Quantity: {holding.Quantity}");
         }
     }
 
@@ -86,7 +86,7 @@ public class ReportingService : IReportingService
 
         foreach (var tx in filtered)
         {
-            Console.WriteLine($"- {tx.Date:yyyy-MM-dd} | {tx.Type} | {tx.Instrument.Symbol} | Qty: {tx.Quantity} | Amount: {tx.Amount.Amount} {tx.Amount.Currency}");
+            Console.WriteLine($"- {tx.Date:yyyy-MM-dd} | {tx.Type} | Qty: {tx.Quantity} | Amount: {tx.Amount.Amount} {tx.Amount.Currency}");
         }
     }
     public async Task<Dictionary<AssetClass, decimal>> GetAssetClassPercentagesAsync(Account account, DateTime date, Currency reportingCurrency)
@@ -221,7 +221,7 @@ public class ReportingService : IReportingService
 
         return tx
             // group by symbol + cost currency + type
-            .GroupBy(t => new { Sym = t.Instrument.Symbol.Value, Cur = t.Costs!.Currency, t.Type })
+            .GroupBy(t => new { Sym = t.Symbol.Value, Cur = t.Costs!.Currency, t.Type })
             // NAME the tuple fields here ⬇
             .Select(g => (
                 Symbol: g.Key.Sym,

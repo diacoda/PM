@@ -9,15 +9,15 @@ public class Holding : Entity
     private Holding() { } // <- EF Core uses this
 
     // Convenience constructor for domain usage
-    public Holding(Instrument instrument, decimal quantity)
+    public Holding(Symbol symbol, decimal quantity)
     {
-        Instrument = instrument ?? throw new ArgumentNullException(nameof(instrument));
+        Symbol = symbol ?? throw new ArgumentNullException(nameof(symbol));
         Quantity = quantity;
     }
 
     public int Id { get; private set; }
 
-    public Instrument Instrument { get; set; } = default!;
+    public Symbol Symbol { get; set; } = default!;
 
     public decimal Quantity { get; set; }
 

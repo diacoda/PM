@@ -1,14 +1,14 @@
 namespace PM.Domain.Values;
 
-public class Instrument
+public class InstrumentREMOVED
 {
     public Symbol Symbol { get; private set; } = default!;
     public string Name { get; private set; } = string.Empty;
     public AssetClass AssetClass { get; private set; }
 
-    private Instrument() { }
+    private InstrumentREMOVED() { }
 
-    public Instrument(Symbol symbol, string name, AssetClass assetClass)
+    public InstrumentREMOVED(Symbol symbol, string name, AssetClass assetClass)
     {
         Symbol = symbol;
         Name = name;

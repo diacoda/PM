@@ -70,12 +70,13 @@ namespace PM.Domain.Entities
         public decimal GetCashBalance(Currency currency)
         {
             var symbol = new Symbol("CAD");
-            var holding = Holdings.FirstOrDefault(h => h.Instrument.Symbol == symbol);
+            var holding = Holdings.FirstOrDefault(h => h.Symbol == symbol);
             return holding?.Quantity ?? 0;
         }
         public void LinkToPortfolio(Portfolio portfolio)
         {
             Portfolio = portfolio ?? throw new ArgumentNullException(nameof(portfolio));
+            PortfolioId = portfolio.Id;
         }
         public override string ToString() =>
             $"Account {Id}: {Name} ({Currency}) @ {FinancialInstitution}";

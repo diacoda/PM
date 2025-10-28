@@ -12,7 +12,7 @@ public class Transaction : Entity
 
     public TransactionType Type { get; set; }
 
-    public Instrument Instrument { get; set; } = default!; // Owned type
+    public Symbol Symbol { get; set; } = default!; // Owned type
 
     public decimal Quantity { get; set; }
 

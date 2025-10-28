@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using PM.Application.Interfaces;
+using PM.Domain.Entities;
 using PM.Domain.Mappers;
 using PM.DTO;
 
@@ -29,8 +30,8 @@ public class PortfoliosController : ControllerBase
     /// <response code="200">Portfolio created successfully.</response>
     /// <response code="400">Invalid input data.</response>
     [HttpPost]
-    [ProducesResponseType(StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(PortfolioDTO), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> Create([FromBody] CreatePortfolioDTO dto)
     {
         var createdPortfolio = await _portfolioService.CreateAsync(dto.Owner);
@@ -47,19 +48,32 @@ public class PortfoliosController : ControllerBase
     /// <response code="404">Portfolio not found.</response>
     /// <response code="400">Invalid input data.</response>
     [HttpPost("{portfolioId}/accounts")]
-    [ProducesResponseType(StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
-    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(AccountDTO), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> AddAccountAsync(int portfolioId, [FromBody] CreateAccountDTO dto)
     {
+        /*
         var requestAccount = AccountMapper.ToEntity(dto);
-        var createdAccount = await _accountService.CreateAsync(requestAccount.Name, requestAccount.Currency, requestAccount.FinancialInstitution);
+        var createdAccount = await _accountService.CreateAsync(
+            requestAccount.Name,
+            requestAccount.Currency,
+            requestAccount.FinancialInstitution);
 
         var portfolio = await _portfolioService.GetByIdAsync(portfolioId);
         if (portfolio == null) return NotFound();
 
         await _accountService.AddAccountToPortfolioAsync(portfolio.Id, createdAccount.Id);
         return Ok(createdAccount);
+        */
+        var requestAccount = AccountMapper.ToEntity(dto);
+        var account = await _accountService.CreateAsync(
+                portfolioId,
+                requestAccount.Name,
+                requestAccount.Currency,
+                requestAccount.FinancialInstitution);
+        return Ok(AccountMapper.ToDTO(account));
+
     }
 
     /// <summary>
@@ -70,8 +84,8 @@ public class PortfoliosController : ControllerBase
     /// <response code="200">List of accounts returned successfully.</response>
     /// <response code="404">Portfolio not found.</response>
     [HttpGet("{portfolioId}/accounts")]
-    [ProducesResponseType(StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(IEnumerable<Account>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
     public async Task<IActionResult> ListAccounts(int portfolioId)
     {
         var portfolio = await _portfolioService.GetByIdAsync(portfolioId);
@@ -88,8 +102,8 @@ public class PortfoliosController : ControllerBase
     /// <response code="200">Portfolio details returned successfully.</response>
     /// <response code="404">Portfolio not found.</response>
     [HttpGet("{portfolioId}")]
-    [ProducesResponseType(StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(PortfolioDTO), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
     public async Task<IActionResult> Get(int portfolioId)
     {
         var portfolio = await _portfolioService.GetByIdAsync(portfolioId);
@@ -104,8 +118,8 @@ public class PortfoliosController : ControllerBase
     /// <response code="200">List of portfolios returned successfully.</response>
     /// <response code="404">No portfolios found.</response>
     [HttpGet("")]
-    [ProducesResponseType(StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(IEnumerable<PortfolioDTO>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
     public async Task<IActionResult> List()
     {
         var portfolios = await _portfolioService.ListAsync();
@@ -115,4 +129,78 @@ public class PortfoliosController : ControllerBase
         var portfolioDtos = portfolios.Select(PortfolioMapper.ToDTO);
         return Ok(portfolioDtos);
     }
+    /// <summary>
+    /// Deletes an account from a portfolio.
+    /// </summary>
+    /// <param name="portfolioId">The ID of the portfolio.</param>
+    /// <param name="accountId">The ID of the account to delete.</param>
+    /// <returns>No content if successful; 404 if not found or not linked.</returns>
+    [HttpDelete("{portfolioId}/accounts/{accountId}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> DeleteAccountFromPortfolio(int portfolioId, int accountId)
+    {
+        try
+        {
+            await _accountService.RemoveAccountFromPortfolioAsync(portfolioId, accountId);
+            return NoContent();
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(new ProblemDetails { Title = ex.Message });
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new ProblemDetails { Title = ex.Message });
+        }
+    }
+
+    /// <summary>
+    /// Retrieves a specific account from a portfolio.
+    /// </summary>
+    /// <param name="portfolioId">The ID of the portfolio.</param>
+    /// <param name="accountId">The ID of the account to retrieve.</param>
+    /// <returns>The account details if found.</returns>
+    [HttpGet("{portfolioId}/accounts/{accountId}")]
+    [ProducesResponseType(typeof(AccountDTO), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> GetAccountFromPortfolio(int portfolioId, int accountId)
+    {
+        try
+        {
+            var account = await _accountService.GetAccountAsync(portfolioId, accountId);
+            if (account is null)
+                return NotFound(new ProblemDetails { Title = $"Account {accountId} not found in Portfolio {portfolioId}." });
+
+            return Ok(AccountMapper.ToDTO(account));
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(new ProblemDetails { Title = "An unexpected error occurred", Detail = ex.Message });
+        }
+    }
+
+    /// <summary>
+    /// Deletes a portfolio by ID.
+    /// </summary>
+    /// <param name="portfolioId">The ID of the portfolio to delete.</param>
+    /// <returns>No content if successful; 404 if not found.</returns>
+    [HttpDelete("{portfolioId}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> DeletePortfolio(int portfolioId)
+    {
+        try
+        {
+            await _portfolioService.DeleteAsync(portfolioId);
+            return NoContent();
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(new ProblemDetails { Title = ex.Message });
+        }
+    }
+
 }

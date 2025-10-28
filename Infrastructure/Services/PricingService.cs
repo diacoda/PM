@@ -18,7 +18,7 @@ public class PricingService : IPricingService
 
     public async Task<Money> CalculateHoldingValueAsync(Holding holding, DateTime date, Currency reportingCurrency)
     {
-        var price = await _priceProvider.GetPriceAsync(holding.Instrument.Symbol, DateOnly.FromDateTime(date));
+        var price = await _priceProvider.GetPriceAsync(holding.Symbol, DateOnly.FromDateTime(date));
         if (price == null) return new Money(0, reportingCurrency);
 
         FxRate? fx = null;

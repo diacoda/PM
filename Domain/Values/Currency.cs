@@ -2,7 +2,7 @@ namespace PM.Domain.Values
 {
     public sealed record Currency
     {
-        public string Code { get; private set; }
+        public string Code { get; private set; } = String.Empty;
 
         private Currency() { } // EF
 

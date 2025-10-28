@@ -13,25 +13,28 @@ public class HoldingConfiguration : IEntityTypeConfiguration<Holding>
         b.Property(h => h.Quantity)
             .IsRequired();
 
-        // ✅ Owned type mapping for Instrument
-        b.OwnsOne(h => h.Instrument, i =>
+        // ✅ Owned type mapping for Symbol
+        b.OwnsOne(h => h.Symbol, s =>
         {
-            i.Property(x => x.Name)
-                .HasMaxLength(100);
+            s.Property(x => x.Value)
+                .HasMaxLength(20)
+                .IsRequired();
 
-            i.Property(x => x.AssetClass)
-                .HasConversion<int>();
+            s.Property(x => x.Currency)
+                .HasMaxLength(3)
+                .IsRequired();
 
-            i.OwnsOne(x => x.Symbol, s =>
-            {
-                s.Property(x => x.Value)
-                    .HasMaxLength(20)
-                    .IsRequired();
-            });
+            s.Property(x => x.Exchange)
+                .HasMaxLength(10)
+                .IsRequired();
+
+            s.Property(x => x.AssetClass)
+                .HasConversion<int>()
+                .IsRequired();
         });
 
         // ✅ Many-to-many for Tags
-        b.HasMany<Tag>()
+        b.HasMany(h => h.Tags)
             .WithMany()
             .UsingEntity<Dictionary<string, object>>(
                 "HoldingTag",

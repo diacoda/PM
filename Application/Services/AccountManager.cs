@@ -15,8 +15,8 @@ public class AccountManager : IAccountManager
     private ITransactionService _transactionService;
     private ITradeCostService _costService;
     private ICashFlowService _cashFlowService;
-    private Instrument _cadCash = new Instrument(new Symbol("CAD"), "Canadian Dollar", AssetClass.Cash);
-    private Instrument _usdCash = new Instrument(new Symbol("USD"), "US Dollar", AssetClass.Cash);
+    private Symbol _cadCash = new Symbol("CAD");
+    private Symbol _usdCash = new Symbol("USD", "USD");
 
     public AccountManager(ITransactionService transactionService, ITradeCostService costService, ICashFlowService cashFlowService)
     {
@@ -25,21 +25,21 @@ public class AccountManager : IAccountManager
         _cashFlowService = cashFlowService;
     }
 
-    public async Task Buy(Account acct, Instrument instr, decimal qty, decimal grossAmount, string ccy, DateTime d, string note = "")
+    public async Task Buy(Account acct, Symbol instr, decimal qty, decimal grossAmount, string ccy, DateTime d, string note = "")
     {
         var money = new Money(grossAmount, new Currency(ccy));
         var tx = await _transactionService.CreateAsync(TransactionType.Buy, instr, qty, money, d);
         tx.Costs = _costService.ComputeBuySellCost(money);
         await _transactionService.AddTransactionAsync(acct, tx, applyToCash: true);
     }
-    public async Task Sell(Account acct, Instrument instr, decimal qty, decimal grossAmount, string ccy, DateTime d, string note = "")
+    public async Task Sell(Account acct, Symbol instr, decimal qty, decimal grossAmount, string ccy, DateTime d, string note = "")
     {
         var money = new Money(grossAmount, new Currency(ccy));
         var tx = await _transactionService.CreateAsync(TransactionType.Sell, instr, qty, money, d);
         tx.Costs = _costService.ComputeBuySellCost(money);
         await _transactionService.AddTransactionAsync(acct, tx, applyToCash: true);
     }
-    public async Task Dividend(Account acct, Instrument instr, decimal amount, string ccy, DateTime d, string note = "")
+    public async Task Dividend(Account acct, Symbol instr, decimal amount, string ccy, DateTime d, string note = "")
     {
         var money = new Money(amount, new Currency(ccy));
         var tx = await _transactionService.CreateAsync(TransactionType.Dividend, instr, 0m, money, d);

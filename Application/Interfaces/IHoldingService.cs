@@ -6,7 +6,7 @@ namespace PM.Application.Interfaces;
 
 public interface IHoldingService
 {
-    Task AddHoldingAsync(int accountId, Instrument instrument, decimal quantity, CancellationToken ct = default);
+    Task AddHoldingAsync(int accountId, Symbol symbol, decimal quantity, CancellationToken ct = default);
 
     Task RemoveHoldingAsync(int accountId, Symbol symbol, CancellationToken ct = default);
 

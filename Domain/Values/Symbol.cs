@@ -30,7 +30,7 @@ public sealed class Symbol : IEquatable<Symbol>
     }
 
     // 🔍 Resolve asset class from static map
-    private static AssetClass ResolveAssetClass(string symbol)
+    public static AssetClass ResolveAssetClass(string symbol)
     {
         if (SymbolAssetClassMap.TryGetValue(symbol.Trim().ToUpperInvariant(), out var cls))
             return cls;
@@ -50,6 +50,7 @@ public sealed class Symbol : IEquatable<Symbol>
         { "VI.TO", AssetClass.DevelopedEquity },
         { "BTCC.TO", AssetClass.Crypto },
         { "CAD", AssetClass.Cash },
+        { "USD", AssetClass.Cash },
         { "TDB900", AssetClass.CanadianEquity },
         { "TDB902", AssetClass.USEquity },
         { "TDB911", AssetClass.DevelopedEquity },

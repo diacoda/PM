@@ -15,7 +15,7 @@ namespace PM.Application.Services
             _holdingRepo = holdingRepo;
         }
 
-        public async Task AddHoldingAsync(int accountId, Instrument instrument, decimal quantity, CancellationToken ct = default)
+        public async Task AddHoldingAsync(int accountId, Symbol instrument, decimal quantity, CancellationToken ct = default)
         {
             var account = await _accountRepo.GetByIdAsync(accountId, ct);
             if (account == null) return;
@@ -32,7 +32,7 @@ namespace PM.Application.Services
             var account = await _accountRepo.GetByIdAsync(accountId, ct);
             if (account == null) return;
 
-            var holding = account.Holdings.FirstOrDefault(h => h.Instrument.Symbol.Equals(symbol));
+            var holding = account.Holdings.FirstOrDefault(h => h.Symbol.Equals(symbol));
             if (holding == null) return;
 
             account.RemoveHolding(holding);
@@ -43,7 +43,7 @@ namespace PM.Application.Services
         public async Task<Holding?> GetHoldingAsync(int accountId, Symbol symbol, CancellationToken ct = default)
         {
             var holdings = await _holdingRepo.ListByAccountAsync(accountId, ct);
-            return holdings.FirstOrDefault(h => h.Instrument.Symbol.Equals(symbol));
+            return holdings.FirstOrDefault(h => h.Symbol.Equals(symbol));
         }
 
         public async Task UpdateHoldingQuantityAsync(Holding holding, decimal newQty, CancellationToken ct = default)
@@ -58,7 +58,7 @@ namespace PM.Application.Services
             var symbol = new Symbol(currency.Code);
             var account = await _accountRepo.GetByIdAsync(accountId, ct);
             if (account == null) return 0.0m;
-            var holding = account.Holdings.FirstOrDefault(h => h.Instrument.Symbol == symbol);
+            var holding = account.Holdings.FirstOrDefault(h => h.Symbol == symbol);
             return holding?.Quantity ?? 0;
         }
 

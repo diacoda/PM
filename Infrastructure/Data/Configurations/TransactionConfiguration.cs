@@ -8,10 +8,8 @@ public class TransactionConfiguration : IEntityTypeConfiguration<Transaction>
 {
     public void Configure(EntityTypeBuilder<Transaction> b)
     {
-        // Primary key
         b.HasKey(t => t.Id);
 
-        // Basic properties
         b.Property(t => t.Date)
             .IsRequired();
 
@@ -22,22 +20,27 @@ public class TransactionConfiguration : IEntityTypeConfiguration<Transaction>
         b.Property(t => t.Quantity)
             .IsRequired();
 
-        b.OwnsOne(t => t.Instrument, i =>
+        // ✅ Owned type mapping for Symbol
+        b.OwnsOne(t => t.Symbol, s =>
         {
-            i.Property(ins => ins.Name)
-                .HasMaxLength(100);
+            s.Property(x => x.Value)
+                .HasMaxLength(20)
+                .IsRequired();
 
-            i.Property(ins => ins.AssetClass)
-                .HasConversion<int>();
+            s.Property(x => x.Currency)
+                .HasMaxLength(3)
+                .IsRequired();
 
-            i.OwnsOne(ins => ins.Symbol, s =>
-            {
-                s.Property(sym => sym.Value)
-                    .HasMaxLength(20)
-                    .IsRequired();
-            });
+            s.Property(x => x.Exchange)
+                .HasMaxLength(10)
+                .IsRequired();
+
+            s.Property(x => x.AssetClass)
+                .HasConversion<int>()
+                .IsRequired();
         });
 
+        // ✅ Owned type mapping for Amount
         b.OwnsOne(t => t.Amount, amount =>
         {
             amount.Property(m => m.Amount)
@@ -51,6 +54,7 @@ public class TransactionConfiguration : IEntityTypeConfiguration<Transaction>
             });
         });
 
+        // ✅ Optional Costs
         b.OwnsOne(t => t.Costs, costs =>
         {
             costs.Property(m => m.Amount);

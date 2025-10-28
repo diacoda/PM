@@ -4,8 +4,10 @@ using PM.DTO;
 
 namespace PM.API.Controllers;
 
+/// <summary>
+/// Handles cash flow operations such as deposits, withdrawals, and fees for investment accounts.
+/// </summary>
 [ApiController]
-//[Route("api/v{version:apiVersion}/[controller]")]
 [Route("api/[controller]")]
 public class CashFlowsController : ControllerBase
 {
@@ -18,6 +20,11 @@ public class CashFlowsController : ControllerBase
         _accountService = accountService;
     }
 
+    /// <summary>
+    /// Deposits cash into a specified account.
+    /// </summary>
+    /// <param name="dto">Details of the deposit including portfolio ID, account ID, amount, currency, date, and note.</param>
+    /// <returns>Returns 200 OK if successful, or 400 Bad Request if the account is invalid.</returns>
     [HttpPost("deposit")]
     public async Task<IActionResult> Deposit([FromBody] CashFlowDTO dto)
     {
@@ -27,6 +34,11 @@ public class CashFlowsController : ControllerBase
         return Ok();
     }
 
+    /// <summary>
+    /// Withdraws cash from a specified account.
+    /// </summary>
+    /// <param name="dto">Details of the withdrawal including portfolio ID, account ID, amount, currency, date, and note.</param>
+    /// <returns>Returns 200 OK if successful, or 400 Bad Request if the account is invalid.</returns>
     [HttpPost("withdraw")]
     public async Task<IActionResult> Withdraw([FromBody] CashFlowDTO dto)
     {
@@ -36,6 +48,11 @@ public class CashFlowsController : ControllerBase
         return Ok();
     }
 
+    /// <summary>
+    /// Applies a fee to a specified account.
+    /// </summary>
+    /// <param name="dto">Details of the fee including portfolio ID, account ID, amount, currency, date, and note.</param>
+    /// <returns>Returns 200 OK if successful, or 400 Bad Request if the account is invalid.</returns>
     [HttpPost("fee")]
     public async Task<IActionResult> Fee([FromBody] CashFlowDTO dto)
     {

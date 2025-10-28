@@ -10,9 +10,9 @@ using PM.Domain.Values;
 // Buy Sell Dividend
 public interface IAccountManager
 {
-    Task Buy(Account acct, Instrument instr, decimal qty, decimal grossAmount, string ccy, DateTime d, string note = "");
-    Task Sell(Account acct, Instrument instr, decimal qty, decimal grossAmount, string ccy, DateTime d, string note = "");
-    Task Dividend(Account acct, Instrument instr, decimal amount, string ccy, DateTime d, string note = "");
+    Task Buy(Account acct, Symbol instr, decimal qty, decimal grossAmount, string ccy, DateTime d, string note = "");
+    Task Sell(Account acct, Symbol instr, decimal qty, decimal grossAmount, string ccy, DateTime d, string note = "");
+    Task Dividend(Account acct, Symbol instr, decimal amount, string ccy, DateTime d, string note = "");
     Task Deposit(Account acct, decimal amt, string ccy, DateTime d, string note);
     Task Withdraw(Account acct, decimal amt, string ccy, DateTime d, string note);
     Task Fee(Account acct, decimal amt, string ccy, DateTime d, string note);
