@@ -8,7 +8,7 @@ public record FxRate
     // EF Core needs parameterless constructor + setters
     private FxRate() { }
 
-    public FxRate(Currency fromCurrency, Currency toCurrency, DateTime date, decimal rate)
+    public FxRate(Currency fromCurrency, Currency toCurrency, DateOnly date, decimal rate)
     {
         FromCurrency = fromCurrency ?? throw new ArgumentNullException(nameof(fromCurrency));
         ToCurrency = toCurrency ?? throw new ArgumentNullException(nameof(toCurrency));
@@ -18,7 +18,7 @@ public record FxRate
 
     public Currency FromCurrency { get; set; } = default!;
     public Currency ToCurrency { get; set; } = default!;
-    public DateTime Date { get; set; }
+    public DateOnly Date { get; set; }
     public decimal Rate { get; set; }
 
     // Optional helper for queries

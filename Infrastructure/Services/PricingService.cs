@@ -24,7 +24,7 @@ public class PricingService : IPricingService
         FxRate? fx = null;
         if (price.Price.Currency != reportingCurrency)
         {
-            fx = _fxRateProvider.GetRate(price.Price.Currency, reportingCurrency, date);
+            fx = await _fxRateProvider.GetFxRateAsync(price.Price.Currency, reportingCurrency, DateOnly.FromDateTime(date));
         }
 
         decimal value = holding.Quantity * price.Price.Amount;

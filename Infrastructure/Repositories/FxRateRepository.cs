@@ -17,13 +17,13 @@ public class FxRateRepository : IFxRateRepository
     /// <summary>
     /// Get FX rate for a currency pair and date
     /// </summary>
-    public async Task<FxRate?> GetAsync(Currency fromCurrency, Currency toCurrency, DateTime date)
+    public async Task<FxRate?> GetAsync(Currency fromCurrency, Currency toCurrency, DateOnly date)
     {
         return await _db.FxRates
             .AsNoTracking()
             .FirstOrDefaultAsync(f => f.FromCurrency.Equals(fromCurrency)
                                    && f.ToCurrency.Equals(toCurrency)
-                                   && f.Date == date.Date);
+                                   && f.Date == date);
     }
 
     /// <summary>
@@ -44,7 +44,7 @@ public class FxRateRepository : IFxRateRepository
             .AsTracking()
             .FirstOrDefaultAsync(f => f.FromCurrency.Equals(rate.FromCurrency)
                                    && f.ToCurrency.Equals(rate.ToCurrency)
-                                   && f.Date == rate.Date.Date);
+                                   && f.Date == rate.Date);
 
         if (existing != null)
         {
@@ -73,12 +73,12 @@ public class FxRateRepository : IFxRateRepository
     /// <summary>
     /// Delete a FX rate for a currency pair and date
     /// </summary>
-    public async Task<bool> DeleteAsync(Currency fromCurrency, Currency toCurrency, DateTime date)
+    public async Task<bool> DeleteAsync(Currency fromCurrency, Currency toCurrency, DateOnly date)
     {
         var existing = await _db.FxRates
             .FirstOrDefaultAsync(f => f.FromCurrency.Equals(fromCurrency)
                                    && f.ToCurrency.Equals(toCurrency)
-                                   && f.Date == date.Date);
+                                   && f.Date == date);
 
         if (existing == null)
             return false;
@@ -91,11 +91,11 @@ public class FxRateRepository : IFxRateRepository
     /// <summary>
     /// Get all FX rates for a specific date, ordered by FromCurrency / ToCurrency
     /// </summary>
-    public async Task<List<FxRate>> GetAllByDateAsync(DateTime date)
+    public async Task<List<FxRate>> GetAllByDateAsync(DateOnly date)
     {
         var rates = await _db.FxRates
             .AsNoTracking()
-            .Where(f => f.Date == date.Date)
+            .Where(f => f.Date == date)
             .ToListAsync();
 
         return rates

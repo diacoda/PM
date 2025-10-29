@@ -4,5 +4,6 @@ namespace PM.Application.Interfaces;
 
 public interface IFxRateProvider
 {
-    FxRate? GetRate(Currency fromCurrency, Currency toCurrency, DateTime date);
+    string ProviderName { get; }
+    Task<FxRate?> GetFxRateAsync(Currency fromCurrency, Currency toCurrency, DateOnly date);
 }

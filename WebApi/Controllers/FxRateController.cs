@@ -29,7 +29,7 @@ public class FxRatesController : ControllerBase
     [HttpGet("{from}/{to}/{date}")]
     public async Task<IActionResult> GetRate(string from, string to, string date)
     {
-        if (!DateTime.TryParse(date, out var parsedDate))
+        if (!DateOnly.TryParse(date, out var parsedDate))
             return BadRequest(new ProblemDetails { Title = "Invalid date format. Use YYYY-MM-DD." });
 
         try
@@ -61,7 +61,7 @@ public class FxRatesController : ControllerBase
         [FromBody] decimal rate,
         [FromQuery] string? date = null)
     {
-        DateTime fxDate = date is null ? DateTime.Today : DateTime.Parse(date);
+        DateOnly fxDate = date is null ? DateOnly.FromDateTime(DateTime.Today) : DateOnly.Parse(date);
 
         try
         {
@@ -104,7 +104,7 @@ public class FxRatesController : ControllerBase
     [HttpDelete("{from}/{to}/{date}")]
     public async Task<IActionResult> DeleteRate(string from, string to, string date)
     {
-        if (!DateTime.TryParse(date, out var parsedDate))
+        if (!DateOnly.TryParse(date, out var parsedDate))
             return BadRequest(new ProblemDetails { Title = "Invalid date format. Use YYYY-MM-DD." });
 
         try
@@ -129,7 +129,7 @@ public class FxRatesController : ControllerBase
     [HttpGet("date/{date}")]
     public async Task<IActionResult> GetAllRatesByDate(string date)
     {
-        if (!DateTime.TryParse(date, out var parsedDate))
+        if (!DateOnly.TryParse(date, out var parsedDate))
             return BadRequest(new ProblemDetails { Title = "Invalid date format. Use YYYY-MM-DD." });
 
         var rates = await _fxService.GetAllRatesByDateAsync(parsedDate);

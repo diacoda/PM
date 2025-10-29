@@ -20,26 +20,26 @@ public class FxRateService : IFxRateService
         string fromCurrencyCode,
         string toCurrencyCode,
         decimal rate,
-        DateTime date)
+        DateOnly date)
     {
         var from = _currencies.FirstOrDefault(c => c.Code == fromCurrencyCode)
                    ?? throw new ArgumentException($"Unknown currency '{fromCurrencyCode}'");
         var to = _currencies.FirstOrDefault(c => c.Code == toCurrencyCode)
                  ?? throw new ArgumentException($"Unknown currency '{toCurrencyCode}'");
 
-        var fxRate = new FxRate(from, to, date.Date, rate);
+        var fxRate = new FxRate(from, to, date, rate);
         await _repository.UpsertAsync(fxRate);
         return fxRate;
     }
 
-    public async Task<FxRate?> GetRateAsync(string fromCurrencyCode, string toCurrencyCode, DateTime date)
+    public async Task<FxRate?> GetRateAsync(string fromCurrencyCode, string toCurrencyCode, DateOnly date)
     {
         var from = _currencies.FirstOrDefault(c => c.Code == fromCurrencyCode)
                    ?? throw new ArgumentException($"Unknown currency '{fromCurrencyCode}'");
         var to = _currencies.FirstOrDefault(c => c.Code == toCurrencyCode)
                  ?? throw new ArgumentException($"Unknown currency '{toCurrencyCode}'");
 
-        return await _repository.GetAsync(from, to, date.Date);
+        return await _repository.GetAsync(from, to, date);
     }
 
     public async Task<List<FxRate>> GetAllRatesForPairAsync(string fromCurrencyCode, string toCurrencyCode)
@@ -52,18 +52,18 @@ public class FxRateService : IFxRateService
         return await _repository.GetAllForPairAsync(from, to);
     }
 
-    public async Task<bool> DeleteRateAsync(string fromCurrencyCode, string toCurrencyCode, DateTime date)
+    public async Task<bool> DeleteRateAsync(string fromCurrencyCode, string toCurrencyCode, DateOnly date)
     {
         var from = _currencies.FirstOrDefault(c => c.Code == fromCurrencyCode)
                    ?? throw new ArgumentException($"Unknown currency '{fromCurrencyCode}'");
         var to = _currencies.FirstOrDefault(c => c.Code == toCurrencyCode)
                  ?? throw new ArgumentException($"Unknown currency '{toCurrencyCode}'");
 
-        return await _repository.DeleteAsync(from, to, date.Date);
+        return await _repository.DeleteAsync(from, to, date);
     }
 
-    public async Task<List<FxRate>> GetAllRatesByDateAsync(DateTime date)
+    public async Task<List<FxRate>> GetAllRatesByDateAsync(DateOnly date)
     {
-        return await _repository.GetAllByDateAsync(date.Date);
+        return await _repository.GetAllByDateAsync(date);
     }
 }

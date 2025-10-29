@@ -7,12 +7,12 @@ public interface IFxRateService
     /// <summary>
     /// Insert or update an FX rate for a currency pair and date.
     /// </summary>
-    Task<FxRate> UpdateRateAsync(string fromCurrencyCode, string toCurrencyCode, decimal rate, DateTime date);
+    Task<FxRate> UpdateRateAsync(string fromCurrencyCode, string toCurrencyCode, decimal rate, DateOnly date);
 
     /// <summary>
     /// Get an FX rate for a currency pair on a specific date.
     /// </summary>
-    Task<FxRate?> GetRateAsync(string fromCurrencyCode, string toCurrencyCode, DateTime date);
+    Task<FxRate?> GetRateAsync(string fromCurrencyCode, string toCurrencyCode, DateOnly date);
 
     /// <summary>
     /// Get all historical FX rates for a currency pair.
@@ -22,10 +22,10 @@ public interface IFxRateService
     /// <summary>
     /// Delete an FX rate for a currency pair and date.
     /// </summary>
-    Task<bool> DeleteRateAsync(string fromCurrencyCode, string toCurrencyCode, DateTime date);
+    Task<bool> DeleteRateAsync(string fromCurrencyCode, string toCurrencyCode, DateOnly date);
 
     /// <summary>
     /// Get all FX rates for a given date.
     /// </summary>
-    Task<List<FxRate>> GetAllRatesByDateAsync(DateTime date);
+    Task<List<FxRate>> GetAllRatesByDateAsync(DateOnly date);
 }

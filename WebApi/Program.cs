@@ -38,7 +38,7 @@ builder.Services.AddSingleton<IMarketCalendar>(new MarketCalendar(holidays));
 builder.Services.AddHostedService<DailyPriceService>();
 builder.Services.AddScoped<FetchDailyPricesCommand>();
 
-builder.Services.AddSingleton<IFxRateProvider, DynamicFxRateProvider>();
+builder.Services.AddSingleton<IFxRateProvider, YahooFxProvider>();
 builder.Services.AddSingleton<IPriceProvider, InvestingPriceProvider>();
 builder.Services.AddSingleton<IPriceProvider, YahooPriceProvider>();
 builder.Services.AddScoped<IPricingService, PricingService>();
