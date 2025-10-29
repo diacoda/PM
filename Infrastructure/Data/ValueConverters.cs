@@ -22,15 +22,11 @@ public static class ValueConverters
 
     private static Symbol CreateSymbolFromDbString(string dbValue)
     {
-        var parts = dbValue.Split('|');
-        if (parts.Length != 2)
-            throw new InvalidOperationException($"Invalid symbol format in DB: {dbValue}");
-        return new Symbol(parts[0], parts[1]);
+        return new Symbol(dbValue);
     }
-    // Symbol converter: stores as "VALUE|CURRENCY"
+    // Symbol converter: stores as "VALUE"
     public static ValueConverter<Symbol, string> SymbolStringConverter =
         new ValueConverter<Symbol, string>(
-            v => $"{v.Value}|{v.Currency}",         // to db
-            v => CreateSymbolFromDbString(v)        // from db
-        );
+            m => m.Value,
+            d => new Symbol(d, "CAD", "TSX"));
 }
