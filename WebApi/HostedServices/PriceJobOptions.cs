@@ -1,10 +1,22 @@
 namespace PM.API.HostedServices;
 
+/// <summary>
+/// Configuration options for the DailyPriceService background job.
+/// </summary>
 public class PriceJobOptions
 {
-    // Example: "America/New_York" - you can extend to use NodaTime for robust timezone handling
+    /// <summary>
+    /// Time zone identifier (e.g., "America/Toronto").
+    /// </summary>
     public string TimeZone { get; set; } = "Local";
-    // RunTime expressed as hh:mm:ss (configuration binder will bind TimeSpan)
-    public TimeSpan RunTime { get; set; } = new TimeSpan(21, 0, 0);
-}
 
+    /// <summary>
+    /// Time of day to start fetching prices (usually after market close).
+    /// </summary>
+    public TimeSpan RunTime { get; set; } = new TimeSpan(18, 0, 0);
+
+    /// <summary>
+    /// How often to retry fetching prices (in minutes) when data is not yet available.
+    /// </summary>
+    public int RetryIntervalMinutes { get; set; } = 30;
+}

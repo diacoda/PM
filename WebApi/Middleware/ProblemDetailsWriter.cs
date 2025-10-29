@@ -4,10 +4,21 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace PM.API.Middleware;
 
+/// <summary>
+/// Helper to write RFC 7807 compliant <see cref="ProblemDetails"/> responses for exceptions.
+/// </summary>
 public static class ProblemDetailsWriter
 {
+    /// <summary>
+    /// Writes a <see cref="ProblemDetails"/> response based on the exception type.
+    /// Maps common .NET exceptions to appropriate HTTP status codes and logs them.
+    /// </summary>
+    /// <param name="context">The current HTTP context.</param>
+    /// <param name="ex">The exception to map to a problem response.</param>
+    /// <param name="logger">Logger used to record the exception.</param>
     public static async Task WriteAsync(HttpContext context, Exception ex, ILogger logger)
     {
+        // Map exception types to HTTP status codes and titles
         var (status, title) = ex switch
         {
             ValidationException => (HttpStatusCode.BadRequest, "Validation failed"),
@@ -19,15 +30,11 @@ public static class ProblemDetailsWriter
             _ => (HttpStatusCode.InternalServerError, "An unexpected error occurred")
         };
 
-        // Log server errors with stack, client errors as info
+        // Log: server errors as error, client errors as info
         if ((int)status >= 500)
-        {
             logger.LogError(ex, "Unhandled exception");
-        }
         else
-        {
             logger.LogInformation(ex, "Handled exception: {Title}", title);
-        }
 
         var problem = new ProblemDetails
         {
@@ -38,7 +45,7 @@ public static class ProblemDetailsWriter
             Instance = context.Request.Path
         };
 
-        // Map FluentValidation failures to a RFC7807 extension
+        // Include FluentValidation errors in the extensions dictionary
         if (ex is ValidationException vex)
         {
             problem.Extensions["errors"] = vex.Errors

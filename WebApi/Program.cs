@@ -12,6 +12,8 @@ using NSwag;
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Host.UseSerilogLogging(builder.Configuration);
+
+
 builder.Services
     .AddHttpClient()
     .AddDatabase(builder.Configuration, builder.Environment)
@@ -19,21 +21,20 @@ builder.Services
     .AddHealthChecksWithDependencies(builder.Configuration);
 
 // Symbols
-var symbols = builder.Configuration
+var symbolConfigs = builder.Configuration
     .GetSection("Symbols")
-    .Get<List<SymbolConfig>>()!
+    .Get<List<SymbolConfig>>() ?? new List<SymbolConfig>();
+var symbols = symbolConfigs
     .Select(s => new Symbol(s.Value, s.Currency, s.Exchange))
     .ToList();
 builder.Services.AddSingleton(symbols); // List<Symbol> as singleton for DI
 
-// Market Calendar / Holidays
-var holidays = builder.Configuration
-    .GetSection("MarketHolidays")
-    .GetChildren()
-    .ToDictionary(
-        x => x.Key,
-        x => x.Get<List<string>>()!.Select(DateOnly.Parse).ToList()
-    );
+builder.Services.Configure<PriceJobOptions>(
+    builder.Configuration.GetSection("PriceJobOptions"));
+builder.Services.Configure<MarketHolidaysConfig>(
+    builder.Configuration.GetSection("MarketHolidays"));
+var holidays = new MarketHolidaysConfig();
+builder.Configuration.GetSection("MarketHolidays").Bind(holidays);
 builder.Services.AddSingleton<IMarketCalendar>(new MarketCalendar(holidays));
 builder.Services.AddHostedService<DailyPriceService>();
 builder.Services.AddScoped<FetchDailyPricesCommand>();

@@ -14,6 +14,10 @@ public class FxRatesController : ControllerBase
 {
     private readonly IFxRateService _fxService;
 
+    /// <summary>
+    /// constructor
+    /// </summary>
+    /// <param name="fxService"></param>
     public FxRatesController(IFxRateService fxService)
     {
         _fxService = fxService;

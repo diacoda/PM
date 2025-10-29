@@ -16,6 +16,11 @@ public class PortfoliosController : ControllerBase
     private readonly IPortfolioService _portfolioService;
     private readonly IAccountService _accountService;
 
+    /// <summary>
+    /// constructor
+    /// </summary>
+    /// <param name="portfolioService"></param>
+    /// <param name="accountService"></param>
     public PortfoliosController(IPortfolioService portfolioService, IAccountService accountService)
     {
         _portfolioService = portfolioService;

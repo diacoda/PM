@@ -17,6 +17,11 @@ public class ValuationsController : ControllerBase
     private readonly IValuationService _valuationService;
     private readonly IPortfolioService _portfolioService;
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="ValuationsController"/> class.
+    /// </summary>
+    /// <param name="valuationService">Service for calculating and storing valuations.</param>
+    /// <param name="portfolioService">Service for accessing portfolios.</param>
     public ValuationsController(
         IValuationService valuationService,
         IPortfolioService portfolioService)
@@ -30,7 +35,9 @@ public class ValuationsController : ControllerBase
     /// </summary>
     /// <param name="portfolioId">The ID of the portfolio to value.</param>
     /// <param name="dto">The valuation request containing start date, end date, and currency.</param>
-    /// <returns>Returns 200 OK if successful, or 400 Bad Request if the portfolio is invalid.</returns>
+    /// <returns>
+    /// Returns 200 OK if valuations were successfully generated, or 400 Bad Request if the portfolio is invalid.
+    /// </returns>
     [HttpPost("{portfolioId}")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
@@ -54,7 +61,9 @@ public class ValuationsController : ControllerBase
     /// Retrieves all daily valuations for a given portfolio.
     /// </summary>
     /// <param name="portfolioId">The ID of the portfolio.</param>
-    /// <returns>A list of valuation records for the portfolio.</returns>
+    /// <returns>
+    /// Returns a list of valuation records for the portfolio. Returns 400 Bad Request if the portfolio is invalid.
+    /// </returns>
     [HttpGet("{portfolioId}")]
     [ProducesResponseType(typeof(IEnumerable<ValuationRecord>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
@@ -67,5 +76,4 @@ public class ValuationsController : ControllerBase
         var valuations = await _valuationService.GetByPortfolioAsync(portfolioId, ValuationPeriod.Daily);
         return Ok(valuations);
     }
-
 }
