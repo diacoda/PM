@@ -38,7 +38,7 @@ public class FxRatesController : ControllerBase
 
         try
         {
-            var rate = await _fxService.GetRateAsync(from, to, parsedDate);
+            var rate = await _fxService.GetRateAsync(from.ToUpperInvariant(), to.ToUpperInvariant(), parsedDate);
             if (rate is null)
                 return NotFound(new ProblemDetails { Title = $"No FX rate found for {from}/{to} on {date}" });
 
@@ -69,7 +69,7 @@ public class FxRatesController : ControllerBase
 
         try
         {
-            var updated = await _fxService.UpdateRateAsync(from, to, rate, fxDate);
+            var updated = await _fxService.UpdateRateAsync(from.ToUpperInvariant(), to.ToUpperInvariant(), rate, fxDate);
             return Ok(updated);
         }
         catch (ArgumentException ex)
@@ -89,7 +89,7 @@ public class FxRatesController : ControllerBase
     {
         try
         {
-            var rates = await _fxService.GetAllRatesForPairAsync(from, to);
+            var rates = await _fxService.GetAllRatesForPairAsync(from.ToUpperInvariant(), to.ToUpperInvariant());
             return Ok(rates);
         }
         catch (ArgumentException ex)
@@ -113,7 +113,7 @@ public class FxRatesController : ControllerBase
 
         try
         {
-            var deleted = await _fxService.DeleteRateAsync(from, to, parsedDate);
+            var deleted = await _fxService.DeleteRateAsync(from.ToUpperInvariant(), to.ToUpperInvariant(), parsedDate);
             if (!deleted)
                 return NotFound(new ProblemDetails { Title = $"FX rate not found for {from}/{to} on {date}" });
 

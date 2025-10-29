@@ -2,33 +2,38 @@ using PM.DTO.Prices;
 using PM.Application.Interfaces;
 using PM.Domain.Values;
 
-
 namespace PM.Application.Commands;
-
 
 public class FetchDailyPricesCommand
 {
     private readonly IEnumerable<IPriceProvider> _providers;
-    private readonly IPriceRepository _repository;
+    private readonly IPriceRepository _priceRepository;
     private readonly IMarketCalendar _calendar;
     private readonly List<Symbol> _symbols;
+    private readonly IFxRateProvider _fxProvider;
+    private readonly IFxRateRepository _fxRepository;
+
+    private static readonly Currency[] Currencies =
+        { new("EUR"), new("USD"), new("CAD") };
 
     public FetchDailyPricesCommand(
         IEnumerable<IPriceProvider> providers,
-        IPriceRepository repository,
+        IPriceRepository priceRepository,
         IMarketCalendar calendar,
-        List<Symbol> symbols
-        )
+        List<Symbol> symbols,
+        IFxRateProvider fxProvider,
+        IFxRateRepository fxRepository)
     {
         _providers = providers;
-        _repository = repository;
+        _priceRepository = priceRepository;
         _calendar = calendar;
         _symbols = symbols;
+        _fxProvider = fxProvider;
+        _fxRepository = fxRepository;
     }
 
     /// <summary>
-    /// Fetch prices for provided symbols for the given date. If allowMarketClosed = true then
-    /// the command will still run for closed markets (useful for on-demand historical fetches).
+    /// Fetch prices for symbols and FX rates for all currency pairs.
     /// </summary>
     public async Task<FetchPricesDTO> ExecuteAsync(DateOnly date, bool allowMarketClosed = false)
     {
@@ -36,34 +41,33 @@ public class FetchDailyPricesCommand
         var skipped = new List<string>();
         var errors = new List<string>();
 
+        // --------------------------
+        // Fetch equity prices
+        // --------------------------
         foreach (var symbol in _symbols)
         {
             var exchange = symbol.Exchange;
             var marketOpen = _calendar.IsMarketOpen(date, exchange);
 
-            // Skip if market closed and not explicitly allowed
             if (!marketOpen && !allowMarketClosed)
             {
                 skipped.Add($"{symbol.Value} ({exchange}) - market closed");
                 continue;
             }
 
-            // If today, only after close
             if (date == DateOnly.FromDateTime(DateTime.Today) && !_calendar.IsAfterMarketClose(exchange))
             {
                 skipped.Add($"{symbol.Value} ({exchange}) - before market close");
                 continue;
             }
 
-            // Skip if already exists
-            var existing = await _repository.GetAsync(symbol, date);
+            var existing = await _priceRepository.GetAsync(symbol, date);
             if (existing != null)
             {
                 skipped.Add($"{symbol.Value} ({exchange}) - already in DB");
                 continue;
             }
 
-            // Provider selection
             string providerName = symbol.Value.EndsWith(".TO", StringComparison.OrdinalIgnoreCase)
                 ? "Yahoo"
                 : "Investing";
@@ -83,7 +87,7 @@ public class FetchDailyPricesCommand
                 if (price != null)
                 {
                     var toSave = price with { Source = provider.ProviderName };
-                    await _repository.SaveAsync(toSave);
+                    await _priceRepository.SaveAsync(toSave);
                     fetched.Add($"{symbol.Value} ({exchange}) from {providerName}");
                 }
                 else
@@ -97,7 +101,40 @@ public class FetchDailyPricesCommand
             }
         }
 
+        // --------------------------
+        // Fetch FX rates
+        // --------------------------
+        var fxPairs = Currencies.SelectMany(c1 => Currencies, (from, to) => (from, to))
+                                .Where(p => p.from != p.to);
+
+        foreach (var (from, to) in fxPairs)
+        {
+            try
+            {
+                var existing = await _fxRepository.GetAsync(from, to, date);
+                if (existing != null)
+                {
+                    skipped.Add($"FX {from.Code}/{to.Code} - already in DB");
+                    continue;
+                }
+
+                var fx = await _fxProvider.GetFxRateAsync(from, to, date);
+                if (fx != null)
+                {
+                    await _fxRepository.SaveAsync(fx);
+                    fetched.Add($"FX {from.Code}/{to.Code}");
+                }
+                else
+                {
+                    skipped.Add($"FX {from.Code}/{to.Code} - provider returned null");
+                }
+            }
+            catch (Exception ex)
+            {
+                errors.Add($"FX {from.Code}/{to.Code} - fetch failed: {ex.Message}");
+            }
+        }
+
         return new FetchPricesDTO(date, fetched, skipped, errors);
     }
-
 }
