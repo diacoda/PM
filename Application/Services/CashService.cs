@@ -1,8 +1,6 @@
-using System.Threading.Tasks;
 using PM.Application.Interfaces;
 using PM.Domain.Entities;
 using PM.Domain.Values;
-
 namespace PM.Application.Services;
 
 public class CashService : ICashService
@@ -22,7 +20,6 @@ public class CashService : ICashService
 
     public async Task WithdrawAsync(Account account, Money amount)
     {
-
         var symbol = new Symbol(amount.Currency.Code);
         var holding = account.Holdings.FirstOrDefault(h => h.Symbol == symbol);
         if (holding == null)
@@ -32,8 +29,7 @@ public class CashService : ICashService
             throw new InvalidOperationException($"Insufficient funds in {symbol}");
 
         decimal newQty = holding.Quantity - amount.Amount;
-        holding.Quantity = newQty;
-        await _holdingService.UpdateHoldingQuantityAsync(holding, newQty);
+        await _holdingService.UpdateHoldingQuantityAsync(account.Id, symbol, newQty);
     }
 
     public async Task<decimal> GetBalanceAsync(int accountId, Currency currency)

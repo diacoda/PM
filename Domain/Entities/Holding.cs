@@ -31,6 +31,11 @@ public class Holding : Entity
         Quantity += qty;
     }
 
+    public void UpdateQuantity(decimal newQuantity)
+    {
+        Quantity = newQuantity;
+    }
+
     public void AddTag(Tag tag)
     {
         if (!Tags.Contains(tag))

@@ -1,6 +1,7 @@
 using PM.Application.Interfaces;
 using PM.Domain.Entities;
 using PM.Domain.Values;
+using PM.SharedKernel;
 
 namespace PM.Application.Services
 {
@@ -15,32 +16,39 @@ namespace PM.Application.Services
             _holdingRepo = holdingRepo;
         }
 
-        public async Task UpsertHoldingAsync(int accountId, Symbol instrument, decimal quantity, CancellationToken ct = default)
+        public async Task UpsertHoldingAsync(int accountId, Symbol symbol, decimal quantity, CancellationToken ct = default)
         {
-            var account = await _accountRepo.GetByIdAsync(accountId, ct);
-            if (account == null) return;
+            var account = await _accountRepo.GetByIdWithIncludesAsync(accountId, includes: new IncludeOption[] { IncludeOption.Holdings }, ct);
+            if (account == null)
+                throw new InvalidOperationException($"Account {accountId} not found");
 
-            var holding = new Holding(instrument, quantity);
-            account.UpsertHolding(holding);
-
+            account.UpsertHolding(new Holding(symbol, quantity));
             await _accountRepo.UpdateAsync(account, ct);
             await _accountRepo.SaveChangesAsync(ct);
         }
 
-        public async Task UpdateHoldingQuantityAsync(Holding holding, decimal newQty, CancellationToken ct = default)
+        public async Task UpdateHoldingQuantityAsync(int accountId, Symbol symbol, decimal newQty, CancellationToken ct = default)
         {
-            holding.Quantity = newQty;
-            await _holdingRepo.UpdateAsync(holding, ct);
-            await _holdingRepo.SaveChangesAsync(ct);
+            if (newQty < 0) throw new InvalidOperationException($"Quantity {newQty} must be positive");
+
+            var account = await _accountRepo.GetByIdAsync(accountId, ct);
+            if (account == null)
+                throw new InvalidOperationException($"Account {accountId} not found");
+
+            account.UpdateHoldingQuantity(symbol, newQty);
+            await _accountRepo.UpdateAsync(account, ct);
+            await _accountRepo.SaveChangesAsync(ct);
         }
 
         public async Task RemoveHoldingAsync(int accountId, Symbol symbol, CancellationToken ct = default)
         {
             var account = await _accountRepo.GetByIdAsync(accountId, ct);
-            if (account == null) return;
+            if (account == null)
+                throw new InvalidOperationException($"Account {accountId} not found");
 
             var holding = account.Holdings.FirstOrDefault(h => h.Symbol.Equals(symbol));
-            if (holding == null) return;
+            if (holding == null)
+                return;
 
             account.RemoveHolding(holding);
             await _accountRepo.UpdateAsync(account, ct);
@@ -57,7 +65,9 @@ namespace PM.Application.Services
         {
             var symbol = new Symbol(currency.Code);
             var account = await _accountRepo.GetByIdAsync(accountId, ct);
-            if (account == null) return 0.0m;
+            if (account == null)
+                return 0.0m;
+
             var holding = account.Holdings.FirstOrDefault(h => h.Symbol == symbol);
             return holding?.Quantity ?? 0;
         }
@@ -67,24 +77,34 @@ namespace PM.Application.Services
             return await _holdingRepo.ListByAccountAsync(accountId, ct);
         }
 
-        public async Task AddTagAsync(int holdingId, Tag tag, CancellationToken ct = default)
+        public async Task AddTagAsync(int accountId, Symbol symbol, Tag tag, CancellationToken ct = default)
         {
-            var holding = await _holdingRepo.GetByIdAsync(holdingId, ct);
-            if (holding == null) return;
+            var account = await _accountRepo.GetByIdAsync(accountId, ct);
+            if (account == null)
+                throw new InvalidOperationException($"Account {accountId} not found");
+
+            var holding = account.Holdings.FirstOrDefault(h => h.Symbol.Equals(symbol));
+            if (holding == null)
+                throw new InvalidOperationException($"Holding not found for {symbol}");
 
             holding.AddTag(tag);
-            await _holdingRepo.UpdateAsync(holding, ct);
-            await _holdingRepo.SaveChangesAsync(ct);
+            await _accountRepo.UpdateAsync(account, ct);
+            await _accountRepo.SaveChangesAsync(ct);
         }
 
-        public async Task RemoveTagAsync(int holdingId, Tag tag, CancellationToken ct = default)
+        public async Task RemoveTagAsync(int accountId, Symbol symbol, Tag tag, CancellationToken ct = default)
         {
-            var holding = await _holdingRepo.GetByIdAsync(holdingId, ct);
-            if (holding == null) return;
+            var account = await _accountRepo.GetByIdAsync(accountId, ct);
+            if (account == null)
+                throw new InvalidOperationException($"Account {accountId} not found");
+
+            var holding = account.Holdings.FirstOrDefault(h => h.Symbol.Equals(symbol));
+            if (holding == null)
+                return;
 
             holding.RemoveTag(tag);
-            await _holdingRepo.UpdateAsync(holding, ct);
-            await _holdingRepo.SaveChangesAsync(ct);
+            await _accountRepo.UpdateAsync(account, ct);
+            await _accountRepo.SaveChangesAsync(ct);
         }
     }
 }

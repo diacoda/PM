@@ -95,4 +95,26 @@ public class HoldingsController : ControllerBase
         await _holdingService.RemoveHoldingAsync(accountId, new Symbol(symbol));
         return NoContent();
     }
+
+    /// <summary>
+    /// Updates the quantity of an existing holding.
+    /// </summary>
+    /// <param name="accountId">The account ID containing the holding.</param>
+    /// <param name="symbol">The symbol of the holding to update.</param>
+    /// <param name="quantity">The new holding data including updated quantity.</param>
+    /// <returns>
+    /// Returns 200 OK with the updated holding, or 404 if the holding does not exist.
+    /// </returns>
+    [HttpPut("{symbol}")]
+    [ProducesResponseType(typeof(HoldingDTO), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> Update(int accountId, string symbol, [FromBody] ModifyHoldingDTO quantity)
+    {
+        Symbol s = new Symbol(symbol);
+        var holding = await _holdingService.GetHoldingAsync(accountId, s);
+        if (holding is null) return NotFound();
+
+        await _holdingService.UpdateHoldingQuantityAsync(accountId, s, quantity.Quantity);
+        return Ok(HoldingMapper.ToDTO(holding));
+    }
 }

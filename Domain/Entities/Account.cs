@@ -59,6 +59,15 @@ namespace PM.Domain.Entities
                 _holdings.Add(holding);
             }
         }
+        
+        public void UpdateHoldingQuantity(Symbol symbol, decimal newQuantity)
+        {
+            var holding = _holdings.FirstOrDefault(h => h.Symbol.Equals(symbol));
+            if (holding == null)
+                throw new InvalidOperationException($"Holding not found for symbol {symbol.Value}");
+
+            holding.UpdateQuantity(newQuantity);
+        }
 
         public void RemoveHolding(Holding holding)
         {
