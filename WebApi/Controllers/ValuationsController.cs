@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using PM.Application.Interfaces;
 using PM.Domain.Entities;
 using PM.Domain.Enums;
+using PM.Domain.Mappers;
 using PM.Domain.Values;
 using PM.DTO;
 
@@ -48,7 +49,7 @@ public class ValuationsController : ControllerBase
             return BadRequest(new ProblemDetails { Title = "Invalid portfolio" });
 
         await _valuationService.GenerateAndStorePortfolioValuations(
-            portfolio,
+            PortfolioMapper.ToEntity(portfolio),
             dto.Start,
             dto.End,
             new Currency(dto.Currency),

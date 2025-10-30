@@ -84,6 +84,8 @@ builder.Services.AddOpenApiDocument(options =>
             Title = "Portfolio Management API"
         };
     };
+    //options.SchemaSettings.GenerateEnumMappingDescription = true;
+
 });
 
 var app = builder.Build();

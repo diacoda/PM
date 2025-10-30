@@ -18,5 +18,5 @@ public class PortfolioDTO
     /// <summary>
     /// List of accounts contained in the portfolio.
     /// </summary>
-    public List<CreateAccountDTO> Accounts { get; set; } = new();
+    public List<AccountDTO> Accounts { get; set; } = new();
 }

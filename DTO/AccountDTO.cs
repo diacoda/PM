@@ -1,3 +1,4 @@
+
 namespace PM.DTO;
 
 /// <summary>
@@ -30,4 +31,5 @@ public class AccountDTO
     /// The portfolio ID to which this account belongs.
     /// </summary>
     public int PortfolioId { get; set; }
+    public List<HoldingDTO> Holdings { get; set; }
 }

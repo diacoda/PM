@@ -56,40 +56,24 @@ public class HoldingsController : ControllerBase
     }
 
     /// <summary>
-    /// Creates a new holding for the specified account.
+    /// Creates or updates a holding for the specified account.
     /// </summary>
-    /// <param name="accountId">The account ID to add the holding to.</param>
-    /// <param name="dto">The holding data including symbol and quantity.</param>
-    /// <returns>Returns 200 OK with the created holding.</returns>
-    [HttpPost]
+    /// <param name="accountId">The account ID to add or update the holding for.</param>
+    /// <param name="symbol">The symbol of the holding (from route).</param>
+    /// <param name="dto">The holding data (e.g. quantity).</param>
+    /// <returns>Returns 200 OK with the created or updated holding.</returns>
+    [HttpPatch("{symbol}")]
     [ProducesResponseType(typeof(HoldingDTO), StatusCodes.Status200OK)]
-    public async Task<IActionResult> Create(int accountId, [FromBody] HoldingDTO dto)
+    public async Task<IActionResult> Upsert(
+        int accountId,
+        [FromRoute] string symbol,
+        [FromBody] ModifyHoldingDTO dto)
     {
-        Symbol symbol = new Symbol(dto.Symbol);
-        await _holdingService.AddHoldingAsync(accountId, symbol, dto.Quantity);
-        var holding = await _holdingService.GetHoldingAsync(accountId, symbol);
+        var s = new Symbol(symbol);
+        await _holdingService.UpsertHoldingAsync(accountId, s, dto.Quantity);
+
+        var holding = await _holdingService.GetHoldingAsync(accountId, s);
         return Ok(HoldingMapper.ToDTO(holding!));
-    }
-
-    /// <summary>
-    /// Updates the quantity of an existing holding.
-    /// </summary>
-    /// <param name="accountId">The account ID containing the holding.</param>
-    /// <param name="symbol">The symbol of the holding to update.</param>
-    /// <param name="dto">The new holding data including updated quantity.</param>
-    /// <returns>
-    /// Returns 200 OK with the updated holding, or 404 if the holding does not exist.
-    /// </returns>
-    [HttpPut("{symbol}")]
-    [ProducesResponseType(typeof(HoldingDTO), StatusCodes.Status200OK)]
-    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> Update(int accountId, string symbol, [FromBody] HoldingDTO dto)
-    {
-        var holding = await _holdingService.GetHoldingAsync(accountId, new Symbol(symbol));
-        if (holding is null) return NotFound();
-
-        await _holdingService.UpdateHoldingQuantityAsync(holding, dto.Quantity);
-        return Ok(HoldingMapper.ToDTO(holding));
     }
 
     /// <summary>

@@ -16,9 +16,6 @@ public class HoldingRepository : IHoldingRepository
     public async Task<IEnumerable<Holding>> ListByAccountAsync(int accountId, CancellationToken ct = default) =>
         await _db.Holdings.Where(h => h.AccountId == accountId).ToListAsync(ct);
 
-    public async Task AddAsync(Holding holding, CancellationToken ct = default) =>
-        await _db.Holdings.AddAsync(holding, ct);
-
     public Task UpdateAsync(Holding holding, CancellationToken ct = default)
     {
         _db.Holdings.Update(holding);

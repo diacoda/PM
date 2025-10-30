@@ -47,7 +47,7 @@ namespace PM.Application.Services
                 if (h == null)
                 {
                     h = new Holding(sym, 0m);
-                    account.AddHolding(h);
+                    account.UpsertHolding(h);
                 }
                 return h;
             }
@@ -81,7 +81,7 @@ namespace PM.Application.Services
                         if (pos == null)
                         {
                             pos = new Holding(transaction.Symbol, 0m);
-                            account.AddHolding(pos);
+                            account.UpsertHolding(pos);
                         }
                         pos.Quantity += transaction.Quantity;
 

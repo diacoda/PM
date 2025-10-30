@@ -47,9 +47,17 @@ namespace PM.Domain.Entities
             _tags.Remove(tag);
         }
 
-        public void AddHolding(Holding holding)
+        public void UpsertHolding(Holding holding)
         {
-            _holdings.Add(holding);
+            var existing = _holdings.FirstOrDefault(h => h.Symbol.Equals(holding.Symbol));
+            if (existing != null)
+            {
+                existing.AddQuantity(holding.Quantity); // merge quantities
+            }
+            else
+            {
+                _holdings.Add(holding);
+            }
         }
 
         public void RemoveHolding(Holding holding)

@@ -2,118 +2,126 @@ using PM.Domain.Entities;
 using PM.Domain.Enums;
 using PM.Domain.Values;
 using PM.Application.Interfaces;
+using PM.DTO;
+using PM.Domain.Mappers;
+using PM.SharedKernel;
 
-namespace PM.Application.Services
+namespace PM.Application.Services;
+
+public class AccountService : IAccountService
 {
-    public class AccountService : IAccountService
+    private readonly IAccountRepository _accountRepository;
+    private readonly IPortfolioRepository _portfolioRepository;
+
+    public AccountService(
+        IAccountRepository accountRepository,
+        IPortfolioRepository portfolioRepository)
     {
-        private readonly IAccountRepository _accountRepository;
-        private readonly IPortfolioRepository _portfolioRepository;
+        _accountRepository = accountRepository;
+        _portfolioRepository = portfolioRepository;
+    }
 
-        public AccountService(
-            IAccountRepository accountRepository,
-            IPortfolioRepository portfolioRepository)
-        {
-            _accountRepository = accountRepository;
-            _portfolioRepository = portfolioRepository;
-        }
+    public async Task<AccountDTO> CreateAsync(
+        int portfolioId,
+        string name,
+        Currency currency,
+        FinancialInstitutions financialInstitution,
+        CancellationToken ct = default)
+    {
+        var portfolio = await _portfolioRepository.GetByIdAsync(portfolioId, ct)
+            ?? throw new KeyNotFoundException($"Portfolio with ID {portfolioId} not found.");
 
-        public async Task<Account> CreateAsync(
-            int portfolioId,
-            string name,
-            Currency currency,
-            FinancialInstitutions financialInstitution,
-            CancellationToken ct = default)
-        {
-            var portfolio = await _portfolioRepository.GetByIdAsync(portfolioId, ct)
-                ?? throw new KeyNotFoundException($"Portfolio with ID {portfolioId} not found.");
+        var account = new Account(name, currency, financialInstitution);
+        account.LinkToPortfolio(portfolio);
 
-            var account = new Account(name, currency, financialInstitution);
-            account.LinkToPortfolio(portfolio); // ✅ sets FK and nav
+        await _accountRepository.AddAsync(account, ct);
+        await _accountRepository.SaveChangesAsync(ct);
 
-            await _accountRepository.AddAsync(account, ct);
-            await _accountRepository.SaveChangesAsync(ct);
-            return account;
-        }
+        return AccountMapper.ToDTO(account);
+    }
 
-        public async Task<Account?> GetAccountAsync(int portfolioId, int accountId, CancellationToken ct = default)
-        {
-            var portfolio = await _portfolioRepository.GetByIdAsync(portfolioId, ct);
-            return portfolio?.Accounts.FirstOrDefault(a => a.Id == accountId);
-        }
+    public async Task<AccountDTO?> GetAccountAsync(int portfolioId, int accountId, CancellationToken ct = default)
+    {
+        var account = await _accountRepository.GetByIdAsync(accountId, ct);
+        if (account == null || account.PortfolioId != portfolioId)
+            return null;
 
-        public async Task<IEnumerable<Account>> ListAccountsAsync(int portfolioId, CancellationToken ct = default)
-        {
-            var portfolio = await _portfolioRepository.GetByIdAsync(portfolioId, ct)
-                ?? throw new KeyNotFoundException($"Portfolio with ID {portfolioId} not found.");
+        return AccountMapper.ToDTO(account);
+    }
 
-            return portfolio.Accounts;
-        }
+    public async Task<AccountDTO?> GetAccountWithIncludesAsync(int portfolioId, int accountId, IncludeOption[] includes, CancellationToken ct = default)
+    {
+        var account = await _accountRepository.GetByIdWithIncludesAsync(accountId, includes, ct);
+        if (account == null || account.PortfolioId != portfolioId)
+            return null;
 
-        public async Task UpdateAccountNameAsync(int accountId, string newName, CancellationToken ct = default)
-        {
-            var account = await _accountRepository.GetByIdAsync(accountId, ct)
-                ?? throw new KeyNotFoundException($"Account with ID {accountId} not found.");
+        return AccountMapper.ToDTO(account, includes);
+    }
 
-            account.UpdateName(newName);
-            await _accountRepository.SaveChangesAsync(ct);
-        }
+    public async Task<IEnumerable<AccountDTO>> ListAccountsAsync(int portfolioId, CancellationToken ct = default)
+    {
+        var accounts = await _accountRepository.ListByPortfolioAsync(portfolioId, ct);
+        return accounts.Select(AccountMapper.ToDTO).ToList();
+    }
 
-        public async Task<decimal> GetCashBalanceAsync(int accountId, Currency currency, CancellationToken ct = default)
-        {
-            var account = await _accountRepository.GetByIdAsync(accountId, ct)
-                ?? throw new KeyNotFoundException($"Account with ID {accountId} not found.");
+    public async Task<IEnumerable<AccountDTO>> ListAccountsWithIncludesAsync(int portfolioId, IncludeOption[] includes, CancellationToken ct = default)
+    {
+        var accounts = await _accountRepository.ListByPortfolioWithIncludesAsync(portfolioId, includes, ct);
+        return accounts.Select(a => AccountMapper.ToDTO(a, includes)).ToList();
+    }
 
-            return account.GetCashBalance(currency);
-        }
+    public async Task UpdateAccountNameAsync(int accountId, string newName, CancellationToken ct = default)
+    {
+        var account = await _accountRepository.GetByIdAsync(accountId, ct)
+            ?? throw new KeyNotFoundException($"Account with ID {accountId} not found.");
 
-        public async Task AddTagAsync(int accountId, Tag tag, CancellationToken ct = default)
-        {
-            var account = await _accountRepository.GetByIdAsync(accountId, ct)
-                ?? throw new KeyNotFoundException($"Account with ID {accountId} not found.");
+        account.UpdateName(newName);
+        await _accountRepository.SaveChangesAsync(ct);
+    }
 
-            account.AddTag(tag);
-            await _accountRepository.SaveChangesAsync(ct);
-        }
+    public async Task<decimal> GetCashBalanceAsync(int accountId, Currency currency, CancellationToken ct = default)
+    {
+        var account = await _accountRepository.GetByIdAsync(accountId, ct)
+            ?? throw new KeyNotFoundException($"Account with ID {accountId} not found.");
 
-        public async Task RemoveTagAsync(int accountId, Tag tag, CancellationToken ct = default)
-        {
-            var account = await _accountRepository.GetByIdAsync(accountId, ct)
-                ?? throw new KeyNotFoundException($"Account with ID {accountId} not found.");
+        return account.GetCashBalance(currency);
+    }
 
-            account.RemoveTag(tag);
-            await _accountRepository.SaveChangesAsync(ct);
-        }
+    public async Task AddTagAsync(int accountId, Tag tag, CancellationToken ct = default)
+    {
+        var account = await _accountRepository.GetByIdAsync(accountId, ct)
+            ?? throw new KeyNotFoundException($"Account with ID {accountId} not found.");
 
-        public IEnumerable<Holding> GetHoldingsByTag(Account account, Tag tag)
-        {
-            return account.Holdings
-                .Where(h => h.Tags.Contains(tag))
-                .ToList();
-        }
+        account.AddTag(tag);
+        await _accountRepository.SaveChangesAsync(ct);
+    }
 
-        private async Task RemoveAccountFromPortfolioAsyncOld(int portfolioId, int accountId, CancellationToken ct = default)
-        {
-            var portfolio = await _portfolioRepository.GetByIdAsync(portfolioId, ct)
-                ?? throw new KeyNotFoundException($"Portfolio with ID {portfolioId} not found.");
+    public async Task RemoveTagAsync(int accountId, Tag tag, CancellationToken ct = default)
+    {
+        var account = await _accountRepository.GetByIdAsync(accountId, ct)
+            ?? throw new KeyNotFoundException($"Account with ID {accountId} not found.");
 
-            var account = portfolio.Accounts.FirstOrDefault(a => a.Id == accountId)
-                ?? throw new KeyNotFoundException($"Account {accountId} not found in Portfolio {portfolioId}.");
+        account.RemoveTag(tag);
+        await _accountRepository.SaveChangesAsync(ct);
+    }
 
-            portfolio.RemoveAccount(account);
-            await _portfolioRepository.SaveChangesAsync(ct);
-        }
+    public IEnumerable<HoldingDTO> GetHoldingsByTag(Account account, Tag tag)
+    {
+        return account.Holdings
+            .Where(h => h.Tags.Contains(tag))
+            .Select(HoldingMapper.ToDTO)
+            .ToList();
+    }
 
-        public async Task RemoveAccountFromPortfolioAsync(int portfolioId, int accountId, CancellationToken ct = default)
-        {
-            var account = await _accountRepository.GetByIdAsync(accountId, ct)
-                ?? throw new KeyNotFoundException($"Account with ID {accountId} not found.");
+    public async Task RemoveAccountFromPortfolioAsync(int portfolioId, int accountId, CancellationToken ct = default)
+    {
+        var account = await _accountRepository.GetByIdAsync(accountId, ct)
+            ?? throw new KeyNotFoundException($"Account with ID {accountId} not found.");
 
-            if (account.PortfolioId != portfolioId)
-                throw new InvalidOperationException($"Account {accountId} is not linked to Portfolio {portfolioId}.");
+        if (account.PortfolioId != portfolioId)
+            throw new InvalidOperationException($"Account {accountId} is not linked to Portfolio {portfolioId}.");
 
-            await _accountRepository.DeleteAsync(account, ct);
-            await _accountRepository.SaveChangesAsync(ct);
-        }
+        await _accountRepository.DeleteAsync(account, ct);
+        await _accountRepository.SaveChangesAsync(ct);
     }
 }

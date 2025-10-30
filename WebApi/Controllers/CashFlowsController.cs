@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using PM.Application.Interfaces;
+using PM.Domain.Mappers;
 using PM.DTO;
 
 namespace PM.API.Controllers;
@@ -42,7 +43,7 @@ public class CashFlowsController : ControllerBase
         if (account is null)
             return BadRequest(new ProblemDetails { Title = "Invalid portfolio/account" });
 
-        await _accountManager.Deposit(account, dto.Amount, dto.Currency, dto.Date, dto.Note);
+        await _accountManager.Deposit(AccountMapper.ToEntity(account), dto.Amount, dto.Currency, dto.Date, dto.Note);
         return Ok();
     }
 
@@ -63,7 +64,7 @@ public class CashFlowsController : ControllerBase
         if (account is null)
             return BadRequest(new ProblemDetails { Title = "Invalid portfolio/account" });
 
-        await _accountManager.Withdraw(account, dto.Amount, dto.Currency, dto.Date, dto.Note);
+        await _accountManager.Withdraw(AccountMapper.ToEntity(account), dto.Amount, dto.Currency, dto.Date, dto.Note);
         return Ok();
     }
 
@@ -84,7 +85,7 @@ public class CashFlowsController : ControllerBase
         if (account is null)
             return BadRequest(new ProblemDetails { Title = "Invalid portfolio/account" });
 
-        await _accountManager.Fee(account, dto.Amount, dto.Currency, dto.Date, dto.Note);
+        await _accountManager.Fee(AccountMapper.ToEntity(account), dto.Amount, dto.Currency, dto.Date, dto.Note);
         return Ok();
     }
 }

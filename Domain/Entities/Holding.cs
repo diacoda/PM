@@ -26,6 +26,11 @@ public class Holding : Entity
 
     public List<Tag> Tags { get; set; } = new();
 
+    public void AddQuantity(decimal qty)
+    {
+        Quantity += qty;
+    }
+
     public void AddTag(Tag tag)
     {
         if (!Tags.Contains(tag))

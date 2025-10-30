@@ -15,16 +15,23 @@ namespace PM.Application.Services
             _holdingRepo = holdingRepo;
         }
 
-        public async Task AddHoldingAsync(int accountId, Symbol instrument, decimal quantity, CancellationToken ct = default)
+        public async Task UpsertHoldingAsync(int accountId, Symbol instrument, decimal quantity, CancellationToken ct = default)
         {
             var account = await _accountRepo.GetByIdAsync(accountId, ct);
             if (account == null) return;
 
             var holding = new Holding(instrument, quantity);
-            account.AddHolding(holding);
+            account.UpsertHolding(holding);
 
             await _accountRepo.UpdateAsync(account, ct);
             await _accountRepo.SaveChangesAsync(ct);
+        }
+
+        public async Task UpdateHoldingQuantityAsync(Holding holding, decimal newQty, CancellationToken ct = default)
+        {
+            holding.Quantity = newQty;
+            await _holdingRepo.UpdateAsync(holding, ct);
+            await _holdingRepo.SaveChangesAsync(ct);
         }
 
         public async Task RemoveHoldingAsync(int accountId, Symbol symbol, CancellationToken ct = default)
@@ -44,13 +51,6 @@ namespace PM.Application.Services
         {
             var holdings = await _holdingRepo.ListByAccountAsync(accountId, ct);
             return holdings.FirstOrDefault(h => h.Symbol.Equals(symbol));
-        }
-
-        public async Task UpdateHoldingQuantityAsync(Holding holding, decimal newQty, CancellationToken ct = default)
-        {
-            holding.Quantity = newQty;
-            await _holdingRepo.UpdateAsync(holding, ct);
-            await _holdingRepo.SaveChangesAsync(ct);
         }
 
         public async Task<decimal> GetCashBalanceAsync(int accountId, Currency currency, CancellationToken ct = default)
