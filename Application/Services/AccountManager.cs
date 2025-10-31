@@ -28,44 +28,47 @@ public class AccountManager : IAccountManager
     public async Task Buy(Account acct, Symbol instr, decimal qty, decimal grossAmount, string ccy, DateTime d, string note = "")
     {
         var money = new Money(grossAmount, new Currency(ccy));
-        var tx = await _transactionService.CreateAsync(TransactionType.Buy, instr, qty, money, d);
-        tx.Costs = _costService.ComputeBuySellCost(money);
-        await _transactionService.AddTransactionAsync(acct, tx, applyToCash: true);
+        //var tx = await _transactionService.CreateAsync2(acct.Id,TransactionType.Buy, instr, qty, money, d);
+        //tx.Costs = _costService.ComputeBuySellCost(money);
+        //await _transactionService.AddTransactionAsync(acct.Id, tx, applyToCash: true);
     }
     public async Task Sell(Account acct, Symbol instr, decimal qty, decimal grossAmount, string ccy, DateTime d, string note = "")
     {
         var money = new Money(grossAmount, new Currency(ccy));
-        var tx = await _transactionService.CreateAsync(TransactionType.Sell, instr, qty, money, d);
-        tx.Costs = _costService.ComputeBuySellCost(money);
-        await _transactionService.AddTransactionAsync(acct, tx, applyToCash: true);
+        //var tx = await _transactionService.CreateAsync2(acct.Id,TransactionType.Sell, instr, qty, money, d);
+        //tx.Costs = _costService.ComputeBuySellCost(money);
+        //await _transactionService.AddTransactionAsync(acct.Id, tx, applyToCash: true);
     }
-    public async Task Dividend(Account acct, Symbol instr, decimal amount, string ccy, DateTime d, string note = "")
+    public async Task Dividend(int accountId, Symbol instr, decimal amount, string ccy, DateTime d, string note = "")
     {
         var money = new Money(amount, new Currency(ccy));
-        var tx = await _transactionService.CreateAsync(TransactionType.Dividend, instr, 0m, money, d);
-        tx.Costs = _costService.ComputeDividendWithholding(money); // e.g., USD withholding
-        await _transactionService.AddTransactionAsync(acct, tx, applyToCash: true);
+        //var tx = await _transactionService.CreateAsync2(accountId, TransactionType.Dividend, instr, 0m, money, d);
+        //tx.Costs = _costService.ComputeDividendWithholding(money); // e.g., USD withholding
+        //await _transactionService.AddTransactionAsync(accountId, tx, applyToCash: true);
     }
 
-    public async Task Deposit(Account acct, decimal amt, string ccy, DateTime d, string note)
+    public async Task Deposit(int accountId, decimal amt, string ccy, DateTime d, string note)
     {
         var money = new Money(amt, new Currency(ccy));
-        await _transactionService.AddTransactionAsync(acct, await _transactionService.CreateAsync(TransactionType.Deposit,
-            ccy == "CAD" ? _cadCash : _usdCash, 0, money, d));
-        await _cashFlowService.RecordCashFlowAsync(acct, d, money, CashFlowType.Deposit, note);
+        //Transaction tx = await _transactionService.CreateAsync2(accountId,TransactionType.Deposit,
+        //    ccy == "CAD" ? _cadCash : _usdCash, 0, money, d);
+        //await _transactionService.AddTransactionAsync(accountId, tx);
+        await _cashFlowService.RecordCashFlowAsync(accountId, d, money, CashFlowType.Deposit, note);
     }
-    public async Task Withdraw(Account acct, decimal amt, string ccy, DateTime d, string note)
+    public async Task Withdraw(int accountId, decimal amt, string ccy, DateTime d, string note)
     {
         var money = new Money(amt, new Currency(ccy));
-        await _transactionService.AddTransactionAsync(acct, await _transactionService.CreateAsync(TransactionType.Withdrawal,
-            ccy == "CAD" ? _cadCash : _usdCash, 0, money, d));
-        await _cashFlowService.RecordCashFlowAsync(acct, d, money, CashFlowType.Withdrawal, note);
+        //Transaction tx = await _transactionService.CreateAsync2(accountId, TransactionType.Withdrawal,
+        //    ccy == "CAD" ? _cadCash : _usdCash, 0, money, d);
+        //await _transactionService.AddTransactionAsync(accountId, tx);
+        await _cashFlowService.RecordCashFlowAsync(accountId, d, money, CashFlowType.Withdrawal, note);
     }
-    public async Task Fee(Account acct, decimal amt, string ccy, DateTime d, string note)
+    public async Task Fee(int accountId, decimal amt, string ccy, DateTime d, string note)
     {
         var money = new Money(amt, new Currency(ccy));
-        await _transactionService.AddTransactionAsync(acct, await _transactionService.CreateAsync(TransactionType.Withdrawal,
-            ccy == "CAD" ? _cadCash : _usdCash, 0, money, d));
-        await _cashFlowService.RecordCashFlowAsync(acct, d, money, CashFlowType.Fee, note);
+        //Transaction tx = await _transactionService.CreateAsync2(accountId, TransactionType.Withdrawal,
+        //    ccy == "CAD" ? _cadCash : _usdCash, 0, money, d);
+        //await _transactionService.AddTransactionAsync(accountId, tx);
+        await _cashFlowService.RecordCashFlowAsync(accountId, d, money, CashFlowType.Fee, note);
     }
 }

@@ -64,6 +64,8 @@ builder.Services.AddScoped<ICashFlowService, CashFlowService>();
 builder.Services.AddScoped<IPriceService, PriceService>();
 builder.Services.AddScoped<IFxRateService, FxRateService>();
 builder.Services.AddScoped<IAccountManager, AccountManager>();
+builder.Services.AddScoped<ITransactionWorkflowService, TransactionWorkflowService>();
+
 builder.Services.AddScoped<ITagService, TagService>();
 
 builder.Services

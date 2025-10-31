@@ -15,11 +15,11 @@ namespace PM.Application.Services
             _repo = repo;
         }
 
-        public async Task RecordCashFlowAsync(Account account, DateTime date, Money amount, CashFlowType type, string? note = null)
+        public async Task RecordCashFlowAsync(int accountId, DateTime date, Money amount, CashFlowType type, string? note = null)
         {
             var flow = new CashFlow
             {
-                AccountId = account.Id,
+                AccountId = accountId,
                 Date = date,
                 Amount = amount,
                 Type = type,

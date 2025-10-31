@@ -12,8 +12,8 @@ public interface IAccountManager
 {
     Task Buy(Account acct, Symbol instr, decimal qty, decimal grossAmount, string ccy, DateTime d, string note = "");
     Task Sell(Account acct, Symbol instr, decimal qty, decimal grossAmount, string ccy, DateTime d, string note = "");
-    Task Dividend(Account acct, Symbol instr, decimal amount, string ccy, DateTime d, string note = "");
-    Task Deposit(Account acct, decimal amt, string ccy, DateTime d, string note);
-    Task Withdraw(Account acct, decimal amt, string ccy, DateTime d, string note);
-    Task Fee(Account acct, decimal amt, string ccy, DateTime d, string note);
+    Task Dividend(int accountId, Symbol instr, decimal amount, string ccy, DateTime d, string note = "");
+    Task Deposit(int accountId, decimal amt, string ccy, DateTime d, string note);
+    Task Withdraw(int accountId, decimal amt, string ccy, DateTime d, string note);
+    Task Fee(int accountId, decimal amt, string ccy, DateTime d, string note);
 }
