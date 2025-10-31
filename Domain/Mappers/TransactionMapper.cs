@@ -51,4 +51,18 @@ public static class TransactionMapper
         };
     }
 
+    public static Transaction ToEntity(int accountId, TransactionType type, CashFlowDTO dto)
+    {
+        return new Transaction
+        {
+            AccountId = accountId,
+            Date = dto.Date ?? DateTime.UtcNow,
+            Type = type,
+            Symbol = new Symbol(dto.Currency),
+            Quantity = dto.Amount,
+            Amount = new Money(dto.Amount, new Currency(dto.Currency)),
+            Costs = new Money(0, new Currency(dto.Currency ?? "CAD")),
+        };
+    }
+
 }
