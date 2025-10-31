@@ -1,12 +1,12 @@
 using PM.API.Middleware;
 using Microsoft.AspNetCore.Diagnostics;
 
-namespace PM.API.Configuration
+namespace PM.API.Middleware
 {
     /// <summary>
     /// Extension methods for configuring middleware in the WebApplication pipeline.
     /// </summary>
-    public static class MiddlewareConfig
+    public static class ExceptionHandlerConfig
     {
         /// <summary>
         /// Adds a global exception handler to catch unhandled exceptions and return a standardized

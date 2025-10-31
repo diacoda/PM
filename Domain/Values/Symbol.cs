@@ -1,16 +1,51 @@
 namespace PM.Domain.Values;
 
+/// <summary>
+/// Represents a financial symbol with associated currency, exchange, and asset class.
+/// </summary>
 public sealed class Symbol : IEquatable<Symbol>
 {
-    public string Value { get; }
-    public string Currency { get; }
-    public string Exchange { get; }
-    public AssetClass AssetClass { get; }   // 👈 NEW
-    private Symbol() { } // 👈 EF Core will use this
+    /// <summary>
+    /// The symbol value (e.g., "VFV.TO").
+    /// </summary>
+    public string Value { get; } = default!;
 
+    /// <summary>
+    /// The currency of the symbol (e.g., "CAD").
+    /// </summary>
+    public string Currency { get; } = default!;
+
+    /// <summary>
+    /// The exchange where the symbol trades (e.g., "TSX").
+    /// </summary>
+    public string Exchange { get; } = default!;
+
+    /// <summary>
+    /// The asset class of the symbol.
+    /// </summary>
+    public AssetClass AssetClass { get; }
+
+    /// <summary>
+    /// Private constructor for EF Core or serialization.
+    /// </summary>
+    private Symbol() { }
+
+    /// <summary>
+    /// Creates a new <see cref="Symbol"/> with default exchange and auto-resolved asset class.
+    /// </summary>
+    /// <param name="value">The symbol value.</param>
+    /// <param name="currency">The currency code (default "CAD").</param>
+    /// <param name="exchange">The exchange code (default "TSX").</param>
     public Symbol(string value, string currency = "CAD", string exchange = "TSX")
         : this(value, currency, exchange, ResolveAssetClass(value)) { }
 
+    /// <summary>
+    /// Creates a new <see cref="Symbol"/> with explicit asset class.
+    /// </summary>
+    /// <param name="value">The symbol value.</param>
+    /// <param name="currency">The currency code.</param>
+    /// <param name="exchange">The exchange code.</param>
+    /// <param name="assetClass">The asset class of the symbol.</param>
     public Symbol(string value, string currency, string exchange, AssetClass assetClass)
     {
         if (string.IsNullOrWhiteSpace(value))
@@ -29,7 +64,10 @@ public sealed class Symbol : IEquatable<Symbol>
         AssetClass = assetClass;
     }
 
-    // 🔍 Resolve asset class from static map
+    /// <summary>
+    /// Resolves the asset class from a static map of known symbols.
+    /// Returns <see cref="AssetClass.Other"/> if unknown.
+    /// </summary>
     public static AssetClass ResolveAssetClass(string symbol)
     {
         if (SymbolAssetClassMap.TryGetValue(symbol.Trim().ToUpperInvariant(), out var cls))

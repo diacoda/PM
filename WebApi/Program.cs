@@ -1,5 +1,6 @@
 using Serilog;
 using PM.API.Startup;
+using PM.API.Middleware;
 
 var builder = WebApplication.CreateBuilder(args);
 
