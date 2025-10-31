@@ -4,7 +4,7 @@ using OpenTelemetry.Metrics;
 using System.Diagnostics;
 using System.Diagnostics.Metrics;
 
-namespace PM.API.Configuration;
+namespace PM.API.Startup;
 
 /// <summary>
 /// Provides extension methods to configure OpenTelemetry tracing, metrics, and logging

@@ -1,19 +1,12 @@
-using PM.Application.Interfaces;
-using PM.Infrastructure.Providers;
-using PM.Application.Services;
-using PM.Infrastructure.Repositories;
-using PM.Infrastructure.Services;
-using PM.Domain.Values;
-using PM.Application.Commands;
-using PM.API.HostedServices;
 using Serilog;
-using NSwag;
+using PM.API.Startup;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Host.UseSerilogLogging(builder.Configuration);
 
 builder.Services
+    .AddAppConfiguration(builder.Configuration)
     .AddHttpClient()
     .AddDatabase(builder.Configuration, builder.Environment)
     .AddTelemetry(builder.Configuration, builder.Environment)

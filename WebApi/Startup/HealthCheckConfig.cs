@@ -3,7 +3,7 @@ using PM.Infrastructure.Data;
 using PM.Infrastructure.Health;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 
-namespace PM.API.Configuration
+namespace PM.API.Startup
 {
     /// <summary>
     /// Provides configuration methods for registering and mapping health checks.
