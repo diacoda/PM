@@ -13,82 +13,23 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Host.UseSerilogLogging(builder.Configuration);
 
-
 builder.Services
     .AddHttpClient()
     .AddDatabase(builder.Configuration, builder.Environment)
     .AddTelemetry(builder.Configuration, builder.Environment)
-    .AddHealthChecksWithDependencies(builder.Configuration);
-
-// Symbols
-var symbolConfigs = builder.Configuration
-    .GetSection("Symbols")
-    .Get<List<SymbolConfig>>() ?? new List<SymbolConfig>();
-var symbols = symbolConfigs
-    .Select(s => new Symbol(s.Value, s.Currency, s.Exchange))
-    .ToList();
-builder.Services.AddSingleton(symbols); // List<Symbol> as singleton for DI
-
-builder.Services.Configure<PriceJobOptions>(
-    builder.Configuration.GetSection("PriceJobOptions"));
-builder.Services.Configure<MarketHolidaysConfig>(
-    builder.Configuration.GetSection("MarketHolidays"));
-var holidays = new MarketHolidaysConfig();
-builder.Configuration.GetSection("MarketHolidays").Bind(holidays);
-builder.Services.AddSingleton<IMarketCalendar>(new MarketCalendar(holidays));
-builder.Services.AddHostedService<DailyPriceService>();
-builder.Services.AddScoped<FetchDailyPricesCommand>();
-
-builder.Services.AddSingleton<IFxRateProvider, YahooFxProvider>();
-builder.Services.AddSingleton<IPriceProvider, InvestingPriceProvider>();
-builder.Services.AddSingleton<IPriceProvider, YahooPriceProvider>();
-builder.Services.AddScoped<IPricingService, PricingService>();
-
-builder.Services.AddScoped<IAccountRepository, AccountRepository>();
-builder.Services.AddScoped<IHoldingRepository, HoldingRepository>();
-builder.Services.AddScoped<ITransactionRepository, TransactionRepository>();
-builder.Services.AddScoped<IPortfolioRepository, PortfolioRepository>();
-builder.Services.AddScoped<IValuationRepository, ValuationRepository>();
-builder.Services.AddScoped<ICashFlowRepository, CashFlowRepository>();
-builder.Services.AddScoped<IPriceRepository, PriceRepository>();
-builder.Services.AddScoped<IFxRateRepository, FxRateRepository>();
-builder.Services.AddScoped<ITagRepository, TagRepository>();
-
-builder.Services.AddScoped<IAccountService, AccountService>();
-builder.Services.AddScoped<IHoldingService, HoldingService>();
-builder.Services.AddScoped<ITransactionService, TransactionService>();
-builder.Services.AddScoped<IPortfolioService, PortfolioService>();
-builder.Services.AddScoped<IValuationService, ValuationService>();
-builder.Services.AddScoped<ITradeCostService, TradeCostService>();
-builder.Services.AddScoped<ICashFlowService, CashFlowService>();
-builder.Services.AddScoped<IPriceService, PriceService>();
-builder.Services.AddScoped<IFxRateService, FxRateService>();
-builder.Services.AddScoped<IAccountManager, AccountManager>();
-builder.Services.AddScoped<ITransactionWorkflowService, TransactionWorkflowService>();
-
-builder.Services.AddScoped<ITagService, TagService>();
+    .AddHealthChecksWithDependencies(builder.Configuration)
+    .AddSymbolConfigs(builder.Configuration)
+    .AddProviders()
+    .AddRepositories()
+    .AddApplicationServices()
+    .AddHostedJobs(builder.Configuration)
+    .AddSwaggerDocs();
 
 builder.Services
     .AddControllers()
-    .AddJsonOptions(options =>
-    {
-        options.JsonSerializerOptions.WriteIndented = true;
-    });
-;
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddOpenApiDocument(options =>
-{
-    options.PostProcess = document =>
-    {
-        document.Info = new OpenApiInfo
-        {
-            Version = "v1",
-            Title = "Portfolio Management API"
-        };
-    };
-    //options.SchemaSettings.GenerateEnumMappingDescription = true;
+    .AddJsonOptions(options => options.JsonSerializerOptions.WriteIndented = true);
 
-});
+builder.Services.AddEndpointsApiExplorer();
 
 var app = builder.Build();
 
