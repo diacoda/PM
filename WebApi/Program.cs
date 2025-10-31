@@ -35,10 +35,14 @@ if (app.Environment.IsDevelopment())
 
 app.UseGlobalExceptionHandler();
 app.UseSerilogRequestLogging();
+app.UseRequestContextLogging();
 app.UseHttpsRedirection();
 app.UseAuthorization();
-
 app.MapHealthChecksWithUI();
-app.UseOpenTelemetryPrometheusScrapingEndpoint();
+
+if (app.Environment.IsDevelopment())
+{
+    app.UseOpenTelemetryPrometheusScrapingEndpoint();
+}
 app.MapControllers();
 app.Run();
