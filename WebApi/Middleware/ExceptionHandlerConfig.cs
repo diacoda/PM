@@ -1,28 +1,32 @@
-using PM.API.Middleware;
 using Microsoft.AspNetCore.Diagnostics;
 
 namespace PM.API.Middleware
 {
     /// <summary>
-    /// Extension methods for configuring middleware in the WebApplication pipeline.
+    /// Provides an extension method to configure a global exception handler
+    /// that returns structured problem details with correlation ID and domain error info.
     /// </summary>
     public static class ExceptionHandlerConfig
     {
         /// <summary>
-        /// Adds a global exception handler to catch unhandled exceptions and return a standardized
-        /// problem details response.
+        /// Registers a global exception handler in the ASP.NET Core middleware pipeline.
         /// </summary>
-        /// <param name="app">The <see cref="WebApplication"/> instance to configure.</param>
-        /// <returns>The configured <see cref="WebApplication"/> instance.</returns>
+        /// <param name="app">The <see cref="WebApplication"/> to configure.</param>
+        /// <returns>The same <see cref="WebApplication"/> instance, for chaining.</returns>
+        /// <remarks>
+        /// This middleware catches all unhandled exceptions and delegates to
+        /// <see cref="ProblemDetailsWriter"/> to generate a structured, RFC 7807-compliant
+        /// response that includes a correlation ID (from <c>Correlation-Id</c> header or
+        /// <see cref="HttpContext.TraceIdentifier"/>).
+        /// </remarks>
         public static WebApplication UseGlobalExceptionHandler(this WebApplication app)
         {
             app.UseExceptionHandler(errorApp =>
             {
                 errorApp.Run(async context =>
                 {
-                    var logger = context.RequestServices
-                        .GetRequiredService<ILoggerFactory>()
-                        .CreateLogger("GlobalException");
+                    var loggerFactory = context.RequestServices.GetRequiredService<ILoggerFactory>();
+                    var logger = loggerFactory.CreateLogger("GlobalException");
 
                     var feature = context.Features.Get<IExceptionHandlerFeature>();
                     var ex = feature?.Error ?? new Exception("Unknown error");
