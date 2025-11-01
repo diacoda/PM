@@ -13,64 +13,16 @@ namespace PM.API.Controllers
     [Produces("application/json")]
     public class PricesController : ControllerBase
     {
-        private readonly FetchDailyPricesCommand _fetcher;
-        private readonly IMarketCalendar _calendar;
         private readonly IPriceService _priceService;
 
         /// <summary>
         /// Initializes a new instance of <see cref="PricesController"/>.
         /// </summary>
-        /// <param name="fetcher">Command to fetch daily prices from providers.</param>
-        /// <param name="calendar">Market calendar service to validate market hours and holidays.</param>
         /// <param name="priceService">Service to manage price data persistence and retrieval.</param>
         public PricesController(
-            FetchDailyPricesCommand fetcher,
-            IMarketCalendar calendar,
             IPriceService priceService)
         {
-            _fetcher = fetcher ?? throw new ArgumentNullException(nameof(fetcher));
-            _calendar = calendar ?? throw new ArgumentNullException(nameof(calendar));
             _priceService = priceService ?? throw new ArgumentNullException(nameof(priceService));
-        }
-
-        /// <summary>
-        /// Trigger an on-demand price fetch for one or more tickers.
-        /// </summary>
-        /// <remarks>
-        /// - Rejects future dates.  
-        /// - For today's date, only allows fetching after market close unless <paramref name="allowMarketClosed"/> is set.  
-        /// - Returns details of fetched prices.  
-        /// </remarks>
-        /// <param name="date">Optional date in YYYY-MM-DD format. Defaults to today.</param>
-        /// <param name="allowMarketClosed">Allow fetching even if the market is closed (useful for historical/manual runs).</param>
-        /// <param name="ct">Cancellation token.</param>
-        /// <returns>Returns 200 OK with fetched prices or 400 Bad Request for invalid input.</returns>
-        [HttpGet("fetch")]
-        [ProducesResponseType(typeof(object), StatusCodes.Status200OK)] // replace with actual return type
-        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
-        public async Task<IActionResult> Fetch([FromQuery] string? date = null, [FromQuery] bool allowMarketClosed = false, CancellationToken ct = default)
-        {
-            DateOnly fetchDate;
-            if (!string.IsNullOrWhiteSpace(date))
-            {
-                if (!DateOnly.TryParse(date, out fetchDate))
-                    return BadRequest(new ProblemDetails { Title = "Invalid date format. Use YYYY-MM-DD." });
-            }
-            else
-            {
-                fetchDate = DateOnly.FromDateTime(DateTime.Today);
-            }
-
-            var today = DateOnly.FromDateTime(DateTime.Today);
-
-            if (fetchDate > today)
-                return BadRequest(new ProblemDetails { Title = "Cannot fetch prices for future dates." });
-
-            if (fetchDate == today && !_calendar.IsAfterMarketClose("TSX") && !allowMarketClosed)
-                return BadRequest(new ProblemDetails { Title = "Prices for today are only available after market close." });
-
-            var result = await _fetcher.ExecuteAsync(fetchDate, allowMarketClosed, ct);
-            return Ok(result);
         }
 
         /// <summary>
@@ -90,27 +42,6 @@ namespace PM.API.Controllers
             CancellationToken ct = default)
         {
             var dto = await _priceService.UpdatePriceAsync(symbol, request, ct);
-            return Ok(dto);
-        }
-
-        /// <summary>
-        /// Fetch a price from a provider and upsert it into the database.
-        /// </summary>
-        /// <param name="request">Request containing symbol and optional provider/date info.</param>
-        /// <param name="ct">Cancellation token.</param>
-        /// <returns>Returns 200 OK with the upserted price.</returns>
-        [HttpPost("fetch-provider")]
-        [Consumes("application/json")]
-        [ProducesResponseType(typeof(PriceDTO), StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
-        public async Task<ActionResult<PriceDTO>> FetchPriceFromProvider(
-            [FromBody] UpsertPriceProviderRequest request,
-            CancellationToken ct = default)
-        {
-            if (string.IsNullOrWhiteSpace(request.Symbol))
-                return BadRequest(new ProblemDetails { Title = "Symbol is required." });
-
-            var dto = await _priceService.FetchAndUpsertFromProviderAsync(request, ct);
             return Ok(dto);
         }
 

@@ -1,6 +1,7 @@
 using PM.DTO.Prices;
 using PM.Application.Interfaces;
 using PM.Domain.Values;
+using Microsoft.Extensions.Caching.Memory;
 
 namespace PM.Application.Services;
 
@@ -9,56 +10,51 @@ public class PriceService : IPriceService
     private readonly IPriceRepository _repository;
     private readonly List<Symbol> _symbols;
     private readonly IEnumerable<IPriceProvider> _providers;
+    private readonly IMemoryCache _cache;
+
+    // Default cache duration (adjust as needed)
+    private readonly TimeSpan _cacheDuration = TimeSpan.FromHours(12);
 
     public PriceService(
         IPriceRepository repository,
         List<Symbol> symbols,
-        IEnumerable<IPriceProvider> providers
-        )
+        IEnumerable<IPriceProvider> providers,
+        IMemoryCache cache)
     {
         _repository = repository;
         _symbols = symbols;
         _providers = providers;
+        _cache = cache;
     }
 
-    public async Task<PriceDTO> UpdatePriceAsync(string symbolValue, UpdatePriceRequest request, CancellationToken ct)
+    public async Task<PriceDTO?> GetPriceAsync(string symbolValue, DateOnly date, CancellationToken ct = default)
     {
-        var symbol = _symbols
-            .FirstOrDefault(s => s.Value.Equals(symbolValue, StringComparison.OrdinalIgnoreCase));
-
+        var symbol = _symbols.FirstOrDefault(s => s.Value.Equals(symbolValue, StringComparison.OrdinalIgnoreCase));
         if (symbol is null)
             throw new ArgumentException($"Symbol '{symbolValue}' is not in the accepted symbols list.");
 
-        Currency currency = new Currency(symbol.Currency);
-        Money money = new Money(request.Close, currency);
-        var price = new InstrumentPrice(
-            symbol,
-            request.Date,
-            money,
-            currency,
-            "Manual Entry"
-        );
+        string cacheKey = BuildCacheKey(symbolValue, date);
 
-        await _repository.UpsertAsync(price, ct);
+        // 1️⃣ Try cache
+        if (_cache.TryGetValue(cacheKey, out PriceDTO? cached))
+            return cached;
 
-        return new PriceDTO
+        // 2️⃣ Try repository
+        var dbPrice = await _repository.GetAsync(symbol, date, ct);
+        if (dbPrice is not null)
         {
-            Symbol = price.Symbol.Value,
-            Date = price.Date,
-            Close = price.Price.Amount
-        };
-    }
+            var dto = new PriceDTO
+            {
+                Symbol = dbPrice.Symbol.Value,
+                Date = dbPrice.Date,
+                Close = dbPrice.Price.Amount
+            };
 
-    public async Task<PriceDTO> FetchAndUpsertFromProviderAsync(UpsertPriceProviderRequest request, CancellationToken ct)
-    {
-        // Validate symbol exists
-        var symbol = _symbols
-            .FirstOrDefault(s => s.Value.Equals(request.Symbol, StringComparison.OrdinalIgnoreCase));
+            CachePrice(cacheKey, dto);
+            return dto;
+        }
 
-        if (symbol is null)
-            throw new ArgumentException($"Symbol '{request.Symbol}' is not in the accepted symbols list.");
-
-        // Select provider based on symbol
+        // 3️⃣ Try provider
         string providerName = symbol.Value.EndsWith(".TO", StringComparison.OrdinalIgnoreCase)
             ? "Yahoo"
             : "Memory";
@@ -66,53 +62,47 @@ public class PriceService : IPriceService
         var provider = _providers.SingleOrDefault(p =>
             p.ProviderName.Equals(providerName, StringComparison.OrdinalIgnoreCase));
 
-        if (provider == null)
-            throw new InvalidOperationException($"No price provider found with name '{providerName}' for {symbol.Value} ({symbol.Exchange}).");
+        if (provider is null)
+            throw new InvalidOperationException($"No provider found for {symbolValue} ({symbol.Exchange}).");
 
-        // Fetch price
-        var fetchedPrice = await provider.GetPriceAsync(symbol, request.Date, ct);
+        var fetched = await provider.GetPriceAsync(symbol, date, ct);
+        if (fetched is null || fetched.Price.Amount <= 0)
+            throw new InvalidOperationException($"No valid price found for {symbolValue} on {date}.");
 
-        if (fetchedPrice is null || fetchedPrice.Price.Amount <= 0)
-            throw new InvalidOperationException($"Price provider '{providerName}' did not return a valid price for {symbol.Value} on {request.Date}.");
+        await _repository.UpsertAsync(fetched, ct);
 
-        Currency currency = new Currency(symbol.Currency);
-        Money money = new Money(fetchedPrice.Price.Amount, currency);
-        // Prepare price to upsert
-        var priceToUpsert = new InstrumentPrice(
-            symbol,
-            request.Date,
-            money,
-            currency,
-            providerName
-        );
-
-        // Upsert the price
-        await _repository.UpsertAsync(priceToUpsert, ct);
-
-        // Return DTO
-        return new PriceDTO
+        var dtoFromProvider = new PriceDTO
         {
-            Symbol = priceToUpsert.Symbol.Value,
-            Date = priceToUpsert.Date,
-            Close = priceToUpsert.Price.Amount
+            Symbol = fetched.Symbol.Value,
+            Date = fetched.Date,
+            Close = fetched.Price.Amount
         };
+
+        CachePrice(cacheKey, dtoFromProvider);
+        return dtoFromProvider;
     }
 
-    public async Task<PriceDTO?> GetPriceAsync(string symbolValue, DateOnly date, CancellationToken ct)
+    public async Task<PriceDTO> UpdatePriceAsync(string symbolValue, UpdatePriceRequest request, CancellationToken ct)
     {
         var symbol = _symbols.FirstOrDefault(s => s.Value.Equals(symbolValue, StringComparison.OrdinalIgnoreCase));
         if (symbol is null)
             throw new ArgumentException($"Symbol '{symbolValue}' is not in the accepted symbols list.");
 
-        var price = await _repository.GetAsync(symbol, date, ct);
-        if (price is null) return null;
+        var currency = new Currency(symbol.Currency);
+        var money = new Money(request.Close, currency);
+        var price = new InstrumentPrice(symbol, request.Date, money, currency, "Manual Entry");
 
-        return new PriceDTO
+        await _repository.UpsertAsync(price, ct);
+
+        var dto = new PriceDTO
         {
             Symbol = price.Symbol.Value,
             Date = price.Date,
             Close = price.Price.Amount
         };
+
+        CachePrice(BuildCacheKey(symbol.Value, request.Date), dto);
+        return dto;
     }
 
     public async Task<List<PriceDTO>> GetAllPricesForSymbolAsync(string symbolValue, CancellationToken ct)
@@ -122,7 +112,6 @@ public class PriceService : IPriceService
             throw new ArgumentException($"Symbol '{symbolValue}' is not in the accepted symbols list.");
 
         var prices = await _repository.GetAllForSymbolAsync(symbol, ct);
-
         return prices.Select(p => new PriceDTO
         {
             Symbol = p.Symbol.Value,
@@ -137,35 +126,49 @@ public class PriceService : IPriceService
         if (symbol is null)
             throw new ArgumentException($"Symbol '{symbolValue}' is not in the accepted symbols list.");
 
+        string cacheKey = BuildCacheKey(symbol.Value, date);
+        _cache.Remove(cacheKey);
+
         return await _repository.DeleteAsync(symbol, date, ct);
     }
 
     public async Task<List<PriceDTO>> GetAllPricesByDateAsync(DateOnly date, CancellationToken ct)
     {
         var prices = await _repository.GetAllByDateAsync(date, ct);
+        var map = prices.ToDictionary(p => p.Symbol.Value, StringComparer.OrdinalIgnoreCase);
 
-        // Build a lookup by symbol name
-        var priceMap = prices.ToDictionary(p => p.Symbol.Value, StringComparer.OrdinalIgnoreCase);
-
-        // Map symbols to DTOs
         return _symbols.Select(s =>
         {
-            if (priceMap.TryGetValue(s.Value, out var p))
+            if (map.TryGetValue(s.Value, out var p))
             {
-                return new PriceDTO
+                var dto = new PriceDTO
                 {
-                    Symbol = s.Value,
+                    Symbol = p.Symbol.Value,
                     Date = p.Date,
                     Close = p.Price.Amount
                 };
+
+                CachePrice(BuildCacheKey(s.Value, date), dto);
+                return dto;
             }
 
             return new PriceDTO
             {
                 Symbol = s.Value,
                 Date = date,
-                Close = 0 // or null if you later switch to nullable decimal
+                Close = 0
             };
         }).ToList();
+    }
+
+    private static string BuildCacheKey(string symbol, DateOnly date)
+        => $"{symbol.ToUpperInvariant()}:{date:yyyyMMdd}";
+
+    private void CachePrice(string key, PriceDTO dto)
+    {
+        _cache.Set(key, dto, new MemoryCacheEntryOptions
+        {
+            AbsoluteExpirationRelativeToNow = _cacheDuration
+        });
     }
 }
