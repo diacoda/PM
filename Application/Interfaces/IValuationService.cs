@@ -11,7 +11,7 @@ namespace PM.Application.Interfaces;
 /// </summary>
 public interface IValuationService
 {
-    Task<IEnumerable<ValuationRecord>> GetByPortfolioAsync(int portfolioId, ValuationPeriod period);
+    Task<IEnumerable<ValuationRecord>> GetByPortfolioAsync(int portfolioId, ValuationPeriod period, CancellationToken ct = default);
     // ---------------------------------------------------------------------
     // TOTAL SNAPSHOTS (Portfolio / Account)
     // ---------------------------------------------------------------------
@@ -21,13 +21,13 @@ public interface IValuationService
         DateTime startDate,
         DateTime endDate,
         Currency reportingCurrency,
-        ValuationPeriod period);
+        ValuationPeriod period, CancellationToken ct = default);
     Task GenerateAndStoreAccountValuations(
         Account account,
         DateTime startDate,
         DateTime endDate,
         Currency reportingCurrency,
-        ValuationPeriod period);
+        ValuationPeriod period, CancellationToken ct = default);
     // ---------------------------------------------------------------------
     // ASSET-CLASS SNAPSHOTS (Portfolio / Account) with Percentage
     // ---------------------------------------------------------------------
@@ -36,11 +36,11 @@ public interface IValuationService
         DateTime startDate,
         DateTime endDate,
         Currency reportingCurrency,
-        ValuationPeriod period);
+        ValuationPeriod period, CancellationToken ct = default);
     Task GenerateAndStoreAccountValuationsByAssetClass(
         Account account,
         DateTime startDate,
         DateTime endDate,
         Currency reportingCurrency,
-        ValuationPeriod period);
+        ValuationPeriod period, CancellationToken ct = default);
 }

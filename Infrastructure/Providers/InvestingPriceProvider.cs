@@ -18,22 +18,22 @@ public class InvestingPriceProvider : IPriceProvider
         _httpClientFactory = httpClientFactory ?? throw new ArgumentNullException(nameof(httpClientFactory));
     }
 
-    public async Task<InstrumentPrice?> GetPriceAsync(Symbol symbol, DateOnly date)
+    public async Task<InstrumentPrice?> GetPriceAsync(Symbol symbol, DateOnly date, CancellationToken ct = default)
     {
         string url = TdESeriesUrls[symbol.Value];
         if (string.IsNullOrEmpty(url))
             throw new ArgumentException($"Symbol {symbol.Value} is not supported by {ProviderName}.");
-        decimal value = await FetchTdESeriesPriceAsync(url, symbol.Value);
+        decimal value = await FetchTdESeriesPriceAsync(url, symbol.Value, ct);
         Currency currency = new Currency(symbol.Currency);
         return new InstrumentPrice(symbol, date, new Money(value, currency), currency, ProviderName);
     }
 
-    private async Task<decimal> FetchTdESeriesPriceAsync(string url, string symbol)
+    private async Task<decimal> FetchTdESeriesPriceAsync(string url, string symbol, CancellationToken ct = default)
     {
         var client = _httpClientFactory.CreateClient();
         client.DefaultRequestHeaders.Add("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64)");
 
-        string html = await client.GetStringAsync(url);
+        string html = await client.GetStringAsync(url, ct);
 
         var doc = new HtmlDocument();
         doc.LoadHtml(html);

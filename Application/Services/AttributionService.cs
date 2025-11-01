@@ -16,20 +16,20 @@ public class AttributionService : IAttributionService
 
     // SECURITY-LEVEL for an Account
     public async Task<IEnumerable<ContributionRecord>> ContributionBySecurityAsync(
-        Account account, DateTime start, DateTime end, Currency ccy)
+        Account account, DateTime start, DateTime end, Currency ccy, CancellationToken ct = default)
     {
         var results = new List<ContributionRecord>();
 
-        var moneyStart = await _pricingService.CalculateAccountValueAsync(account, start, ccy);
+        var moneyStart = await _pricingService.CalculateAccountValueAsync(account, start, ccy, ct);
         var accountStart = moneyStart.Amount;
         if (accountStart == 0m)
             return results;
 
         foreach (var h in account.Holdings)
         {
-            var v0Money = await _pricingService.CalculateHoldingValueAsync(h, start, ccy);
+            var v0Money = await _pricingService.CalculateHoldingValueAsync(h, start, ccy, ct);
             var v0 = v0Money.Amount;
-            var v1Money = await _pricingService.CalculateHoldingValueAsync(h, end, ccy);
+            var v1Money = await _pricingService.CalculateHoldingValueAsync(h, end, ccy, ct);
             var v1 = v1Money.Amount;
 
             if (v0 <= 0m) continue;
@@ -48,11 +48,11 @@ public class AttributionService : IAttributionService
 
     // SECURITY-LEVEL for a Portfolio (sum across accounts)
     public async Task<IEnumerable<ContributionRecord>> ContributionBySecurityAsync(
-        Portfolio portfolio, DateTime start, DateTime end, Currency ccy)
+        Portfolio portfolio, DateTime start, DateTime end, Currency ccy, CancellationToken ct = default)
     {
         var results = new List<ContributionRecord>();
 
-        var p0Money = await _pricingService.CalculatePortfolioValueAsync(portfolio, start, ccy);
+        var p0Money = await _pricingService.CalculatePortfolioValueAsync(portfolio, start, ccy, ct);
         var p0 = p0Money.Amount;
         if (p0 == 0m)
             return results;
@@ -67,10 +67,10 @@ public class AttributionService : IAttributionService
 
             foreach (var hh in g)
             {
-                var tmpV0Money = await _pricingService.CalculateHoldingValueAsync(hh, start, ccy);
+                var tmpV0Money = await _pricingService.CalculateHoldingValueAsync(hh, start, ccy, ct);
                 v0 += tmpV0Money.Amount;
 
-                var tmpV1Money = await _pricingService.CalculateHoldingValueAsync(hh, end, ccy);
+                var tmpV1Money = await _pricingService.CalculateHoldingValueAsync(hh, end, ccy, ct);
                 v1 += tmpV1Money.Amount;
             }
 
@@ -93,9 +93,9 @@ public class AttributionService : IAttributionService
 
     // ASSET CLASS aggregation for Portfolio
     public async Task<IEnumerable<ContributionRecord>> ContributionByAssetClassAsync(
-        Portfolio portfolio, DateTime start, DateTime end, Currency ccy)
+        Portfolio portfolio, DateTime start, DateTime end, Currency ccy, CancellationToken ct = default)
     {
-        var securities = await ContributionBySecurityAsync(portfolio, start, end, ccy);
+        var securities = await ContributionBySecurityAsync(portfolio, start, end, ccy, ct);
 
         return securities
             .GroupBy(c => SymbolToAssetClass(c.Key, portfolio))

@@ -35,7 +35,7 @@ public class FetchDailyPricesCommand
     /// <summary>
     /// Fetch prices for symbols and FX rates for all currency pairs.
     /// </summary>
-    public async Task<FetchPricesDTO> ExecuteAsync(DateOnly date, bool allowMarketClosed = false)
+    public async Task<FetchPricesDTO> ExecuteAsync(DateOnly date, bool allowMarketClosed = false, CancellationToken ct = default)
     {
         var fetched = new List<string>();
         var skipped = new List<string>();
@@ -83,11 +83,11 @@ public class FetchDailyPricesCommand
 
             try
             {
-                var price = await provider.GetPriceAsync(symbol, date);
+                var price = await provider.GetPriceAsync(symbol, date, ct);
                 if (price != null)
                 {
                     var toSave = price with { Source = provider.ProviderName };
-                    await _priceRepository.SaveAsync(toSave);
+                    await _priceRepository.SaveAsync(toSave, ct);
                     fetched.Add($"{symbol.Value} ({exchange}) from {providerName}");
                 }
                 else
@@ -111,17 +111,17 @@ public class FetchDailyPricesCommand
         {
             try
             {
-                var existing = await _fxRepository.GetAsync(from, to, date);
+                var existing = await _fxRepository.GetAsync(from, to, date, ct);
                 if (existing != null)
                 {
                     skipped.Add($"FX {from.Code}/{to.Code} - already in DB");
                     continue;
                 }
 
-                var fx = await _fxProvider.GetFxRateAsync(from, to, date);
+                var fx = await _fxProvider.GetFxRateAsync(from, to, date, ct);
                 if (fx != null)
                 {
-                    await _fxRepository.SaveAsync(fx);
+                    await _fxRepository.SaveAsync(fx, ct);
                     fetched.Add($"FX {from.Code}/{to.Code}");
                 }
                 else

@@ -11,14 +11,14 @@ namespace PM.Infrastructure.Providers
         public YahooFxProvider(IHttpClientFactory httpClientFactory)
             : base(httpClientFactory) { }
 
-        public async Task<FxRate?> GetFxRateAsync(Currency fromCurrency, Currency toCurrency, DateOnly date)
+        public async Task<FxRate?> GetFxRateAsync(Currency fromCurrency, Currency toCurrency, DateOnly date, CancellationToken ct = default)
         {
             if (fromCurrency == null || toCurrency == null)
                 throw new ArgumentNullException("Currencies must not be null.");
 
             string ticker = $"{fromCurrency.Code}{toCurrency.Code}=X";
 
-            var response = await FetchYahooChartAsync(ticker, date);
+            var response = await FetchYahooChartAsync(ticker, date, ct);
             var close = ExtractCloseForDate(response, date);
 
             if (close is null)

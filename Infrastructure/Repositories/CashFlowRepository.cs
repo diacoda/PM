@@ -16,13 +16,13 @@ namespace PM.Infrastructure.Repositories
             _context = context;
         }
 
-        public async Task RecordCashFlowAsync(CashFlow flow)
+        public async Task RecordCashFlowAsync(CashFlow flow, CancellationToken ct = default)
         {
             _context.CashFlows.Add(flow);
-            await _context.SaveChangesAsync();
+            await _context.SaveChangesAsync(ct);
         }
 
-        public async Task<IEnumerable<CashFlow>> GetCashFlowsAsync(int accountId, DateTime? from = null, DateTime? to = null)
+        public async Task<IEnumerable<CashFlow>> GetCashFlowsAsync(int accountId, DateTime? from = null, DateTime? to = null, CancellationToken ct = default)
         {
             var query = _context.CashFlows
                 .AsNoTracking()
@@ -33,12 +33,12 @@ namespace PM.Infrastructure.Repositories
             if (to.HasValue)
                 query = query.Where(f => f.Date <= to.Value);
 
-            return await query.OrderBy(f => f.Date).ToListAsync();
+            return await query.OrderBy(f => f.Date).ToListAsync(ct);
         }
 
-        public async Task<Money> GetNetCashFlowAsync(int accountId, Currency currency, DateTime? from = null, DateTime? to = null)
+        public async Task<Money> GetNetCashFlowAsync(int accountId, Currency currency, DateTime? from = null, DateTime? to = null, CancellationToken ct = default)
         {
-            var flows = await GetCashFlowsAsync(accountId, from, to);
+            var flows = await GetCashFlowsAsync(accountId, from, to, ct);
             var sameCurrency = flows.Where(f => f.Amount.Currency == currency);
 
             var total = sameCurrency.Sum(f =>

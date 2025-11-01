@@ -39,7 +39,7 @@ public class PriceService : IPriceService
             "Manual Entry"
         );
 
-        await _repository.UpsertAsync(price);
+        await _repository.UpsertAsync(price, ct);
 
         return new PriceDTO
         {
@@ -70,7 +70,7 @@ public class PriceService : IPriceService
             throw new InvalidOperationException($"No price provider found with name '{providerName}' for {symbol.Value} ({symbol.Exchange}).");
 
         // Fetch price
-        var fetchedPrice = await provider.GetPriceAsync(symbol, request.Date);
+        var fetchedPrice = await provider.GetPriceAsync(symbol, request.Date, ct);
 
         if (fetchedPrice is null || fetchedPrice.Price.Amount <= 0)
             throw new InvalidOperationException($"Price provider '{providerName}' did not return a valid price for {symbol.Value} on {request.Date}.");
@@ -87,7 +87,7 @@ public class PriceService : IPriceService
         );
 
         // Upsert the price
-        await _repository.UpsertAsync(priceToUpsert);
+        await _repository.UpsertAsync(priceToUpsert, ct);
 
         // Return DTO
         return new PriceDTO
@@ -104,7 +104,7 @@ public class PriceService : IPriceService
         if (symbol is null)
             throw new ArgumentException($"Symbol '{symbolValue}' is not in the accepted symbols list.");
 
-        var price = await _repository.GetAsync(symbol, date);
+        var price = await _repository.GetAsync(symbol, date, ct);
         if (price is null) return null;
 
         return new PriceDTO
@@ -121,7 +121,7 @@ public class PriceService : IPriceService
         if (symbol is null)
             throw new ArgumentException($"Symbol '{symbolValue}' is not in the accepted symbols list.");
 
-        var prices = await _repository.GetAllForSymbolAsync(symbol);
+        var prices = await _repository.GetAllForSymbolAsync(symbol, ct);
 
         return prices.Select(p => new PriceDTO
         {
@@ -137,12 +137,12 @@ public class PriceService : IPriceService
         if (symbol is null)
             throw new ArgumentException($"Symbol '{symbolValue}' is not in the accepted symbols list.");
 
-        return await _repository.DeleteAsync(symbol, date);
+        return await _repository.DeleteAsync(symbol, date, ct);
     }
 
     public async Task<List<PriceDTO>> GetAllPricesByDateAsync(DateOnly date, CancellationToken ct)
     {
-        var prices = await _repository.GetAllByDateAsync(date);
+        var prices = await _repository.GetAllByDateAsync(date, ct);
 
         // Build a lookup by symbol name
         var priceMap = prices.ToDictionary(p => p.Symbol.Value, StringComparer.OrdinalIgnoreCase);
@@ -168,27 +168,4 @@ public class PriceService : IPriceService
             };
         }).ToList();
     }
-
-
-    /*
-    public async Task<Dictionary<string, decimal>> GetValuationByAssetClassAsync(CancellationToken ct)
-    {
-        var result = new Dictionary<string, decimal>(StringComparer.OrdinalIgnoreCase);
-
-        foreach (var symbol in _symbols)
-        {
-            var prices = await _repository.GetAllForSymbolAsync(symbol);
-            if (prices.Count == 0) continue;
-
-            var latest = prices.OrderByDescending(p => p.Date).First();
-
-            if (!result.ContainsKey(symbol.AssetClass.ToString()))
-                result[symbol.AssetClass.ToString()] = 0;
-
-            result[symbol.AssetClass.ToString()] += latest.Value;
-        }
-
-        return result;
-    }
-    */
 }

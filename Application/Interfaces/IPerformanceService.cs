@@ -5,9 +5,29 @@ namespace PM.Application.Interfaces;
 
 public interface IPerformanceService
 {
-    IAsyncEnumerable<DailyReturn> GetAccountDailyTwrAsync(Account account, DateTime start, DateTime end, Currency ccy);
-    IAsyncEnumerable<DailyReturn> GetPortfolioDailyTwrAsync(Portfolio portfolio, DateTime start, DateTime end, Currency ccy);
+    Task<List<DailyReturn>> GetAccountDailyTwrAsync(
+        Account account,
+        DateTime start,
+        DateTime end,
+        Currency ccy,
+        CancellationToken ct = default);
+    Task<List<DailyReturn>> GetPortfolioDailyTwrAsync(
+        Portfolio portfolio,
+        DateTime start,
+        DateTime end,
+        Currency ccy,
+        CancellationToken ct = default);
     decimal Link(IEnumerable<decimal> dailyReturns);
-    Task<PeriodPerformance> GetAccountReturnAsync(Account account, DateTime start, DateTime end, Currency reportingCurrency);
-    Task<PeriodPerformance> GetPortfolioReturnAsync(Portfolio portfolio, DateTime start, DateTime end, Currency reportingCurrency);
+    Task<PeriodPerformance> GetAccountReturnAsync(
+        Account account,
+        DateTime start,
+        DateTime end,
+        Currency reportingCurrency,
+        CancellationToken ct = default);
+    Task<PeriodPerformance> GetPortfolioReturnAsync(
+        Portfolio portfolio,
+        DateTime start,
+        DateTime end,
+        Currency reportingCurrency,
+        CancellationToken ct = default);
 }

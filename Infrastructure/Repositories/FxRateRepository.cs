@@ -17,7 +17,7 @@ public class FxRateRepository : IFxRateRepository
     /// <summary>
     /// Get FX rate for a currency pair and date
     /// </summary>
-    public async Task<FxRate?> GetAsync(Currency fromCurrency, Currency toCurrency, DateOnly date)
+    public async Task<FxRate?> GetAsync(Currency fromCurrency, Currency toCurrency, DateOnly date, CancellationToken ct = default)
     {
         return await _db.FxRates
             .AsNoTracking()
@@ -29,16 +29,16 @@ public class FxRateRepository : IFxRateRepository
     /// <summary>
     /// Save a new FX rate
     /// </summary>
-    public async Task SaveAsync(FxRate rate)
+    public async Task SaveAsync(FxRate rate, CancellationToken ct = default)
     {
         _db.FxRates.Add(rate);
-        await _db.SaveChangesAsync();
+        await _db.SaveChangesAsync(ct);
     }
 
     /// <summary>
     /// Insert or update a FX rate
     /// </summary>
-    public async Task UpsertAsync(FxRate rate)
+    public async Task UpsertAsync(FxRate rate, CancellationToken ct = default)
     {
         var existing = await _db.FxRates
             .AsTracking()
@@ -55,25 +55,25 @@ public class FxRateRepository : IFxRateRepository
             await _db.FxRates.AddAsync(rate);
         }
 
-        await _db.SaveChangesAsync();
+        await _db.SaveChangesAsync(ct);
     }
 
     /// <summary>
     /// Get all FX rates for a currency pair, ordered by date
     /// </summary>
-    public async Task<List<FxRate>> GetAllForPairAsync(Currency fromCurrency, Currency toCurrency)
+    public async Task<List<FxRate>> GetAllForPairAsync(Currency fromCurrency, Currency toCurrency, CancellationToken ct = default)
     {
         return await _db.FxRates
             .AsNoTracking()
             .Where(f => f.FromCurrency.Equals(fromCurrency) && f.ToCurrency.Equals(toCurrency))
             .OrderBy(f => f.Date)
-            .ToListAsync();
+            .ToListAsync(ct);
     }
 
     /// <summary>
     /// Delete a FX rate for a currency pair and date
     /// </summary>
-    public async Task<bool> DeleteAsync(Currency fromCurrency, Currency toCurrency, DateOnly date)
+    public async Task<bool> DeleteAsync(Currency fromCurrency, Currency toCurrency, DateOnly date, CancellationToken ct = default)
     {
         var existing = await _db.FxRates
             .FirstOrDefaultAsync(f => f.FromCurrency.Equals(fromCurrency)
@@ -84,19 +84,19 @@ public class FxRateRepository : IFxRateRepository
             return false;
 
         _db.FxRates.Remove(existing);
-        await _db.SaveChangesAsync();
+        await _db.SaveChangesAsync(ct);
         return true;
     }
 
     /// <summary>
     /// Get all FX rates for a specific date, ordered by FromCurrency / ToCurrency
     /// </summary>
-    public async Task<List<FxRate>> GetAllByDateAsync(DateOnly date)
+    public async Task<List<FxRate>> GetAllByDateAsync(DateOnly date, CancellationToken ct = default)
     {
         var rates = await _db.FxRates
             .AsNoTracking()
             .Where(f => f.Date == date)
-            .ToListAsync();
+            .ToListAsync(ct);
 
         return rates
             .OrderBy(f => f.FromCurrency.Code)

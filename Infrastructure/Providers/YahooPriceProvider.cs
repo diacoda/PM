@@ -11,12 +11,12 @@ namespace PM.Infrastructure.Providers
         public YahooPriceProvider(IHttpClientFactory httpClientFactory)
             : base(httpClientFactory) { }
 
-        public async Task<InstrumentPrice?> GetPriceAsync(Symbol symbol, DateOnly date)
+        public async Task<InstrumentPrice?> GetPriceAsync(Symbol symbol, DateOnly date, CancellationToken ct = default)
         {
             if (symbol is null)
                 throw new ArgumentNullException(nameof(symbol));
 
-            var response = await FetchYahooChartAsync(symbol.Value, date);
+            var response = await FetchYahooChartAsync(symbol.Value, date, ct);
             var close = ExtractCloseForDate(response, date);
             if (close is null)
                 return null;

@@ -11,7 +11,7 @@ public abstract class YahooBaseProvider
         _httpClientFactory = httpClientFactory ?? throw new ArgumentNullException(nameof(httpClientFactory));
     }
 
-    protected async Task<YahooResponse?> FetchYahooChartAsync(string ticker, DateOnly date)
+    protected async Task<YahooResponse?> FetchYahooChartAsync(string ticker, DateOnly date, CancellationToken ct = default)
     {
         var client = _httpClientFactory.CreateClient();
         client.DefaultRequestHeaders.Add("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64)");
@@ -19,7 +19,7 @@ public abstract class YahooBaseProvider
         string range = PickRange(date);
         string url = $"https://query1.finance.yahoo.com/v8/finance/chart/{Uri.EscapeDataString(ticker)}?interval=1d&range={range}";
 
-        var resp = await client.GetAsync(url);
+        var resp = await client.GetAsync(url, ct);
         if (!resp.IsSuccessStatusCode)
             return null;
 
@@ -27,7 +27,7 @@ public abstract class YahooBaseProvider
 
         try
         {
-            await using var stream = await resp.Content.ReadAsStreamAsync();
+            await using var stream = await resp.Content.ReadAsStreamAsync(ct);
             return await JsonSerializer.DeserializeAsync<YahooResponse>(stream, options);
         }
         catch

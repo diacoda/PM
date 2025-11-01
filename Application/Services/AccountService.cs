@@ -105,7 +105,7 @@ public class AccountService : IAccountService
         await _accountRepository.SaveChangesAsync(ct);
     }
 
-    public IEnumerable<HoldingDTO> GetHoldingsByTag(Account account, Tag tag)
+    public IEnumerable<HoldingDTO> GetHoldingsByTag(Account account, Tag tag, CancellationToken ct = default)
     {
         return account.Holdings
             .Where(h => h.Tags.Contains(tag))

@@ -16,13 +16,17 @@ public class ReportingService : IReportingService
     }
 
     // 1. Aggregation by Asset Class
-    public async Task<Dictionary<AssetClass, Money>> AggregateByAssetClassAsync(Account account, DateTime date, Currency reportingCurrency)
+    public async Task<Dictionary<AssetClass, Money>> AggregateByAssetClassAsync(
+        Account account,
+        DateTime date,
+        Currency reportingCurrency,
+        CancellationToken ct = default)
     {
         var result = new Dictionary<AssetClass, Money>();
 
         foreach (var holding in account.Holdings)
         {
-            var value = await _pricingService.CalculateHoldingValueAsync(holding, date, reportingCurrency);
+            var value = await _pricingService.CalculateHoldingValueAsync(holding, date, reportingCurrency, ct);
             var assetClass = holding.Symbol.AssetClass;
 
             if (result.ContainsKey(assetClass))
@@ -39,13 +43,17 @@ public class ReportingService : IReportingService
         return result;
     }
 
-    public async Task<Dictionary<AssetClass, Money>> AggregateByAssetClassAsync(Portfolio portfolio, DateTime date, Currency reportingCurrency)
+    public async Task<Dictionary<AssetClass, Money>> AggregateByAssetClassAsync(
+        Portfolio portfolio,
+        DateTime date,
+        Currency reportingCurrency,
+        CancellationToken ct = default)
     {
         var result = new Dictionary<AssetClass, Money>();
 
         foreach (var account in portfolio.Accounts)
         {
-            var accountAggregation = await AggregateByAssetClassAsync(account, date, reportingCurrency);
+            var accountAggregation = await AggregateByAssetClassAsync(account, date, reportingCurrency, ct);
 
             foreach (var kvp in accountAggregation)
             {
@@ -89,18 +97,18 @@ public class ReportingService : IReportingService
             Console.WriteLine($"- {tx.Date:yyyy-MM-dd} | {tx.Type} | Qty: {tx.Quantity} | Amount: {tx.Amount.Amount} {tx.Amount.Currency}");
         }
     }
-    public async Task<Dictionary<AssetClass, decimal>> GetAssetClassPercentagesAsync(Account account, DateTime date, Currency reportingCurrency)
+    public async Task<Dictionary<AssetClass, decimal>> GetAssetClassPercentagesAsync(Account account, DateTime date, Currency reportingCurrency, CancellationToken ct = default)
     {
-        var totals = await AggregateByAssetClassAsync(account, date, reportingCurrency);
+        var totals = await AggregateByAssetClassAsync(account, date, reportingCurrency, ct);
         var grand = totals.Values.Sum(m => m.Amount);
         if (grand <= 0m) return new();
 
         return totals.ToDictionary(k => k.Key, v => v.Value.Amount / grand);
     }
 
-    public async Task<Dictionary<AssetClass, decimal>> GetAssetClassPercentagesAsync(Portfolio portfolio, DateTime date, Currency reportingCurrency)
+    public async Task<Dictionary<AssetClass, decimal>> GetAssetClassPercentagesAsync(Portfolio portfolio, DateTime date, Currency reportingCurrency, CancellationToken ct = default)
     {
-        var totals = await AggregateByAssetClassAsync(portfolio, date, reportingCurrency);
+        var totals = await AggregateByAssetClassAsync(portfolio, date, reportingCurrency, ct);
         var grand = totals.Values.Sum(m => m.Amount);
         if (grand <= 0m) return new();
 

@@ -14,7 +14,7 @@ public interface IAccountService
     Task<decimal> GetCashBalanceAsync(int accountId, Currency currency, CancellationToken ct = default);
     Task AddTagAsync(int accountId, Tag tag, CancellationToken ct = default);
     Task RemoveTagAsync(int accountId, Tag tag, CancellationToken cancellationToken = default);
-    IEnumerable<HoldingDTO> GetHoldingsByTag(Account account, Tag tag);
+    IEnumerable<HoldingDTO> GetHoldingsByTag(Account account, Tag tag, CancellationToken ct = default);
     Task<AccountDTO?> GetAccountAsync(int portfolioId, int accountId, CancellationToken ct = default);
     Task<AccountDTO?> GetAccountWithIncludesAsync(int portfolioId, int accountId, IncludeOption[] includes, CancellationToken ct = default);
     Task<IEnumerable<AccountDTO>> ListAccountsAsync(int portfolioId, CancellationToken ct = default);

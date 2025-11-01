@@ -4,6 +4,7 @@ using PM.Domain.Entities;
 using PM.Infrastructure.Data;
 
 namespace PM.Infrastructure.Repositories;
+
 public class TagRepository : ITagRepository
 {
     private readonly AppDbContext _context;
@@ -13,37 +14,37 @@ public class TagRepository : ITagRepository
         _context = context;
     }
 
-    public async Task<Tag> CreateAsync(Tag tag)
+    public async Task<Tag> CreateAsync(Tag tag, CancellationToken ct = default)
     {
         _context.Tags.Add(tag);
-        await _context.SaveChangesAsync();
+        await _context.SaveChangesAsync(ct);
         return tag;
     }
 
-    public async Task<Tag?> GetByIdAsync(int id)
+    public async Task<Tag?> GetByIdAsync(int id, CancellationToken ct = default)
     {
-        return await _context.Tags.FindAsync(id);
+        return await _context.Tags.FindAsync(id, ct);
     }
 
-    public async Task<IEnumerable<Tag>> ListAsync()
+    public async Task<IEnumerable<Tag>> ListAsync(CancellationToken ct = default)
     {
-        return await _context.Tags.ToListAsync();
+        return await _context.Tags.ToListAsync(ct);
     }
 
-    public async Task<bool> UpdateAsync(Tag updatedTag)
+    public async Task<bool> UpdateAsync(Tag updatedTag, CancellationToken ct = default)
     {
-        var existingTag = await _context.Tags.FindAsync(updatedTag.Id);
+        var existingTag = await _context.Tags.FindAsync(updatedTag.Id, ct);
         if (existingTag is null) return false;
 
         existingTag.UpdateName(updatedTag.Name); // or set Name directly if no method
-        return await _context.SaveChangesAsync() > 0;
+        return await _context.SaveChangesAsync(ct) > 0;
     }
 
-    public async Task<bool> DeleteAsync(int id)
+    public async Task<bool> DeleteAsync(int id, CancellationToken ct = default)
     {
-        var tag = await _context.Tags.FindAsync(id);
+        var tag = await _context.Tags.FindAsync(id, ct);
         if (tag == null) return false;
         _context.Tags.Remove(tag);
-        return await _context.SaveChangesAsync() > 0;
+        return await _context.SaveChangesAsync(ct) > 0;
     }
 }

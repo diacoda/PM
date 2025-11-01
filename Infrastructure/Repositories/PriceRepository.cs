@@ -18,28 +18,28 @@ public class PriceRepository : IPriceRepository
     /// <summary>
     /// Get a price for a symbol and date.
     /// </summary>
-    public async Task<InstrumentPrice?> GetAsync(Symbol symbol, DateOnly date)
+    public async Task<InstrumentPrice?> GetAsync(Symbol symbol, DateOnly date, CancellationToken ct = default)
     {
         return await _db.Prices
             .AsNoTracking() // read-only, avoid EF tracking conflicts
-            .FirstOrDefaultAsync(p => p.Symbol.Equals(symbol) && p.Date == date);
+            .FirstOrDefaultAsync(p => p.Symbol.Equals(symbol) && p.Date == date, ct);
     }
 
-    public async Task SaveAsync(InstrumentPrice price)
+    public async Task SaveAsync(InstrumentPrice price, CancellationToken ct = default)
     {
         _db.Prices.Add(price);
-        await _db.SaveChangesAsync();
+        await _db.SaveChangesAsync(ct);
     }
 
     /// <summary>
     /// Insert or update a price. Works with immutable records.
     /// </summary>
-    public async Task UpsertAsync(InstrumentPrice price)
+    public async Task UpsertAsync(InstrumentPrice price, CancellationToken ct = default)
     {
         // Look for existing row
         var existing = await _db.Prices
             .AsTracking() // tracking needed to update
-            .FirstOrDefaultAsync(p => p.Symbol.Equals(price.Symbol) && p.Date == price.Date);
+            .FirstOrDefaultAsync(p => p.Symbol.Equals(price.Symbol) && p.Date == price.Date, ct);
 
         if (existing != null)
         {
@@ -51,42 +51,42 @@ public class PriceRepository : IPriceRepository
             await _db.Prices.AddAsync(price);
         }
 
-        await _db.SaveChangesAsync();
+        await _db.SaveChangesAsync(ct);
     }
 
     /// <summary>
     /// Optional helper: get all prices for a symbol
     /// </summary>
-    public async Task<List<InstrumentPrice>> GetAllForSymbolAsync(Symbol symbol)
+    public async Task<List<InstrumentPrice>> GetAllForSymbolAsync(Symbol symbol, CancellationToken ct = default)
     {
         return await _db.Prices
             .AsNoTracking()
             .Where(p => p.Symbol.Equals(symbol))
             .OrderBy(p => p.Date)
-            .ToListAsync();
+            .ToListAsync(ct);
     }
 
     /// <summary>
     /// Optional helper: delete a price for a symbol and date
     /// </summary>
-    public async Task<bool> DeleteAsync(Symbol symbol, DateOnly date)
+    public async Task<bool> DeleteAsync(Symbol symbol, DateOnly date, CancellationToken ct = default)
     {
         var existing = await _db.Prices
-            .FirstOrDefaultAsync(p => p.Symbol.Equals(symbol) && p.Date == date);
+            .FirstOrDefaultAsync(p => p.Symbol.Equals(symbol) && p.Date == date, ct);
 
         if (existing is null)
             return false;
 
         _db.Prices.Remove(existing);
-        await _db.SaveChangesAsync();
+        await _db.SaveChangesAsync(ct);
         return true;
     }
-    public async Task<List<InstrumentPrice>> GetAllByDateAsync(DateOnly date)
+    public async Task<List<InstrumentPrice>> GetAllByDateAsync(DateOnly date, CancellationToken ct = default)
     {
         var prices = await _db.Prices
             .AsNoTracking()
             .Where(p => p.Date == date)
-            .ToListAsync();
+            .ToListAsync(ct);
 
         return prices.OrderBy(p => p.Price.Amount).ToList();
     }

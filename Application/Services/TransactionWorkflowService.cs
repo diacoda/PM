@@ -46,7 +46,8 @@ public class TransactionWorkflowService : ITransactionWorkflowService
                 tx.Date,
                 tx.Amount,
                 flowType,
-                "tx.Note");
+                "tx.Note",
+                ct);
         }
 
         // Step 3: Apply to holdings

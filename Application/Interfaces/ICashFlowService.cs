@@ -6,8 +6,8 @@ namespace PM.Application.Interfaces;
 
 public interface ICashFlowService
 {
-    Task RecordCashFlowAsync(int accountId, DateTime date, Money amount, CashFlowType type, string? note = null);
-    Task<IEnumerable<CashFlow>> GetCashFlowsAsync(Account account, DateTime? from = null, DateTime? to = null);
-    Task<Money> GetNetCashFlowAsync(Account account, Currency currency, DateTime? from = null, DateTime? to = null);
-    Task<Money> GetPortfolioNetCashFlowAsync(Portfolio portfolio, Currency currency, DateTime? from = null, DateTime? to = null);
+    Task RecordCashFlowAsync(int accountId, DateTime date, Money amount, CashFlowType type, string? note = null, CancellationToken ct = default);
+    Task<IEnumerable<CashFlow>> GetCashFlowsAsync(Account account, DateTime? from = null, DateTime? to = null, CancellationToken ct = default);
+    Task<Money> GetNetCashFlowAsync(Account account, Currency currency, DateTime? from = null, DateTime? to = null, CancellationToken ct = default);
+    Task<Money> GetPortfolioNetCashFlowAsync(Portfolio portfolio, Currency currency, DateTime? from = null, DateTime? to = null, CancellationToken ct = default);
 }

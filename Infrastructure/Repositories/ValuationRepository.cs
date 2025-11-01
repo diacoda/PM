@@ -15,16 +15,16 @@ public class ValuationRepository : IValuationRepository
         _context = context;
     }
 
-    public async Task SaveAsync(ValuationRecord record)
+    public async Task SaveAsync(ValuationRecord record, CancellationToken ct = default)
     {
-        _context.ValuationRecords.Add(record);
-        await _context.SaveChangesAsync();
+        await _context.ValuationRecords.AddAsync(record, ct);
+        await _context.SaveChangesAsync(ct);
     }
 
-    public Task<IEnumerable<ValuationRecord>> GetAllAsync()
+    public Task<IEnumerable<ValuationRecord>> GetAllAsync(CancellationToken ct = default)
         => Task.FromResult(_context.ValuationRecords.AsEnumerable());
 
-    public Task<IEnumerable<ValuationRecord>> GetByPortfolioAsync(int portfolioId, ValuationPeriod period)
+    public Task<IEnumerable<ValuationRecord>> GetByPortfolioAsync(int portfolioId, ValuationPeriod period, CancellationToken ct = default)
     {
         var q = _context.ValuationRecords
             .Where(r => r.PortfolioId == portfolioId && r.Period == period)
@@ -32,7 +32,7 @@ public class ValuationRepository : IValuationRepository
         return Task.FromResult(q);
     }
 
-    public Task<IEnumerable<ValuationRecord>> GetByAccountAsync(int accountId, ValuationPeriod period)
+    public Task<IEnumerable<ValuationRecord>> GetByAccountAsync(int accountId, ValuationPeriod period, CancellationToken ct = default)
     {
         var q = _context.ValuationRecords
             .Where(r => r.AccountId == accountId && r.Period == period)
@@ -41,7 +41,7 @@ public class ValuationRepository : IValuationRepository
     }
 
     public Task<IEnumerable<ValuationRecord>> GetPortfolioAssetClassSnapshotsAsync(
-        int portfolioId, ValuationPeriod period, DateTime? from = null, DateTime? to = null)
+        int portfolioId, ValuationPeriod period, DateTime? from = null, DateTime? to = null, CancellationToken ct = default)
     {
         var q = _context.ValuationRecords
             .Where(r => r.PortfolioId == portfolioId && r.Period == period && r.AssetClass.HasValue);
@@ -53,7 +53,7 @@ public class ValuationRepository : IValuationRepository
     }
 
     public Task<IEnumerable<ValuationRecord>> GetAccountAssetClassSnapshotsAsync(
-        int accountId, ValuationPeriod period, DateTime? from = null, DateTime? to = null)
+        int accountId, ValuationPeriod period, DateTime? from = null, DateTime? to = null, CancellationToken ct = default)
     {
         var q = _context.ValuationRecords
             .Where(r => r.AccountId == accountId && r.Period == period && r.AssetClass.HasValue);
