@@ -53,7 +53,7 @@ namespace PM.API.Controllers
                 return BadRequest(new ProblemDetails { Title = "Invalid portfolio" });
 
             await _valuationService.GenerateAndStorePortfolioValuations(
-                PortfolioMapper.ToEntity(portfolio),
+                portfolioId,
                 dto.Start,
                 dto.End,
                 new Currency(dto.Currency),

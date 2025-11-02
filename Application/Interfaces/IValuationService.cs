@@ -17,13 +17,14 @@ public interface IValuationService
     // ---------------------------------------------------------------------
 
     Task GenerateAndStorePortfolioValuations(
-        Portfolio portfolio,
+        int portfolioId,
         DateTime startDate,
         DateTime endDate,
         Currency reportingCurrency,
         ValuationPeriod period, CancellationToken ct = default);
     Task GenerateAndStoreAccountValuations(
-        Account account,
+        int portfolioId,
+        int accountId,
         DateTime startDate,
         DateTime endDate,
         Currency reportingCurrency,
@@ -32,15 +33,17 @@ public interface IValuationService
     // ASSET-CLASS SNAPSHOTS (Portfolio / Account) with Percentage
     // ---------------------------------------------------------------------
     Task GenerateAndStorePortfolioValuationsByAssetClass(
-        Portfolio portfolio,
+        int portfolioId,
         DateTime startDate,
         DateTime endDate,
         Currency reportingCurrency,
         ValuationPeriod period, CancellationToken ct = default);
     Task GenerateAndStoreAccountValuationsByAssetClass(
-        Account account,
+        int portfolioId,
+        int accountId,
         DateTime startDate,
         DateTime endDate,
         Currency reportingCurrency,
-        ValuationPeriod period, CancellationToken ct = default);
+        ValuationPeriod period,
+        CancellationToken ct = default);
 }

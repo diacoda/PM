@@ -14,10 +14,11 @@ public static class AccountMapper
             Enum.Parse<Domain.Enums.FinancialInstitutions>(dto.FinancialInstitution));
 
     public static Account ToEntity(AccountDTO dto) =>
-    new Account(
-        dto.Name,
-        new Currency(dto.Currency),
-        Enum.Parse<Domain.Enums.FinancialInstitutions>(dto.FinancialInstitution));
+        new Account(
+            dto.Name,
+            new Currency(dto.Currency),
+            Enum.Parse<Domain.Enums.FinancialInstitutions>(dto.FinancialInstitution));
+
     public static AccountDTO ToDTO(Account account) => new AccountDTO
     {
         Id = account.Id,
@@ -39,11 +40,42 @@ public static class AccountMapper
             Holdings = includes.Contains(IncludeOption.Accounts)
                 ? account.Holdings.Select(HoldingMapper.ToDTO).ToList()
                 : new List<HoldingDTO>(),
-            /*Transactions = includes.Contains("transactions")
+            Transactions = includes.Contains(IncludeOption.Transactions)
                 ? account.Transactions.Select(TransactionMapper.ToDTO).ToList()
-                : new List<TransactionDTO>()*/
+                : new List<TransactionDTO>()
         };
 
         return dto;
+    }
+
+    /// <summary>
+    /// Maps an AccountDTO to an Account entity, including nested data depending on IncludeOption.
+    /// </summary>
+    public static Account ToEntity(AccountDTO dto, IncludeOption[] includes)
+    {
+        var account = new Account(
+            dto.Name,
+            new Currency(dto.Currency),
+            Enum.Parse<Domain.Enums.FinancialInstitutions>(dto.FinancialInstitution));
+
+        if (includes.Contains(IncludeOption.Holdings) && dto.Holdings is not null)
+        {
+            foreach (var holdingDto in dto.Holdings)
+            {
+                var holding = HoldingMapper.ToEntity(holdingDto);
+                account.UpsertHolding(holding);
+            }
+        }
+
+        if (includes.Contains(IncludeOption.Transactions) && dto.Transactions is not null)
+        {
+            foreach (var transactionDto in dto.Transactions)
+            {
+                var transaction = TransactionMapper.ToEntity(transactionDto);
+                account.AddTransaction(transaction);
+            }
+        }
+
+        return account;
     }
 }

@@ -2,6 +2,9 @@ using PM.Domain.Entities;
 using PM.Domain.Values;
 using PM.Application.Interfaces;
 using PM.Domain.Enums;
+using PM.SharedKernel;
+using PM.Domain.Mappers;
+using PM.DTO;
 
 namespace PM.Application.Services;
 
@@ -14,11 +17,15 @@ public class ValuationService : IValuationService
 {
     private readonly IPricingService _pricingService;
     private readonly IValuationRepository _repository;
+    private readonly IPortfolioRepository _portfolioRepository;
+    private readonly IAccountRepository _accountRepository;
 
-    public ValuationService(IPricingService pricingService, IValuationRepository repository)
+    public ValuationService(IPricingService pricingService, IValuationRepository repository, IPortfolioRepository portfolioRepository, IAccountRepository accountRepository)
     {
         _pricingService = pricingService;
         _repository = repository;
+        _portfolioRepository = portfolioRepository;
+        _accountRepository = accountRepository;
     }
 
     public async Task<IEnumerable<ValuationRecord>> GetByPortfolioAsync(int portfolioId, ValuationPeriod period, CancellationToken ct = default)
@@ -34,13 +41,19 @@ public class ValuationService : IValuationService
     // ---------------------------------------------------------------------
 
     public async Task GenerateAndStorePortfolioValuations(
-        Portfolio portfolio,
+        int portfolioId,
         DateTime startDate,
         DateTime endDate,
         Currency reportingCurrency,
         ValuationPeriod period,
         CancellationToken ct = default)
     {
+        IncludeOption[] includes = { IncludeOption.Accounts, IncludeOption.Holdings };
+
+        var portfolio = await _portfolioRepository.GetByIdWithIncludesAsync(portfolioId, includes, ct);
+        if (portfolio is null)
+            return;
+
         foreach (var date in GetDatesByPeriod(startDate, endDate, period))
         {
             // TOTAL portfolio value in reporting currency
@@ -81,13 +94,18 @@ public class ValuationService : IValuationService
     }
 
     public async Task GenerateAndStoreAccountValuations(
-        Account account,
+        int portfolioId,
+        int accountId,
         DateTime startDate,
         DateTime endDate,
         Currency reportingCurrency,
         ValuationPeriod period,
         CancellationToken ct = default)
     {
+        IncludeOption[] includes = { IncludeOption.Holdings };
+        Account? account = await _accountRepository.GetByIdWithIncludesAsync(accountId, includes, ct);
+        if (account is null) return;
+
         foreach (var date in GetDatesByPeriod(startDate, endDate, period))
         {
             // TOTAL account value in reporting currency
@@ -123,13 +141,19 @@ public class ValuationService : IValuationService
     // ---------------------------------------------------------------------
 
     public async Task GenerateAndStorePortfolioValuationsByAssetClass(
-        Portfolio portfolio,
+        int portfolioId,
         DateTime startDate,
         DateTime endDate,
         Currency reportingCurrency,
         ValuationPeriod period,
         CancellationToken ct = default)
     {
+        IncludeOption[] includes = { IncludeOption.Accounts, IncludeOption.Holdings };
+
+        var portfolio = await _portfolioRepository.GetByIdWithIncludesAsync(portfolioId, includes, ct);
+        if (portfolio is null)
+            return;
+
         foreach (var date in GetDatesByPeriod(startDate, endDate, period))
         {
             var totalMoney = await _pricingService.CalculatePortfolioValueAsync(portfolio, date, reportingCurrency, ct);
@@ -158,13 +182,18 @@ public class ValuationService : IValuationService
     }
 
     public async Task GenerateAndStoreAccountValuationsByAssetClass(
-        Account account,
+        int portfolioId,
+        int accountId,
         DateTime startDate,
         DateTime endDate,
         Currency reportingCurrency,
         ValuationPeriod period,
         CancellationToken ct = default)
     {
+        IncludeOption[] includes = { IncludeOption.Holdings };
+        Account? account = await _accountRepository.GetByIdWithIncludesAsync(accountId, includes, ct);
+        if (account is null) return;
+
         foreach (var date in GetDatesByPeriod(startDate, endDate, period))
         {
             var totalMoney = await _pricingService.CalculateAccountValueAsync(account, date, reportingCurrency, ct);

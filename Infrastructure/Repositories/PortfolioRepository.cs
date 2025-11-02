@@ -8,7 +8,7 @@ namespace PM.Infrastructure.Repositories
 {
     public class PortfolioRepository : BaseRepository<Portfolio>, IPortfolioRepository
     {
-        public PortfolioRepository(AppDbContext db): base(db)
+        public PortfolioRepository(AppDbContext db) : base(db)
         {
         }
 
@@ -19,7 +19,23 @@ namespace PM.Infrastructure.Repositories
         protected override IQueryable<Portfolio> ApplyIncludes(IQueryable<Portfolio> query, IncludeOption[] includes)
         {
             if (includes.Contains(IncludeOption.Accounts))
+            {
                 query = query.Include(p => p.Accounts);
+            }
+
+            if (includes.Contains(IncludeOption.Holdings))
+            {
+                // If holdings are requested, ensure accounts are also included
+                query = query.Include(p => p.Accounts)
+                             .ThenInclude(a => a.Holdings)
+                             .ThenInclude(h => h.Tags); // optional: include tags as well
+            }
+
+            if (includes.Contains(IncludeOption.Transactions))
+            {
+                query = query.Include(p => p.Accounts)
+                             .ThenInclude(a => a.Transactions);
+            }
 
             return query;
         }

@@ -27,6 +27,41 @@ public class PriceService : IPriceService
         _cache = cache;
     }
 
+    public async Task<InstrumentPrice?> GetOrFetchInstrumentPriceAsync(
+        string symbolValue,
+        DateOnly date,
+        CancellationToken ct = default)
+    {
+        var symbol = _symbols.FirstOrDefault(s =>
+            s.Value.Equals(symbolValue, StringComparison.OrdinalIgnoreCase));
+
+        if (symbol is null)
+            throw new ArgumentException($"Symbol '{symbolValue}' is not in the accepted symbols list.");
+
+        var dbPrice = await _repository.GetAsync(symbol, date, ct);
+        if (dbPrice is not null)
+        {
+            return dbPrice;
+        }
+
+        string providerName = symbol.Value.EndsWith(".TO", StringComparison.OrdinalIgnoreCase)
+            ? "Yahoo"
+            : "Memory";
+
+        var provider = _providers.SingleOrDefault(p =>
+            p.ProviderName.Equals(providerName, StringComparison.OrdinalIgnoreCase));
+
+        if (provider is null)
+            throw new InvalidOperationException($"No provider found for {symbolValue} ({symbol.Exchange}).");
+
+        var fetched = await provider.GetPriceAsync(symbol, date, ct);
+        if (fetched is null || fetched.Price.Amount <= 0)
+            throw new InvalidOperationException($"No valid price found for {symbolValue} on {date}.");
+
+        await _repository.UpsertAsync(fetched, ct);
+        return fetched;
+    }
+
     public async Task<PriceDTO?> GetPriceAsync(string symbolValue, DateOnly date, CancellationToken ct = default)
     {
         var symbol = _symbols.FirstOrDefault(s => s.Value.Equals(symbolValue, StringComparison.OrdinalIgnoreCase));
