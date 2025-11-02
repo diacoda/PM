@@ -6,7 +6,7 @@ namespace PM.Application.Interfaces;
 
 public interface IPriceService
 {
-    Task<InstrumentPrice> GetOrFetchInstrumentPriceAsync(string symbolValue, DateOnly date, CancellationToken ct = default);
+    Task<InstrumentPrice?> GetOrFetchInstrumentPriceAsync(string symbolValue, DateOnly date, CancellationToken ct = default);
     Task<PriceDTO> UpdatePriceAsync(string symbolValue, UpdatePriceRequest request, CancellationToken ct);
     Task<PriceDTO?> GetPriceAsync(string symbolValue, DateOnly date, CancellationToken ct);
     Task<List<PriceDTO>> GetAllPricesForSymbolAsync(string symbolValue, CancellationToken ct);

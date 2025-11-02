@@ -31,7 +31,6 @@ namespace PM.API.Startup
             services.AddScoped<ITransactionService, TransactionService>();
             services.AddScoped<IPortfolioService, PortfolioService>();
             services.AddScoped<IValuationService, ValuationService>();
-            services.AddScoped<ITradeCostService, TradeCostService>();
             services.AddScoped<ICashFlowService, CashFlowService>();
             services.AddScoped<IPriceService, PriceService>();
             services.AddScoped<IFxRateService, FxRateService>();
