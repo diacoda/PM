@@ -21,7 +21,7 @@ public class AccountService : IAccountService
         _portfolioRepository = portfolioRepository;
     }
 
-    public async Task<AccountDTO> CreateAsync(
+    public async Task<Account> CreateAsync(
         int portfolioId,
         string name,
         Currency currency,
@@ -37,7 +37,7 @@ public class AccountService : IAccountService
         await _accountRepository.AddAsync(account, ct);
         await _accountRepository.SaveChangesAsync(ct);
 
-        return AccountMapper.ToDTO(account);
+        return account;
     }
 
     public async Task<AccountDTO?> GetAccountAsync(int portfolioId, int accountId, CancellationToken ct = default)

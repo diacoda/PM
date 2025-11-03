@@ -1,4 +1,5 @@
 using PM.Domain.Entities;
+using PM.DTO;
 namespace PM.Application.Interfaces;
 
 public interface ITransactionWorkflowService

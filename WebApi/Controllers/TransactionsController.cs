@@ -88,7 +88,7 @@ namespace PM.API.Controllers
 
             var tx = TransactionMapper.ToEntity(accountId, TransactionType.Withdrawal, dto);
             var result = await _workflow.ProcessTransactionAsync(tx, ct);
-            return Ok(TransactionMapper.ToDTO(result));
+            return Ok(result);
         }
 
         /// <summary>
@@ -116,7 +116,7 @@ namespace PM.API.Controllers
 
             var tx = TransactionMapper.ToEntity(accountId, dto);
             var result = await _workflow.ProcessTransactionAsync(tx, ct);
-            return Ok(TransactionMapper.ToDTO(result));
+            return Ok(result);
         }
 
         /// <summary>

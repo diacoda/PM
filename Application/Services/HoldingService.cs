@@ -16,18 +16,19 @@ namespace PM.Application.Services
             _holdingRepo = holdingRepo;
         }
 
-        public async Task UpsertHoldingAsync(int accountId, Symbol symbol, decimal quantity, CancellationToken ct = default)
+        public async Task<Holding> UpsertHoldingAsync(int accountId, Symbol symbol, decimal quantity, CancellationToken ct = default)
         {
             var account = await _accountRepo.GetByIdWithIncludesAsync(accountId, includes: new IncludeOption[] { IncludeOption.Holdings }, ct);
             if (account == null)
                 throw new InvalidOperationException($"Account {accountId} not found");
 
-            account.UpsertHolding(new Holding(symbol, quantity));
+            Holding holding = account.UpsertHolding(new Holding(symbol, quantity));
             await _accountRepo.UpdateAsync(account, ct);
             await _accountRepo.SaveChangesAsync(ct);
+            return holding;
         }
 
-        public async Task UpdateHoldingQuantityAsync(int accountId, Symbol symbol, decimal newQty, CancellationToken ct = default)
+        public async Task<Holding> UpdateHoldingQuantityAsync(int accountId, Symbol symbol, decimal newQty, CancellationToken ct = default)
         {
             if (newQty < 0) throw new InvalidOperationException($"Quantity {newQty} must be positive");
 
@@ -35,9 +36,10 @@ namespace PM.Application.Services
             if (account == null)
                 throw new InvalidOperationException($"Account {accountId} not found");
 
-            account.UpdateHoldingQuantity(symbol, newQty);
+            Holding holding = account.UpdateHoldingQuantity(symbol, newQty);
             await _accountRepo.UpdateAsync(account, ct);
             await _accountRepo.SaveChangesAsync(ct);
+            return holding;
         }
 
         public async Task RemoveHoldingAsync(int accountId, Symbol symbol, CancellationToken ct = default)

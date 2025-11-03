@@ -47,26 +47,29 @@ namespace PM.Domain.Entities
             _tags.Remove(tag);
         }
 
-        public void UpsertHolding(Holding holding)
+        public Holding UpsertHolding(Holding holding)
         {
             var existing = _holdings.FirstOrDefault(h => h.Symbol.Equals(holding.Symbol));
             if (existing != null)
             {
                 existing.AddQuantity(holding.Quantity); // merge quantities
+                return existing;
             }
             else
             {
                 _holdings.Add(holding);
+                return holding;
             }
         }
-        
-        public void UpdateHoldingQuantity(Symbol symbol, decimal newQuantity)
+
+        public Holding UpdateHoldingQuantity(Symbol symbol, decimal newQuantity)
         {
             var holding = _holdings.FirstOrDefault(h => h.Symbol.Equals(symbol));
             if (holding == null)
                 throw new InvalidOperationException($"Holding not found for symbol {symbol.Value}");
 
             holding.UpdateQuantity(newQuantity);
+            return holding;
         }
 
         public void RemoveHolding(Holding holding)

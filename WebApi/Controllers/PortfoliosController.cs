@@ -128,7 +128,8 @@ namespace PM.API.Controllers
         {
             var requested = AccountMapper.ToEntity(dto);
             var account = await _accountService.CreateAsync(portfolioId, requested.Name, requested.Currency, requested.FinancialInstitution, ct);
-            return CreatedAtAction(nameof(GetAccount), new { portfolioId, accountId = account.Id }, account);
+            var created = AccountMapper.ToDTO(account);
+            return CreatedAtAction(nameof(GetAccount), new { portfolioId, accountId = account.Id }, created);
         }
 
         /// <summary>

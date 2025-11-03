@@ -8,7 +8,7 @@ namespace PM.Application.Interfaces;
 
 public interface IAccountService
 {
-    Task<AccountDTO> CreateAsync(int portfolioId, string name, Currency currency, FinancialInstitutions financialInstitution, CancellationToken ct = default);
+    Task<Account> CreateAsync(int portfolioId, string name, Currency currency, FinancialInstitutions financialInstitution, CancellationToken ct = default);
     Task RemoveAccountFromPortfolioAsync(int portfolioId, int accountId, CancellationToken ct = default);
     Task UpdateAccountNameAsync(int accountId, string newName, CancellationToken ct = default);
     Task<decimal> GetCashBalanceAsync(int accountId, Currency currency, CancellationToken ct = default);

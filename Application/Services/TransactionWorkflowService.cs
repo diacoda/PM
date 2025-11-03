@@ -1,6 +1,7 @@
 using PM.Application.Interfaces;
 using PM.Domain.Entities;
 using PM.Domain.Enums;
+using PM.Domain.Mappers;
 using PM.Domain.Values;
 using PM.DTO;
 
@@ -24,11 +25,8 @@ public class TransactionWorkflowService : ITransactionWorkflowService
 
     public async Task<Transaction> ProcessTransactionAsync(Transaction tx, CancellationToken ct = default)
     {
-
-        // Step 1: Persist the transaction
         var savedTx = await _transactionService.CreateAsync(tx, ct);
 
-        // Step 2: Record cash flow if applicable
         if (tx.Type is TransactionType.Deposit or TransactionType.Withdrawal or TransactionType.Buy or TransactionType.Sell or TransactionType.Dividend)
         {
             var flowType = tx.Type switch
@@ -50,7 +48,6 @@ public class TransactionWorkflowService : ITransactionWorkflowService
                 ct);
         }
 
-        // Step 3: Apply to holdings
         await ApplyToHoldingsAsync(tx, ct);
 
         return savedTx;

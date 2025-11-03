@@ -48,21 +48,18 @@ public class PortfolioService : IPortfolioService
         await _portfolioRepo.SaveChangesAsync(ct);
     }
 
-    // 4. Get portfolio by ID (no includes)
     public async Task<PortfolioDTO?> GetByIdAsync(int portfolioId, CancellationToken ct = default)
     {
         var portfolio = await _portfolioRepo.GetByIdAsync(portfolioId, ct);
         return portfolio == null ? null : PortfolioMapper.ToDTO(portfolio);
     }
 
-    // 5. Get portfolio by ID with includes
     public async Task<PortfolioDTO?> GetByIdWithIncludesAsync(int portfolioId, IncludeOption[] includes, CancellationToken ct = default)
     {
         var portfolio = await _portfolioRepo.GetByIdWithIncludesAsync(portfolioId, includes, ct);
         return portfolio == null ? null : PortfolioMapper.ToDTO(portfolio, includes);
     }
 
-    // 6. List all portfolios (no includes)
     public async Task<IEnumerable<PortfolioDTO>> ListAsync(CancellationToken ct = default)
     {
         var portfolios = await _portfolioRepo.ListAsync(ct);
