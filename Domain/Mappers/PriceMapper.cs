@@ -15,7 +15,7 @@ public static class PriceMapper
     {
         return new PriceDTO
         {
-            Symbol = price.Symbol.Value,
+            Symbol = price.Symbol.Code,
             Date = price.Date,
             Close = price.Price.Amount
         };

@@ -27,6 +27,6 @@ public static class ValueConverters
     // Symbol converter: stores as "VALUE"
     public static ValueConverter<Symbol, string> SymbolStringConverter =
         new ValueConverter<Symbol, string>(
-            m => m.Value,
+            m => m.Code,
             d => new Symbol(d, "CAD", "TSX"));
 }

@@ -229,7 +229,7 @@ public class ReportingService : IReportingService
 
         return tx
             // group by symbol + cost currency + type
-            .GroupBy(t => new { Sym = t.Symbol.Value, Cur = t.Costs!.Currency, t.Type })
+            .GroupBy(t => new { Sym = t.Symbol.Code, Cur = t.Costs!.Currency, t.Type })
             // NAME the tuple fields here ⬇
             .Select(g => (
                 Symbol: g.Key.Sym,

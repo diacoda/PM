@@ -23,7 +23,7 @@ public class TransactionConfiguration : IEntityTypeConfiguration<Transaction>
         // ✅ Owned type mapping for Symbol
         b.OwnsOne(t => t.Symbol, s =>
         {
-            s.Property(x => x.Value)
+            s.Property(x => x.Code)
                 .HasMaxLength(20)
                 .IsRequired();
 

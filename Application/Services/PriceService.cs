@@ -33,7 +33,7 @@ public class PriceService : IPriceService
         CancellationToken ct = default)
     {
         var symbol = _symbols.FirstOrDefault(s =>
-            s.Value.Equals(symbolValue, StringComparison.OrdinalIgnoreCase));
+            s.Code.Equals(symbolValue, StringComparison.OrdinalIgnoreCase));
 
         if (symbol is null)
             throw new ArgumentException($"Symbol '{symbolValue}' is not in the accepted symbols list.");
@@ -44,7 +44,7 @@ public class PriceService : IPriceService
             return dbPrice;
         }
 
-        string providerName = symbol.Value.EndsWith(".TO", StringComparison.OrdinalIgnoreCase)
+        string providerName = symbol.Code.EndsWith(".TO", StringComparison.OrdinalIgnoreCase)
             ? "Yahoo"
             : "Memory";
 
@@ -64,7 +64,7 @@ public class PriceService : IPriceService
 
     public async Task<PriceDTO?> GetPriceAsync(string symbolValue, DateOnly date, CancellationToken ct = default)
     {
-        var symbol = _symbols.FirstOrDefault(s => s.Value.Equals(symbolValue, StringComparison.OrdinalIgnoreCase));
+        var symbol = _symbols.FirstOrDefault(s => s.Code.Equals(symbolValue, StringComparison.OrdinalIgnoreCase));
         if (symbol is null)
             throw new ArgumentException($"Symbol '{symbolValue}' is not in the accepted symbols list.");
 
@@ -80,7 +80,7 @@ public class PriceService : IPriceService
         {
             var dto = new PriceDTO
             {
-                Symbol = dbPrice.Symbol.Value,
+                Symbol = dbPrice.Symbol.Code,
                 Date = dbPrice.Date,
                 Close = dbPrice.Price.Amount
             };
@@ -90,7 +90,7 @@ public class PriceService : IPriceService
         }
 
         // 3️⃣ Try provider
-        string providerName = symbol.Value.EndsWith(".TO", StringComparison.OrdinalIgnoreCase)
+        string providerName = symbol.Code.EndsWith(".TO", StringComparison.OrdinalIgnoreCase)
             ? "Yahoo"
             : "Memory";
 
@@ -108,7 +108,7 @@ public class PriceService : IPriceService
 
         var dtoFromProvider = new PriceDTO
         {
-            Symbol = fetched.Symbol.Value,
+            Symbol = fetched.Symbol.Code,
             Date = fetched.Date,
             Close = fetched.Price.Amount
         };
@@ -119,7 +119,7 @@ public class PriceService : IPriceService
 
     public async Task<PriceDTO> UpdatePriceAsync(string symbolValue, UpdatePriceRequest request, CancellationToken ct)
     {
-        var symbol = _symbols.FirstOrDefault(s => s.Value.Equals(symbolValue, StringComparison.OrdinalIgnoreCase));
+        var symbol = _symbols.FirstOrDefault(s => s.Code.Equals(symbolValue, StringComparison.OrdinalIgnoreCase));
         if (symbol is null)
             throw new ArgumentException($"Symbol '{symbolValue}' is not in the accepted symbols list.");
 
@@ -131,25 +131,25 @@ public class PriceService : IPriceService
 
         var dto = new PriceDTO
         {
-            Symbol = price.Symbol.Value,
+            Symbol = price.Symbol.Code,
             Date = price.Date,
             Close = price.Price.Amount
         };
 
-        CachePrice(BuildCacheKey(symbol.Value, request.Date), dto);
+        CachePrice(BuildCacheKey(symbol.Code, request.Date), dto);
         return dto;
     }
 
     public async Task<List<PriceDTO>> GetAllPricesForSymbolAsync(string symbolValue, CancellationToken ct)
     {
-        var symbol = _symbols.FirstOrDefault(s => s.Value.Equals(symbolValue, StringComparison.OrdinalIgnoreCase));
+        var symbol = _symbols.FirstOrDefault(s => s.Code.Equals(symbolValue, StringComparison.OrdinalIgnoreCase));
         if (symbol is null)
             throw new ArgumentException($"Symbol '{symbolValue}' is not in the accepted symbols list.");
 
         var prices = await _repository.GetAllForSymbolAsync(symbol, ct);
         return prices.Select(p => new PriceDTO
         {
-            Symbol = p.Symbol.Value,
+            Symbol = p.Symbol.Code,
             Date = p.Date,
             Close = p.Price.Amount
         }).ToList();
@@ -157,11 +157,11 @@ public class PriceService : IPriceService
 
     public async Task<bool> DeletePriceAsync(string symbolValue, DateOnly date, CancellationToken ct)
     {
-        var symbol = _symbols.FirstOrDefault(s => s.Value.Equals(symbolValue, StringComparison.OrdinalIgnoreCase));
+        var symbol = _symbols.FirstOrDefault(s => s.Code.Equals(symbolValue, StringComparison.OrdinalIgnoreCase));
         if (symbol is null)
             throw new ArgumentException($"Symbol '{symbolValue}' is not in the accepted symbols list.");
 
-        string cacheKey = BuildCacheKey(symbol.Value, date);
+        string cacheKey = BuildCacheKey(symbol.Code, date);
         _cache.Remove(cacheKey);
 
         return await _repository.DeleteAsync(symbol, date, ct);
@@ -170,26 +170,26 @@ public class PriceService : IPriceService
     public async Task<List<PriceDTO>> GetAllPricesByDateAsync(DateOnly date, CancellationToken ct)
     {
         var prices = await _repository.GetAllByDateAsync(date, ct);
-        var map = prices.ToDictionary(p => p.Symbol.Value, StringComparer.OrdinalIgnoreCase);
+        var map = prices.ToDictionary(p => p.Symbol.Code, StringComparer.OrdinalIgnoreCase);
 
         return _symbols.Select(s =>
         {
-            if (map.TryGetValue(s.Value, out var p))
+            if (map.TryGetValue(s.Code, out var p))
             {
                 var dto = new PriceDTO
                 {
-                    Symbol = p.Symbol.Value,
+                    Symbol = p.Symbol.Code,
                     Date = p.Date,
                     Close = p.Price.Amount
                 };
 
-                CachePrice(BuildCacheKey(s.Value, date), dto);
+                CachePrice(BuildCacheKey(s.Code, date), dto);
                 return dto;
             }
 
             return new PriceDTO
             {
-                Symbol = s.Value,
+                Symbol = s.Code,
                 Date = date,
                 Close = 0
             };

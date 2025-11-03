@@ -20,10 +20,10 @@ public class InvestingPriceProvider : IPriceProvider
 
     public async Task<InstrumentPrice?> GetPriceAsync(Symbol symbol, DateOnly date, CancellationToken ct = default)
     {
-        string url = TdESeriesUrls[symbol.Value];
+        string url = TdESeriesUrls[symbol.Code];
         if (string.IsNullOrEmpty(url))
-            throw new ArgumentException($"Symbol {symbol.Value} is not supported by {ProviderName}.");
-        decimal value = await FetchTdESeriesPriceAsync(url, symbol.Value, ct);
+            throw new ArgumentException($"Symbol {symbol.Code} is not supported by {ProviderName}.");
+        decimal value = await FetchTdESeriesPriceAsync(url, symbol.Code, ct);
         Currency currency = new Currency(symbol.Currency);
         return new InstrumentPrice(symbol, date, new Money(value, currency), currency, ProviderName);
     }

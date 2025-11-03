@@ -51,24 +51,24 @@ public class FetchDailyPricesCommand
 
             if (!marketOpen && !allowMarketClosed)
             {
-                skipped.Add($"{symbol.Value} ({exchange}) - market closed");
+                skipped.Add($"{symbol.Code} ({exchange}) - market closed");
                 continue;
             }
 
             if (date == DateOnly.FromDateTime(DateTime.Today) && !_calendar.IsAfterMarketClose(exchange))
             {
-                skipped.Add($"{symbol.Value} ({exchange}) - before market close");
+                skipped.Add($"{symbol.Code} ({exchange}) - before market close");
                 continue;
             }
 
             var existing = await _priceRepository.GetAsync(symbol, date);
             if (existing != null)
             {
-                skipped.Add($"{symbol.Value} ({exchange}) - already in DB");
+                skipped.Add($"{symbol.Code} ({exchange}) - already in DB");
                 continue;
             }
 
-            string providerName = symbol.Value.EndsWith(".TO", StringComparison.OrdinalIgnoreCase)
+            string providerName = symbol.Code.EndsWith(".TO", StringComparison.OrdinalIgnoreCase)
                 ? "Yahoo"
                 : "Investing";
 
@@ -77,7 +77,7 @@ public class FetchDailyPricesCommand
 
             if (provider == null)
             {
-                errors.Add($"{symbol.Value} ({exchange}) - no provider {providerName}");
+                errors.Add($"{symbol.Code} ({exchange}) - no provider {providerName}");
                 continue;
             }
 
@@ -88,16 +88,16 @@ public class FetchDailyPricesCommand
                 {
                     var toSave = price with { Source = provider.ProviderName };
                     await _priceRepository.SaveAsync(toSave, ct);
-                    fetched.Add($"{symbol.Value} ({exchange}) from {providerName}");
+                    fetched.Add($"{symbol.Code} ({exchange}) from {providerName}");
                 }
                 else
                 {
-                    skipped.Add($"{symbol.Value} ({exchange}) - provider returned null");
+                    skipped.Add($"{symbol.Code} ({exchange}) - provider returned null");
                 }
             }
             catch (Exception ex)
             {
-                errors.Add($"{symbol.Value} ({exchange}) - fetch failed: {ex.Message}");
+                errors.Add($"{symbol.Code} ({exchange}) - fetch failed: {ex.Message}");
             }
         }
 

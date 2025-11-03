@@ -66,7 +66,7 @@ namespace PM.Domain.Entities
         {
             var holding = _holdings.FirstOrDefault(h => h.Symbol.Equals(symbol));
             if (holding == null)
-                throw new InvalidOperationException($"Holding not found for symbol {symbol.Value}");
+                throw new InvalidOperationException($"Holding not found for symbol {symbol.Code}");
 
             holding.UpdateQuantity(newQuantity);
             return holding;

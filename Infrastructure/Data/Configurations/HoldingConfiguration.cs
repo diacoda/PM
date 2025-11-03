@@ -16,7 +16,7 @@ public class HoldingConfiguration : IEntityTypeConfiguration<Holding>
         // ✅ Owned type mapping for Symbol
         b.OwnsOne(h => h.Symbol, s =>
         {
-            s.Property(x => x.Value)
+            s.Property(x => x.Code)
                 .HasMaxLength(20)
                 .IsRequired();
 

@@ -9,7 +9,7 @@ public static class HoldingMapper
     public static HoldingDTO ToDTO(Holding holding) => new HoldingDTO
     {
         Id = holding.Id,
-        Symbol = holding.Symbol.Value,
+        Symbol = holding.Symbol.Code,
         Quantity = holding.Quantity,
         AccountId = holding.AccountId,
         Tags = holding.Tags.Select(t => t.Name).ToList()

@@ -8,7 +8,7 @@ public sealed class Symbol : IEquatable<Symbol>
     /// <summary>
     /// The symbol value (e.g., "VFV.TO").
     /// </summary>
-    public string Value { get; } = default!;
+    public string Code { get; } = default!;
 
     /// <summary>
     /// The currency of the symbol (e.g., "CAD").
@@ -33,32 +33,32 @@ public sealed class Symbol : IEquatable<Symbol>
     /// <summary>
     /// Creates a new <see cref="Symbol"/> with default exchange and auto-resolved asset class.
     /// </summary>
-    /// <param name="value">The symbol value.</param>
+    /// <param name="code">The symbol value.</param>
     /// <param name="currency">The currency code (default "CAD").</param>
     /// <param name="exchange">The exchange code (default "TSX").</param>
-    public Symbol(string value, string currency = "CAD", string exchange = "TSX")
-        : this(value, currency, exchange, ResolveAssetClass(value)) { }
+    public Symbol(string code, string currency = "CAD", string exchange = "TSX")
+        : this(code, currency, exchange, ResolveAssetClass(code)) { }
 
     /// <summary>
     /// Creates a new <see cref="Symbol"/> with explicit asset class.
     /// </summary>
-    /// <param name="value">The symbol value.</param>
+    /// <param name="code">The symbol value.</param>
     /// <param name="currency">The currency code.</param>
     /// <param name="exchange">The exchange code.</param>
     /// <param name="assetClass">The asset class of the symbol.</param>
-    public Symbol(string value, string currency, string exchange, AssetClass assetClass)
+    public Symbol(string code, string currency, string exchange, AssetClass assetClass)
     {
-        if (string.IsNullOrWhiteSpace(value))
-            throw new ArgumentException("Symbol is required.", nameof(value));
+        if (string.IsNullOrWhiteSpace(code))
+            throw new ArgumentException("Symbol is required.", nameof(code));
 
         if (string.IsNullOrWhiteSpace(currency))
             throw new ArgumentException("Currency is required.", nameof(currency));
 
-        var normalized = value.Trim().ToUpperInvariant();
+        var normalized = code.Trim().ToUpperInvariant();
         if (normalized.Length > 20)
-            throw new ArgumentException("Symbol is too long (max 20).", nameof(value));
+            throw new ArgumentException("Symbol is too long (max 20).", nameof(code));
 
-        Value = normalized;
+        Code = normalized;
         Currency = currency.Trim().ToUpperInvariant();
         Exchange = exchange.Trim().ToUpperInvariant();
         AssetClass = assetClass;
@@ -95,13 +95,13 @@ public sealed class Symbol : IEquatable<Symbol>
         { "ZGLH.TO", AssetClass.Commodity }
     };
 
-    public override string ToString() => $"{Value} ({Currency})";
+    public override string ToString() => $"{Code} ({Currency})";
 
     public bool Equals(Symbol? other) =>
-        other is not null && Value == other.Value && Currency == other.Currency;
+        other is not null && Code == other.Code && Currency == other.Currency;
 
     public override bool Equals(object? obj) => obj is Symbol s && Equals(s);
 
     public override int GetHashCode() =>
-        HashCode.Combine(StringComparer.Ordinal.GetHashCode(Value), StringComparer.Ordinal.GetHashCode(Currency));
+        HashCode.Combine(StringComparer.Ordinal.GetHashCode(Code), StringComparer.Ordinal.GetHashCode(Currency));
 }

@@ -16,7 +16,7 @@ namespace PM.Infrastructure.Providers
             if (symbol is null)
                 throw new ArgumentNullException(nameof(symbol));
 
-            var response = await FetchYahooChartAsync(symbol.Value, date, ct);
+            var response = await FetchYahooChartAsync(symbol.Code, date, ct);
             var close = ExtractCloseForDate(response, date);
             if (close is null)
                 return null;

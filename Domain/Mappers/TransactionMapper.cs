@@ -14,7 +14,7 @@ public static class TransactionMapper
             Id = tx.Id,
             Date = tx.Date,
             Type = tx.Type.ToString(),
-            Symbol = tx.Symbol.Value,
+            Symbol = tx.Symbol.Code,
             Quantity = tx.Quantity,
             Amount = tx.Amount.Amount,
             AmountCurrency = tx.Amount.Currency.Code,
