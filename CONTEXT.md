@@ -5,9 +5,9 @@ dotnet ef migrations add SOMETEXT \
  --startup-project WebApi/WebApi.csproj \
  --context CashFlowDbContext
 
-dotnet ef migrations list --project Infrastructure/Infrastructure.csproj --startup-project WebApi/WebApi.csproj --context AppDbContext
+dotnet ef migrations list --project Infrastructure/Infrastructure.csproj --startup-project WebApi/WebApi.csproj --context CashFlowDbContext
 
-dotnet ef database update --context AppDbContext --project Infrastructure/Infrastructure.csproj --startup-project WebApi/WebApi.csproj
+dotnet ef database update --context CashFlowDbContext --project Infrastructure/Infrastructure.csproj --startup-project WebApi/WebApi.csproj
 
 # AppDbContext
 
