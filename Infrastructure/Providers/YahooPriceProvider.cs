@@ -21,7 +21,7 @@ namespace PM.Infrastructure.Providers
             if (close is null)
                 return null;
 
-            var currency = new Currency(symbol.Currency);
+            var currency = new Currency(symbol.Currency.Code);
             return new InstrumentPrice(symbol, date, new Money(close.Value, currency), currency, ProviderName);
         }
     }

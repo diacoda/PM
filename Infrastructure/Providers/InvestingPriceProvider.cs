@@ -24,7 +24,7 @@ public class InvestingPriceProvider : IPriceProvider
         if (string.IsNullOrEmpty(url))
             throw new ArgumentException($"Symbol {symbol.Code} is not supported by {ProviderName}.");
         decimal value = await FetchTdESeriesPriceAsync(url, symbol.Code, ct);
-        Currency currency = new Currency(symbol.Currency);
+        Currency currency = new Currency(symbol.Currency.Code);
         return new InstrumentPrice(symbol, date, new Money(value, currency), currency, ProviderName);
     }
 

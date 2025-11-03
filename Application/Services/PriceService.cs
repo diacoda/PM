@@ -123,7 +123,7 @@ public class PriceService : IPriceService
         if (symbol is null)
             throw new ArgumentException($"Symbol '{symbolValue}' is not in the accepted symbols list.");
 
-        var currency = new Currency(symbol.Currency);
+        var currency = new Currency(symbol.Currency.Code);
         var money = new Money(request.Close, currency);
         var price = new InstrumentPrice(symbol, request.Date, money, currency, "Manual Entry");
 

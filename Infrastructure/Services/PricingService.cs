@@ -23,8 +23,8 @@ public class PricingService : IPricingService
         Currency reportingCurrency,
         CancellationToken ct = default)
     {
-        var symbolCode = holding.Symbol.Code.ToUpperInvariant();
-        var holdingCurrency = new Currency(holding.Symbol.Currency);
+        var symbolCode = holding.Symbol.Code;
+        var holdingCurrency = new Currency(holding.Symbol.Currency.Code);
         var dateOnly = DateOnly.FromDateTime(date);
 
         decimal priceAmount;

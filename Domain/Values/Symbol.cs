@@ -1,9 +1,11 @@
+using PM.Domain.Interfaces;
+
 namespace PM.Domain.Values;
 
 /// <summary>
 /// Represents a financial symbol with associated currency, exchange, and asset class.
 /// </summary>
-public sealed class Symbol : IEquatable<Symbol>
+public sealed class Symbol : IEquatable<Symbol>, IAsset
 {
     /// <summary>
     /// The symbol value (e.g., "VFV.TO").
@@ -13,7 +15,7 @@ public sealed class Symbol : IEquatable<Symbol>
     /// <summary>
     /// The currency of the symbol (e.g., "CAD").
     /// </summary>
-    public string Currency { get; } = default!;
+    public Currency Currency { get; } = default!;
 
     /// <summary>
     /// The exchange where the symbol trades (e.g., "TSX").
@@ -59,7 +61,7 @@ public sealed class Symbol : IEquatable<Symbol>
             throw new ArgumentException("Symbol is too long (max 20).", nameof(code));
 
         Code = normalized;
-        Currency = currency.Trim().ToUpperInvariant();
+        Currency = new Currency(currency);
         Exchange = exchange.Trim().ToUpperInvariant();
         AssetClass = assetClass;
     }
