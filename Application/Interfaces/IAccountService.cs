@@ -10,7 +10,7 @@ public interface IAccountService
 {
     Task<Account> CreateAsync(int portfolioId, string name, Currency currency, FinancialInstitutions financialInstitution, CancellationToken ct = default);
     Task RemoveAccountFromPortfolioAsync(int portfolioId, int accountId, CancellationToken ct = default);
-    Task UpdateAccountNameAsync(int accountId, string newName, CancellationToken ct = default);
+    Task<Account> UpdateAccountNameAsync(int accountId, string newName, CancellationToken ct = default);
     Task<decimal> GetCashBalanceAsync(int accountId, Currency currency, CancellationToken ct = default);
     Task AddTagAsync(int accountId, Tag tag, CancellationToken ct = default);
     Task RemoveTagAsync(int accountId, Tag tag, CancellationToken cancellationToken = default);

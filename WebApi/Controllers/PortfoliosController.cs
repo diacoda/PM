@@ -191,7 +191,7 @@ namespace PM.API.Controllers
             if (account is null)
                 return NotFound(new ProblemDetails { Title = $"Account {accountId} not found in Portfolio {portfolioId}." });
 
-            await _accountService.UpdateAccountNameAsync(accountId, dto.Name, ct);
+            var updated = await _accountService.UpdateAccountNameAsync(accountId, dto.Name, ct);
             return NoContent();
         }
     }

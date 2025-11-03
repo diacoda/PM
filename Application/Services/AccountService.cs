@@ -70,13 +70,14 @@ public class AccountService : IAccountService
         return accounts.Select(a => AccountMapper.ToDTO(a, includes)).ToList();
     }
 
-    public async Task UpdateAccountNameAsync(int accountId, string newName, CancellationToken ct = default)
+    public async Task<Account> UpdateAccountNameAsync(int accountId, string newName, CancellationToken ct = default)
     {
         var account = await _accountRepository.GetByIdAsync(accountId, ct)
             ?? throw new KeyNotFoundException($"Account with ID {accountId} not found.");
 
         account.UpdateName(newName);
         await _accountRepository.SaveChangesAsync(ct);
+        return account;
     }
 
     public async Task<decimal> GetCashBalanceAsync(int accountId, Currency currency, CancellationToken ct = default)
