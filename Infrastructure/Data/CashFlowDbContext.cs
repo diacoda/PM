@@ -13,6 +13,11 @@ namespace PM.Infrastructure.Data
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+            base.OnModelCreating(modelBuilder);
+
+            // Apply entity configurations (if you have separate files)
+            modelBuilder.ApplyConfigurationsFromAssembly(typeof(CashFlowDbContext).Assembly);
+
             var currencyConverter = new Microsoft.EntityFrameworkCore.Storage.ValueConversion.ValueConverter<Currency, string>(
                 c => c.Code,
                 s => new Currency(s));

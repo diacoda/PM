@@ -15,6 +15,11 @@ namespace PM.Infrastructure.Data
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+            base.OnModelCreating(modelBuilder);
+
+            // Apply entity configurations (if you have separate files)
+            modelBuilder.ApplyConfigurationsFromAssembly(typeof(ValuationDbContext).Assembly);
+
             var currencyConverter = ValueConverters.CurrencyConverter;
             var moneyAmountConverter = ValueConverters.MoneyAmountConverter;
             var symbolStringConverter = ValueConverters.SymbolStringConverter;
@@ -52,7 +57,7 @@ namespace PM.Infrastructure.Data
 
                 builder.Property(p => p.Symbol)
                     .HasConversion(symbolStringConverter)
-                    .IsRequired() 
+                    .IsRequired()
                     .HasMaxLength(24);
 
                 builder.Property(p => p.Date)
