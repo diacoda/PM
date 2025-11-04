@@ -22,7 +22,7 @@ namespace PM.Domain.Entities
         /// <summary>
         /// Gets or sets the date of the cash flow.
         /// </summary>
-        public DateTime Date { get; set; }
+        public DateOnly Date { get; set; }
 
         /// <summary>
         /// Gets or sets the amount of money involved in the cash flow.

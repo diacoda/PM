@@ -2,8 +2,8 @@ using PM.Domain.Enums;
 namespace PM.Domain.Values;
 
 public record PeriodPerformance(
-    DateTime Start,
-    DateTime End,
+    DateOnly Start,
+    DateOnly End,
     Currency ReportingCurrency,
     ReturnMethod Method,
     decimal Return,          // 0.0123 => 1.23%

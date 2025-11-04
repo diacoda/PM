@@ -16,7 +16,7 @@ public class AttributionService : IAttributionService
 
     // SECURITY-LEVEL for an Account
     public async Task<IEnumerable<ContributionRecord>> ContributionBySecurityAsync(
-        Account account, DateTime start, DateTime end, Currency ccy, CancellationToken ct = default)
+        Account account, DateOnly start, DateOnly end, Currency ccy, CancellationToken ct = default)
     {
         var results = new List<ContributionRecord>();
 
@@ -48,7 +48,7 @@ public class AttributionService : IAttributionService
 
     // SECURITY-LEVEL for a Portfolio (sum across accounts)
     public async Task<IEnumerable<ContributionRecord>> ContributionBySecurityAsync(
-        Portfolio portfolio, DateTime start, DateTime end, Currency ccy, CancellationToken ct = default)
+        Portfolio portfolio, DateOnly start, DateOnly end, Currency ccy, CancellationToken ct = default)
     {
         var results = new List<ContributionRecord>();
 
@@ -93,7 +93,7 @@ public class AttributionService : IAttributionService
 
     // ASSET CLASS aggregation for Portfolio
     public async Task<IEnumerable<ContributionRecord>> ContributionByAssetClassAsync(
-        Portfolio portfolio, DateTime start, DateTime end, Currency ccy, CancellationToken ct = default)
+        Portfolio portfolio, DateOnly start, DateOnly end, Currency ccy, CancellationToken ct = default)
     {
         var securities = await ContributionBySecurityAsync(portfolio, start, end, ccy, ct);
 

@@ -54,8 +54,7 @@ namespace PM.API.Controllers
 
             await _valuationService.GenerateAndStorePortfolioValuations(
                 portfolioId,
-                dto.Start,
-                dto.End,
+                dto.Date,
                 new Currency(dto.Currency),
                 ValuationPeriod.Daily,
                 ct);

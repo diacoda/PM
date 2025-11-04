@@ -42,7 +42,7 @@ public static class TransactionMapper
         return new Transaction
         {
             AccountId = accountId,
-            Date = dto.Date ?? DateTime.UtcNow,
+            Date = dto.Date ?? DateOnly.FromDateTime(DateTime.Now),
             Type = Enum.Parse<TransactionType>(dto.Type),
             Symbol = new Symbol(dto.Symbol),
             Quantity = dto.Quantity,
@@ -56,7 +56,7 @@ public static class TransactionMapper
         return new Transaction
         {
             AccountId = accountId,
-            Date = dto.Date ?? DateTime.UtcNow,
+            Date = dto.Date ?? DateOnly.FromDateTime(DateTime.Now),
             Type = type,
             Symbol = new Symbol(dto.Currency),
             Quantity = dto.Amount,

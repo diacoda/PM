@@ -14,7 +14,7 @@ public class TransactionDTO
     /// <summary>
     /// The date and time when the transaction occurred.
     /// </summary>
-    public DateTime Date { get; set; }
+    public DateOnly Date { get; set; }
 
     /// <summary>
     /// The type of the transaction, e.g., "Buy", "Sell", "Deposit", "Withdrawal", or "Dividend".

@@ -22,7 +22,7 @@ namespace PM.Infrastructure.Repositories
             await _context.SaveChangesAsync(ct);
         }
 
-        public async Task<IEnumerable<CashFlow>> GetCashFlowsAsync(int accountId, DateTime? from = null, DateTime? to = null, CancellationToken ct = default)
+        public async Task<IEnumerable<CashFlow>> GetCashFlowsAsync(int accountId, DateOnly? from = null, DateOnly? to = null, CancellationToken ct = default)
         {
             var query = _context.CashFlows
                 .AsNoTracking()
@@ -36,7 +36,7 @@ namespace PM.Infrastructure.Repositories
             return await query.OrderBy(f => f.Date).ToListAsync(ct);
         }
 
-        public async Task<Money> GetNetCashFlowAsync(int accountId, Currency currency, DateTime? from = null, DateTime? to = null, CancellationToken ct = default)
+        public async Task<Money> GetNetCashFlowAsync(int accountId, Currency currency, DateOnly? from = null, DateOnly? to = null, CancellationToken ct = default)
         {
             var flows = await GetCashFlowsAsync(accountId, from, to, ct);
             var sameCurrency = flows.Where(f => f.Amount.Currency == currency);

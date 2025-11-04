@@ -9,7 +9,7 @@ public class CreateTransactionDTO
     /// <summary>
     /// The date and time of the transaction. Defaults to UTC now if not specified.
     /// </summary>
-    public DateTime? Date { get; set; } = DateTime.UtcNow;
+    public DateOnly? Date { get; set; } = DateOnly.FromDateTime(DateTime.UtcNow);
 
     /// <summary>
     /// The type of transaction, e.g., "Buy", "Sell", "Deposit", "Withdrawal", or "Dividend".

@@ -15,7 +15,7 @@ namespace PM.Application.Services
             _repo = repo;
         }
 
-        public async Task RecordCashFlowAsync(int accountId, DateTime date, Money amount, CashFlowType type, string? note = null, CancellationToken ct = default)
+        public async Task RecordCashFlowAsync(int accountId, DateOnly date, Money amount, CashFlowType type, string? note = null, CancellationToken ct = default)
         {
             var flow = new CashFlow
             {
@@ -29,13 +29,13 @@ namespace PM.Application.Services
             await _repo.RecordCashFlowAsync(flow, ct);
         }
 
-        public async Task<IEnumerable<CashFlow>> GetCashFlowsAsync(Account account, DateTime? from = null, DateTime? to = null, CancellationToken ct = default)
+        public async Task<IEnumerable<CashFlow>> GetCashFlowsAsync(Account account, DateOnly? from = null, DateOnly? to = null, CancellationToken ct = default)
             => await _repo.GetCashFlowsAsync(account.Id, from, to, ct);
 
-        public async Task<Money> GetNetCashFlowAsync(Account account, Currency currency, DateTime? from = null, DateTime? to = null, CancellationToken ct = default)
+        public async Task<Money> GetNetCashFlowAsync(Account account, Currency currency, DateOnly? from = null, DateOnly? to = null, CancellationToken ct = default)
             => await _repo.GetNetCashFlowAsync(account.Id, currency, from, to, ct);
 
-        public async Task<Money> GetPortfolioNetCashFlowAsync(Portfolio portfolio, Currency currency, DateTime? from = null, DateTime? to = null, CancellationToken ct = default)
+        public async Task<Money> GetPortfolioNetCashFlowAsync(Portfolio portfolio, Currency currency, DateOnly? from = null, DateOnly? to = null, CancellationToken ct = default)
         {
             decimal total = 0;
 

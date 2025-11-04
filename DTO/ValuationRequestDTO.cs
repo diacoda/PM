@@ -6,4 +6,4 @@ namespace PM.DTO;
 /// <param name="Start">The start date of the valuation period.</param>
 /// <param name="End">The end date of the valuation period.</param>
 /// <param name="Currency">The currency code (e.g., "CAD", "USD") for the valuation.</param>
-public record ValuationRequestDTO(DateTime Start, DateTime End, string Currency);
+public record ValuationRequestDTO(DateOnly Date, string Currency);

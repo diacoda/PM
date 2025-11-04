@@ -22,7 +22,7 @@ namespace PM.Domain.Entities
         /// <summary>
         /// Gets or sets the date of the transaction.
         /// </summary>
-        public DateTime Date { get; set; }
+        public DateOnly Date { get; set; }
 
         /// <summary>
         /// Gets or sets the type of the transaction (e.g., Buy, Sell, Dividend).
@@ -79,7 +79,7 @@ namespace PM.Domain.Entities
             Symbol instrument,
             decimal quantity,
             Money amount,
-            DateTime date)
+            DateOnly date)
         {
             AccountId = accountId;
             Type = type;

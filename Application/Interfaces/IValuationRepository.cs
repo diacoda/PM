@@ -12,8 +12,8 @@ public interface IValuationRepository
     Task<IEnumerable<ValuationRecord>> GetByAccountAsync(int accountId, ValuationPeriod period, CancellationToken ct = default);
 
     Task<IEnumerable<ValuationRecord>> GetPortfolioAssetClassSnapshotsAsync(
-        int portfolioId, ValuationPeriod period, DateTime? from = null, DateTime? to = null, CancellationToken ct = default);
+        int portfolioId, ValuationPeriod period, DateOnly? from = null, DateOnly? to = null, CancellationToken ct = default);
 
     Task<IEnumerable<ValuationRecord>> GetAccountAssetClassSnapshotsAsync(
-        int accountId, ValuationPeriod period, DateTime? from = null, DateTime? to = null, CancellationToken ct = default);
+        int accountId, ValuationPeriod period, DateOnly? from = null, DateOnly? to = null, CancellationToken ct = default);
 }

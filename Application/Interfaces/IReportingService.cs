@@ -7,20 +7,20 @@ namespace PM.Application.Interfaces;
 
 public interface IReportingService
 {
-    Task<Dictionary<AssetClass, Money>> AggregateByAssetClassAsync(Account account, DateTime date, Currency reportingCurrency, CancellationToken ct = default);
-    Task<Dictionary<AssetClass, Money>> AggregateByAssetClassAsync(Portfolio portfolio, DateTime date, Currency reportingCurrency, CancellationToken ct = default);
+    Task<Dictionary<AssetClass, Money>> AggregateByAssetClassAsync(Account account, DateOnly date, Currency reportingCurrency, CancellationToken ct = default);
+    Task<Dictionary<AssetClass, Money>> AggregateByAssetClassAsync(Portfolio portfolio, DateOnly date, Currency reportingCurrency, CancellationToken ct = default);
     void PrintHoldingsSummary(Account account);
-    void PrintTransactionHistory(Account account, DateTime from, DateTime to);
-    Task<Dictionary<AssetClass, decimal>> GetAssetClassPercentagesAsync(Account account, DateTime date, Currency reportingCurrency, CancellationToken ct = default);
-    Task<Dictionary<AssetClass, decimal>> GetAssetClassPercentagesAsync(Portfolio portfolio, DateTime date, Currency reportingCurrency, CancellationToken ct = default);
-    Dictionary<Currency, decimal> GetTradingCostsByCurrency(Account account, DateTime from, DateTime to);
-    Dictionary<Currency, decimal> GetTradingCostsByCurrency(Portfolio portfolio, DateTime from, DateTime to);
-    IEnumerable<TransactionCostSummary> GetTransactionCostSummaries(Account account, DateTime from, DateTime to);
-    IEnumerable<TransactionCostSummary> GetTransactionCostSummaries(Portfolio portfolio, DateTime from, DateTime to);
+    void PrintTransactionHistory(Account account, DateOnly from, DateOnly to);
+    Task<Dictionary<AssetClass, decimal>> GetAssetClassPercentagesAsync(Account account, DateOnly date, Currency reportingCurrency, CancellationToken ct = default);
+    Task<Dictionary<AssetClass, decimal>> GetAssetClassPercentagesAsync(Portfolio portfolio, DateOnly date, Currency reportingCurrency, CancellationToken ct = default);
+    Dictionary<Currency, decimal> GetTradingCostsByCurrency(Account account, DateOnly from, DateOnly to);
+    Dictionary<Currency, decimal> GetTradingCostsByCurrency(Portfolio portfolio, DateOnly from, DateOnly to);
+    IEnumerable<TransactionCostSummary> GetTransactionCostSummaries(Account account, DateOnly from, DateOnly to);
+    IEnumerable<TransactionCostSummary> GetTransactionCostSummaries(Portfolio portfolio, DateOnly from, DateOnly to);
     IEnumerable<(string Symbol, Currency Currency, decimal TotalCosts, decimal Gross, TransactionType Type)>
-        GetTransactionCostsBySecurity(Account account, DateTime from, DateTime to);
+        GetTransactionCostsBySecurity(Account account, DateOnly from, DateOnly to);
     IEnumerable<(string Symbol, Currency Currency, decimal TotalCosts, decimal Gross, TransactionType Type)>
-        GetTransactionCostsBySecurity(Portfolio portfolio, DateTime from, DateTime to);
-    void PrintTransactionCostReport(Account account, DateTime from, DateTime to);
-    void PrintTransactionCostReport(Portfolio portfolio, DateTime from, DateTime to);
+        GetTransactionCostsBySecurity(Portfolio portfolio, DateOnly from, DateOnly to);
+    void PrintTransactionCostReport(Account account, DateOnly from, DateOnly to);
+    void PrintTransactionCostReport(Portfolio portfolio, DateOnly from, DateOnly to);
 }

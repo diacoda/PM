@@ -10,6 +10,6 @@ namespace PM.DTO;
 public record CashFlowDTO(
     decimal Amount,
     string Currency,
-    DateTime? Date,
+    DateOnly? Date,
     string Note
 );

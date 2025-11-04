@@ -4,8 +4,8 @@ using PM.Domain.Values;
 namespace PM.Domain.Values;
 
 public record ContributionRecord(
-    DateTime Start,
-    DateTime End,
+    DateOnly Start,
+    DateOnly End,
     Currency ReportingCurrency,
     ContributionLevel Level, // enum now
     string Key,              // e.g., "VFV.TO" or "Equity"

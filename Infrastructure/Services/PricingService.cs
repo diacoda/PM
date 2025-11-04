@@ -19,13 +19,12 @@ public class PricingService : IPricingService
 
     public async Task<Money> CalculateHoldingValueAsync(
         Holding holding,
-        DateTime date,
+        DateOnly date,
         Currency reportingCurrency,
         CancellationToken ct = default)
     {
         var symbolCode = holding.Asset.Code;
         var holdingCurrency = new Currency(holding.Asset.Currency.Code);
-        var dateOnly = DateOnly.FromDateTime(date);
 
         decimal priceAmount;
         FxRate? fx = null;
@@ -41,14 +40,14 @@ public class PricingService : IPricingService
                 fx = await _fxRateService.GetRateAsync(
                     holdingCurrency.Code,
                     reportingCurrency.Code,
-                    dateOnly,
+                    date,
                     ct);
             }
         }
         else
         {
             // 🧾 2️⃣ Handle non-cash instruments (equities, ETFs, etc.)
-            var price = await _priceService.GetOrFetchInstrumentPriceAsync(symbolCode, dateOnly, ct);
+            var price = await _priceService.GetOrFetchInstrumentPriceAsync(symbolCode, date, ct);
             if (price is null)
                 return new Money(0, reportingCurrency);
 
@@ -59,7 +58,7 @@ public class PricingService : IPricingService
                 fx = await _fxRateService.GetRateAsync(
                     price.Price.Currency.Code,
                     reportingCurrency.Code,
-                    dateOnly,
+                    date,
                     ct);
             }
         }
@@ -74,7 +73,7 @@ public class PricingService : IPricingService
     }
 
 
-    public async Task<Money> CalculateAccountValueAsync(Account account, DateTime date, Currency reportingCurrency, CancellationToken ct = default)
+    public async Task<Money> CalculateAccountValueAsync(Account account, DateOnly date, Currency reportingCurrency, CancellationToken ct = default)
     {
         decimal total = 0m;
 
@@ -87,7 +86,7 @@ public class PricingService : IPricingService
         return new Money(total, reportingCurrency);
     }
 
-    public async Task<Money> CalculatePortfolioValueAsync(Portfolio portfolio, DateTime date, Currency reportingCurrency, CancellationToken ct = default)
+    public async Task<Money> CalculatePortfolioValueAsync(Portfolio portfolio, DateOnly date, Currency reportingCurrency, CancellationToken ct = default)
     {
         decimal total = 0m;
 

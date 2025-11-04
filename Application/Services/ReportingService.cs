@@ -18,7 +18,7 @@ public class ReportingService : IReportingService
     // 1. Aggregation by Asset Class
     public async Task<Dictionary<AssetClass, Money>> AggregateByAssetClassAsync(
         Account account,
-        DateTime date,
+        DateOnly date,
         Currency reportingCurrency,
         CancellationToken ct = default)
     {
@@ -45,7 +45,7 @@ public class ReportingService : IReportingService
 
     public async Task<Dictionary<AssetClass, Money>> AggregateByAssetClassAsync(
         Portfolio portfolio,
-        DateTime date,
+        DateOnly date,
         Currency reportingCurrency,
         CancellationToken ct = default)
     {
@@ -84,7 +84,7 @@ public class ReportingService : IReportingService
     }
 
     // 3. Transaction History by Date Range
-    public void PrintTransactionHistory(Account account, DateTime from, DateTime to)
+    public void PrintTransactionHistory(Account account, DateOnly from, DateOnly to)
     {
         Console.WriteLine($"Transaction History for Account: {account.Name} from {from:yyyy-MM-dd} to {to:yyyy-MM-dd}");
 
@@ -97,7 +97,7 @@ public class ReportingService : IReportingService
             Console.WriteLine($"- {tx.Date:yyyy-MM-dd} | {tx.Type} | Qty: {tx.Quantity} | Amount: {tx.Amount.Amount} {tx.Amount.Currency}");
         }
     }
-    public async Task<Dictionary<AssetClass, decimal>> GetAssetClassPercentagesAsync(Account account, DateTime date, Currency reportingCurrency, CancellationToken ct = default)
+    public async Task<Dictionary<AssetClass, decimal>> GetAssetClassPercentagesAsync(Account account, DateOnly date, Currency reportingCurrency, CancellationToken ct = default)
     {
         var totals = await AggregateByAssetClassAsync(account, date, reportingCurrency, ct);
         var grand = totals.Values.Sum(m => m.Amount);
@@ -106,7 +106,7 @@ public class ReportingService : IReportingService
         return totals.ToDictionary(k => k.Key, v => v.Value.Amount / grand);
     }
 
-    public async Task<Dictionary<AssetClass, decimal>> GetAssetClassPercentagesAsync(Portfolio portfolio, DateTime date, Currency reportingCurrency, CancellationToken ct = default)
+    public async Task<Dictionary<AssetClass, decimal>> GetAssetClassPercentagesAsync(Portfolio portfolio, DateOnly date, Currency reportingCurrency, CancellationToken ct = default)
     {
         var totals = await AggregateByAssetClassAsync(portfolio, date, reportingCurrency, ct);
         var grand = totals.Values.Sum(m => m.Amount);
@@ -114,7 +114,7 @@ public class ReportingService : IReportingService
 
         return totals.ToDictionary(k => k.Key, v => v.Value.Amount / grand);
     }
-    public Dictionary<Currency, decimal> GetTradingCostsByCurrency(Account account, DateTime from, DateTime to)
+    public Dictionary<Currency, decimal> GetTradingCostsByCurrency(Account account, DateOnly from, DateOnly to)
     {
         var q = account.Transactions
             .Where(t => t.Date >= from && t.Date <= to)
@@ -125,7 +125,7 @@ public class ReportingService : IReportingService
                 .ToDictionary(g => g.Key, g => g.Sum(t => t.Costs!.Amount));
     }
 
-    public Dictionary<Currency, decimal> GetTradingCostsByCurrency(Portfolio portfolio, DateTime from, DateTime to)
+    public Dictionary<Currency, decimal> GetTradingCostsByCurrency(Portfolio portfolio, DateOnly from, DateOnly to)
     {
         var agg = new Dictionary<Currency, decimal>();
         foreach (var acct in portfolio.Accounts)
@@ -138,7 +138,7 @@ public class ReportingService : IReportingService
     // ==================== TRANSACTION COST REPORTING ====================
 
     // ---- Core: compute summaries by currency for an Account ----
-    public IEnumerable<TransactionCostSummary> GetTransactionCostSummaries(Account account, DateTime from, DateTime to)
+    public IEnumerable<TransactionCostSummary> GetTransactionCostSummaries(Account account, DateOnly from, DateOnly to)
     {
         var tx = account.Transactions
             .Where(t => t.Date >= from && t.Date <= to)
@@ -183,7 +183,7 @@ public class ReportingService : IReportingService
     }
 
     // ---- Portfolio aggregator: fold account summaries by currency ----
-    public IEnumerable<TransactionCostSummary> GetTransactionCostSummaries(Portfolio portfolio, DateTime from, DateTime to)
+    public IEnumerable<TransactionCostSummary> GetTransactionCostSummaries(Portfolio portfolio, DateOnly from, DateOnly to)
     {
         var all = new Dictionary<string, TransactionCostSummary>(); // key = currency code
 
@@ -220,7 +220,7 @@ public class ReportingService : IReportingService
 
     // ---- Optional: breakdown by Security (symbol) for an Account ----
     public IEnumerable<(string Symbol, Currency Currency, decimal TotalCosts, decimal Gross, TransactionType Type)>
-        GetTransactionCostsBySecurity(Account account, DateTime from, DateTime to)
+        GetTransactionCostsBySecurity(Account account, DateOnly from, DateOnly to)
     {
         var tx = account.Transactions
             .Where(t => t.Date >= from && t.Date <= to)
@@ -243,7 +243,7 @@ public class ReportingService : IReportingService
 
     // ---- Optional: breakdown by Security for Portfolio (aggregated) ----
     public IEnumerable<(string Symbol, Currency Currency, decimal TotalCosts, decimal Gross, TransactionType Type)>
-        GetTransactionCostsBySecurity(Portfolio portfolio, DateTime from, DateTime to)
+        GetTransactionCostsBySecurity(Portfolio portfolio, DateOnly from, DateOnly to)
     {
         // Reuse the account method, then aggregate across accounts
         return portfolio.Accounts
@@ -260,7 +260,7 @@ public class ReportingService : IReportingService
     }
 
     // ---- Pretty printers (Account & Portfolio) ----
-    public void PrintTransactionCostReport(Account account, DateTime from, DateTime to)
+    public void PrintTransactionCostReport(Account account, DateOnly from, DateOnly to)
     {
         var summaries = GetTransactionCostSummaries(account, from, to).ToList();
         Console.WriteLine($"\nTransaction Costs — Account: {account.Name}  [{from:yyyy-MM-dd} .. {to:yyyy-MM-dd}]");
@@ -293,7 +293,7 @@ public class ReportingService : IReportingService
         }
     }
 
-    public void PrintTransactionCostReport(Portfolio portfolio, DateTime from, DateTime to)
+    public void PrintTransactionCostReport(Portfolio portfolio, DateOnly from, DateOnly to)
     {
         var summaries = GetTransactionCostSummaries(portfolio, from, to).ToList();
         Console.WriteLine($"\nTransaction Costs — Portfolio: {portfolio.Owner}  [{from:yyyy-MM-dd} .. {to:yyyy-MM-dd}]");

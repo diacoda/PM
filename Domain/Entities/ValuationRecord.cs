@@ -18,7 +18,7 @@ public class ValuationRecord : Entity
     /// <summary>
     /// Gets or sets the date for which this valuation applies.
     /// </summary>
-    public DateTime Date { get; set; }
+    public DateOnly Date { get; set; }
 
     /// <summary>
     /// Gets or sets the valuation period (e.g., Daily, Monthly, Yearly).
