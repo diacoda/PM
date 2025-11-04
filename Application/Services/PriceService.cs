@@ -2,6 +2,7 @@ using PM.DTO.Prices;
 using PM.Application.Interfaces;
 using PM.Domain.Values;
 using Microsoft.Extensions.Caching.Memory;
+using PM.Domain.Mappers;
 
 namespace PM.Application.Services;
 
@@ -27,7 +28,7 @@ public class PriceService : IPriceService
         _cache = cache;
     }
 
-    public async Task<InstrumentPrice?> GetOrFetchInstrumentPriceAsync(
+    public async Task<AssetPrice?> GetOrFetchInstrumentPriceAsync(
         string symbolValue,
         DateOnly date,
         CancellationToken ct = default)
@@ -125,7 +126,8 @@ public class PriceService : IPriceService
 
         var currency = new Currency(symbol.Currency.Code);
         var money = new Money(request.Close, currency);
-        var price = new InstrumentPrice(symbol, request.Date, money, currency, "Manual Entry");
+        
+        var price = new AssetPrice(symbol, request.Date, money);
 
         await _repository.UpsertAsync(price, ct);
 
@@ -176,17 +178,11 @@ public class PriceService : IPriceService
         {
             if (map.TryGetValue(s.Code, out var p))
             {
-                var dto = new PriceDTO
-                {
-                    Symbol = p.Symbol.Code,
-                    Date = p.Date,
-                    Close = p.Price.Amount
-                };
-
+                var dto = PriceMapper.ToDTO(p);
                 CachePrice(BuildCacheKey(s.Code, date), dto);
                 return dto;
             }
-
+            //TODO throw?
             return new PriceDTO
             {
                 Symbol = s.Code,

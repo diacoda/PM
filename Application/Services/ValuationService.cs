@@ -250,7 +250,7 @@ public class ValuationService : IValuationService
         foreach (var holding in account.Holdings)
         {
             var value = await _pricingService.CalculateHoldingValueAsync(holding, date, reportingCurrency, ct);
-            var cls = holding.Symbol.AssetClass;
+            var cls = holding.Asset.AssetClass;
             if (result.TryGetValue(cls, out var existing))
                 result[cls] = new Money(existing.Amount + value.Amount, reportingCurrency);
             else
@@ -279,7 +279,7 @@ public class ValuationService : IValuationService
     private async Task<decimal> SumAccountCashAsync(Account account, DateTime date, Currency reportingCurrency, CancellationToken ct = default)
     {
         decimal cash = 0m;
-        foreach (var h in account.Holdings.Where(h => h.Symbol.AssetClass == AssetClass.Cash))
+        foreach (var h in account.Holdings.Where(h => h.Asset.AssetClass == AssetClass.Cash))
         {
             var val = await _pricingService.CalculateHoldingValueAsync(h, date, reportingCurrency, ct);
             cash += val.Amount;

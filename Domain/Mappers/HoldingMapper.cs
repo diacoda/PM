@@ -9,7 +9,9 @@ public static class HoldingMapper
     public static HoldingDTO ToDTO(Holding holding) => new HoldingDTO
     {
         Id = holding.Id,
-        Symbol = holding.Symbol.Code,
+        Symbol = holding.Asset.Code,
+        SymbolCurrency = holding.Asset.Currency.Code,
+        SymbolAssetClass = holding.Asset.AssetClass.ToString(),
         Quantity = holding.Quantity,
         AccountId = holding.AccountId,
         Tags = holding.Tags.Select(t => t.Name).ToList()
@@ -55,7 +57,6 @@ public static class HoldingMapper
                 holding.AddTag(new Tag(tagName));
             }
         }
-
         return holding;
     }
 }

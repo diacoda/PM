@@ -5,7 +5,7 @@ using PM.Infrastructure.Configuration;
 
 namespace PM.Infrastructure.Data;
 
-public class AppDbContextFactory : IDesignTimeDbContextFactory<AppDbContext>
+public class AppDbContextFactory : IDesignTimeDbContextFactory<PortfolioDbContext>
 {
     private readonly IConfiguration? _configuration;
 
@@ -17,7 +17,7 @@ public class AppDbContextFactory : IDesignTimeDbContextFactory<AppDbContext>
         _configuration = configuration;
     }
     public AppDbContextFactory() { } // EF CLI will use this
-    public AppDbContext CreateDbContext(string[] args)
+    public PortfolioDbContext CreateDbContext(string[] args)
     {
         // Use the passed configuration if available (WebApi runtime)
         // Otherwise, build a minimal config (EF CLI or fallback)
@@ -26,10 +26,10 @@ public class AppDbContextFactory : IDesignTimeDbContextFactory<AppDbContext>
         var absolutePath = DatabasePathResolver.ResolveAbsolutePath("portfolio", configuration);
         var connString = DatabasePathResolver.BuildSqliteConnectionString(absolutePath);
 
-        var optionsBuilder = new DbContextOptionsBuilder<AppDbContext>();
+        var optionsBuilder = new DbContextOptionsBuilder<PortfolioDbContext>();
         optionsBuilder.UseSqlite(connString);
 
-        return new AppDbContext(optionsBuilder.Options);
+        return new PortfolioDbContext(optionsBuilder.Options);
     }
 
     /// <summary>

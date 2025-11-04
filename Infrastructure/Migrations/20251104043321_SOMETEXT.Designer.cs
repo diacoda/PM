@@ -10,9 +10,9 @@ using PM.Infrastructure.Data;
 
 namespace Infrastructure.Migrations
 {
-    [DbContext(typeof(AppDbContext))]
-    [Migration("20251027151502_Portfolio")]
-    partial class Portfolio
+    [DbContext(typeof(PortfolioDbContext))]
+    [Migration("20251104043321_SOMETEXT")]
+    partial class SOMETEXT
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -20,45 +20,14 @@ namespace Infrastructure.Migrations
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "9.0.10");
 
-            modelBuilder.Entity("AccountTag", b =>
-                {
-                    b.Property<int>("AccountId")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<int>("TagId")
-                        .HasColumnType("INTEGER");
-
-                    b.HasKey("AccountId", "TagId");
-
-                    b.HasIndex("TagId");
-
-                    b.ToTable("AccountTag");
-                });
-
-            modelBuilder.Entity("HoldingTag", b =>
-                {
-                    b.Property<int>("HoldingId")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<int>("TagId")
-                        .HasColumnType("INTEGER");
-
-                    b.HasKey("HoldingId", "TagId");
-
-                    b.HasIndex("TagId");
-
-                    b.ToTable("HoldingTag");
-                });
-
             modelBuilder.Entity("PM.Domain.Entities.Account", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
 
-                    b.Property<string>("Currency")
+                    b.Property<string>("CurrencyCode")
                         .IsRequired()
-                        .HasMaxLength(3)
                         .HasColumnType("TEXT");
 
                     b.Property<int>("FinancialInstitution")
@@ -66,7 +35,6 @@ namespace Infrastructure.Migrations
 
                     b.Property<string>("Name")
                         .IsRequired()
-                        .HasMaxLength(100)
                         .HasColumnType("TEXT");
 
                     b.Property<int>("PortfolioId")
@@ -106,7 +74,6 @@ namespace Infrastructure.Migrations
 
                     b.Property<string>("Owner")
                         .IsRequired()
-                        .HasMaxLength(100)
                         .HasColumnType("TEXT");
 
                     b.HasKey("Id");
@@ -128,7 +95,6 @@ namespace Infrastructure.Migrations
 
                     b.Property<string>("Name")
                         .IsRequired()
-                        .HasMaxLength(50)
                         .HasColumnType("TEXT");
 
                     b.HasKey("Id");
@@ -165,36 +131,6 @@ namespace Infrastructure.Migrations
                     b.ToTable("Transactions");
                 });
 
-            modelBuilder.Entity("AccountTag", b =>
-                {
-                    b.HasOne("PM.Domain.Entities.Account", null)
-                        .WithMany()
-                        .HasForeignKey("AccountId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("PM.Domain.Entities.Tag", null)
-                        .WithMany()
-                        .HasForeignKey("TagId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-                });
-
-            modelBuilder.Entity("HoldingTag", b =>
-                {
-                    b.HasOne("PM.Domain.Entities.Holding", null)
-                        .WithMany()
-                        .HasForeignKey("HoldingId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("PM.Domain.Entities.Tag", null)
-                        .WithMany()
-                        .HasForeignKey("TagId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-                });
-
             modelBuilder.Entity("PM.Domain.Entities.Account", b =>
                 {
                     b.HasOne("PM.Domain.Entities.Portfolio", "Portfolio")
@@ -214,18 +150,19 @@ namespace Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.OwnsOne("PM.Domain.Values.Instrument", "Instrument", b1 =>
+                    b.OwnsOne("PM.Domain.Entities.Asset", "_asset", b1 =>
                         {
                             b1.Property<int>("HoldingId")
                                 .HasColumnType("INTEGER");
 
                             b1.Property<int>("AssetClass")
-                                .HasColumnType("INTEGER");
+                                .HasColumnType("INTEGER")
+                                .HasColumnName("AssetClass");
 
-                            b1.Property<string>("Name")
+                            b1.Property<string>("Code")
                                 .IsRequired()
-                                .HasMaxLength(100)
-                                .HasColumnType("TEXT");
+                                .HasColumnType("TEXT")
+                                .HasColumnName("AssetCode");
 
                             b1.HasKey("HoldingId");
 
@@ -234,32 +171,31 @@ namespace Infrastructure.Migrations
                             b1.WithOwner()
                                 .HasForeignKey("HoldingId");
 
-                            b1.OwnsOne("PM.Domain.Values.Symbol", "Symbol", b2 =>
+                            b1.OwnsOne("PM.Domain.Values.Currency", "Currency", b2 =>
                                 {
-                                    b2.Property<int>("InstrumentHoldingId")
+                                    b2.Property<int>("AssetHoldingId")
                                         .HasColumnType("INTEGER");
 
-                                    b2.Property<string>("Value")
+                                    b2.Property<string>("Code")
                                         .IsRequired()
-                                        .HasMaxLength(20)
-                                        .HasColumnType("TEXT");
+                                        .HasColumnType("TEXT")
+                                        .HasColumnName("AssetCurrency");
 
-                                    b2.HasKey("InstrumentHoldingId");
+                                    b2.HasKey("AssetHoldingId");
 
                                     b2.ToTable("Holdings");
 
                                     b2.WithOwner()
-                                        .HasForeignKey("InstrumentHoldingId");
+                                        .HasForeignKey("AssetHoldingId");
                                 });
 
-                            b1.Navigation("Symbol")
+                            b1.Navigation("Currency")
                                 .IsRequired();
                         });
 
                     b.Navigation("Account");
 
-                    b.Navigation("Instrument")
-                        .IsRequired();
+                    b.Navigation("_asset");
                 });
 
             modelBuilder.Entity("PM.Domain.Entities.Tag", b =>
@@ -287,7 +223,8 @@ namespace Infrastructure.Migrations
                                 .HasColumnType("INTEGER");
 
                             b1.Property<decimal>("Amount")
-                                .HasColumnType("TEXT");
+                                .HasColumnType("TEXT")
+                                .HasColumnName("Amount");
 
                             b1.HasKey("TransactionId");
 
@@ -303,8 +240,8 @@ namespace Infrastructure.Migrations
 
                                     b2.Property<string>("Code")
                                         .IsRequired()
-                                        .HasMaxLength(3)
-                                        .HasColumnType("TEXT");
+                                        .HasColumnType("TEXT")
+                                        .HasColumnName("AmountCurrency");
 
                                     b2.HasKey("MoneyTransactionId");
 
@@ -324,7 +261,8 @@ namespace Infrastructure.Migrations
                                 .HasColumnType("INTEGER");
 
                             b1.Property<decimal>("Amount")
-                                .HasColumnType("TEXT");
+                                .HasColumnType("TEXT")
+                                .HasColumnName("CostAmount");
 
                             b1.HasKey("TransactionId");
 
@@ -340,8 +278,8 @@ namespace Infrastructure.Migrations
 
                                     b2.Property<string>("Code")
                                         .IsRequired()
-                                        .HasMaxLength(3)
-                                        .HasColumnType("TEXT");
+                                        .HasColumnType("TEXT")
+                                        .HasColumnName("CostCurrency");
 
                                     b2.HasKey("MoneyTransactionId");
 
@@ -355,17 +293,22 @@ namespace Infrastructure.Migrations
                                 .IsRequired();
                         });
 
-                    b.OwnsOne("PM.Domain.Values.Instrument", "Instrument", b1 =>
+                    b.OwnsOne("PM.Domain.Values.Symbol", "Symbol", b1 =>
                         {
                             b1.Property<int>("TransactionId")
                                 .HasColumnType("INTEGER");
 
                             b1.Property<int>("AssetClass")
-                                .HasColumnType("INTEGER");
+                                .HasColumnType("INTEGER")
+                                .HasColumnName("AssetClass");
 
-                            b1.Property<string>("Name")
+                            b1.Property<string>("Code")
                                 .IsRequired()
-                                .HasMaxLength(100)
+                                .HasColumnType("TEXT")
+                                .HasColumnName("AssetCode");
+
+                            b1.Property<string>("CurrencyCode")
+                                .IsRequired()
                                 .HasColumnType("TEXT");
 
                             b1.HasKey("TransactionId");
@@ -375,25 +318,25 @@ namespace Infrastructure.Migrations
                             b1.WithOwner()
                                 .HasForeignKey("TransactionId");
 
-                            b1.OwnsOne("PM.Domain.Values.Symbol", "Symbol", b2 =>
+                            b1.OwnsOne("PM.Domain.Values.Currency", "Currency", b2 =>
                                 {
-                                    b2.Property<int>("InstrumentTransactionId")
+                                    b2.Property<int>("SymbolTransactionId")
                                         .HasColumnType("INTEGER");
 
-                                    b2.Property<string>("Value")
+                                    b2.Property<string>("Code")
                                         .IsRequired()
-                                        .HasMaxLength(20)
-                                        .HasColumnType("TEXT");
+                                        .HasColumnType("TEXT")
+                                        .HasColumnName("Currency");
 
-                                    b2.HasKey("InstrumentTransactionId");
+                                    b2.HasKey("SymbolTransactionId");
 
                                     b2.ToTable("Transactions");
 
                                     b2.WithOwner()
-                                        .HasForeignKey("InstrumentTransactionId");
+                                        .HasForeignKey("SymbolTransactionId");
                                 });
 
-                            b1.Navigation("Symbol")
+                            b1.Navigation("Currency")
                                 .IsRequired();
                         });
 
@@ -404,7 +347,7 @@ namespace Infrastructure.Migrations
 
                     b.Navigation("Costs");
 
-                    b.Navigation("Instrument")
+                    b.Navigation("Symbol")
                         .IsRequired();
                 });
 

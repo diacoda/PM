@@ -27,7 +27,7 @@ public class ReportingService : IReportingService
         foreach (var holding in account.Holdings)
         {
             var value = await _pricingService.CalculateHoldingValueAsync(holding, date, reportingCurrency, ct);
-            var assetClass = holding.Symbol.AssetClass;
+            var assetClass = holding.Asset.AssetClass;
 
             if (result.ContainsKey(assetClass))
             {
@@ -79,7 +79,7 @@ public class ReportingService : IReportingService
 
         foreach (var holding in account.Holdings)
         {
-            Console.WriteLine($"- {holding.Symbol} | Asset Class: {holding.Symbol.AssetClass} | Quantity: {holding.Quantity}");
+            Console.WriteLine($"- {holding.Asset} | Asset Class: {holding.Asset.AssetClass} | Quantity: {holding.Quantity}");
         }
     }
 

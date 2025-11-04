@@ -18,14 +18,14 @@ public class PriceRepository : IPriceRepository
     /// <summary>
     /// Get a price for a symbol and date.
     /// </summary>
-    public async Task<InstrumentPrice?> GetAsync(Symbol symbol, DateOnly date, CancellationToken ct = default)
+    public async Task<AssetPrice?> GetAsync(Symbol symbol, DateOnly date, CancellationToken ct = default)
     {
         return await _db.Prices
             .AsNoTracking() // read-only, avoid EF tracking conflicts
             .FirstOrDefaultAsync(p => p.Symbol.Equals(symbol) && p.Date == date, ct);
     }
 
-    public async Task SaveAsync(InstrumentPrice price, CancellationToken ct = default)
+    public async Task SaveAsync(AssetPrice price, CancellationToken ct = default)
     {
         _db.Prices.Add(price);
         await _db.SaveChangesAsync(ct);
@@ -34,7 +34,7 @@ public class PriceRepository : IPriceRepository
     /// <summary>
     /// Insert or update a price. Works with immutable records.
     /// </summary>
-    public async Task UpsertAsync(InstrumentPrice price, CancellationToken ct = default)
+    public async Task UpsertAsync(AssetPrice price, CancellationToken ct = default)
     {
         // Look for existing row
         var existing = await _db.Prices
@@ -57,7 +57,7 @@ public class PriceRepository : IPriceRepository
     /// <summary>
     /// Optional helper: get all prices for a symbol
     /// </summary>
-    public async Task<List<InstrumentPrice>> GetAllForSymbolAsync(Symbol symbol, CancellationToken ct = default)
+    public async Task<List<AssetPrice>> GetAllForSymbolAsync(Symbol symbol, CancellationToken ct = default)
     {
         return await _db.Prices
             .AsNoTracking()
@@ -81,7 +81,7 @@ public class PriceRepository : IPriceRepository
         await _db.SaveChangesAsync(ct);
         return true;
     }
-    public async Task<List<InstrumentPrice>> GetAllByDateAsync(DateOnly date, CancellationToken ct = default)
+    public async Task<List<AssetPrice>> GetAllByDateAsync(DateOnly date, CancellationToken ct = default)
     {
         var prices = await _db.Prices
             .AsNoTracking()

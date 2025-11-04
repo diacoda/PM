@@ -26,7 +26,7 @@ namespace PM.API.Startup
         {
             var symbolConfigs = config.GetSection("Symbols").Get<List<SymbolConfig>>() ?? new List<SymbolConfig>();
             var symbols = symbolConfigs
-                .Select(s => new Symbol(s.Value, s.Currency, s.Exchange))
+                .Select(s => new Symbol(s.Value))
                 .ToList();
 
             services.AddSingleton(symbols); // List<Symbol> as singleton for DI

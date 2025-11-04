@@ -18,14 +18,14 @@ public class InvestingPriceProvider : IPriceProvider
         _httpClientFactory = httpClientFactory ?? throw new ArgumentNullException(nameof(httpClientFactory));
     }
 
-    public async Task<InstrumentPrice?> GetPriceAsync(Symbol symbol, DateOnly date, CancellationToken ct = default)
+    public async Task<AssetPrice?> GetPriceAsync(Symbol symbol, DateOnly date, CancellationToken ct = default)
     {
         string url = TdESeriesUrls[symbol.Code];
         if (string.IsNullOrEmpty(url))
             throw new ArgumentException($"Symbol {symbol.Code} is not supported by {ProviderName}.");
         decimal value = await FetchTdESeriesPriceAsync(url, symbol.Code, ct);
         Currency currency = new Currency(symbol.Currency.Code);
-        return new InstrumentPrice(symbol, date, new Money(value, currency), currency, ProviderName);
+        return new AssetPrice(symbol, date, new Money(value, currency), ProviderName);
     }
 
     private async Task<decimal> FetchTdESeriesPriceAsync(string url, string symbol, CancellationToken ct = default)

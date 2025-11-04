@@ -7,8 +7,8 @@ namespace PM.Infrastructure.Repositories;
 
 public class HoldingRepository : IHoldingRepository
 {
-    private readonly AppDbContext _db;
-    public HoldingRepository(AppDbContext db) => _db = db;
+    private readonly PortfolioDbContext _db;
+    public HoldingRepository(PortfolioDbContext db) => _db = db;
 
     public async Task<Holding?> GetByIdAsync(int id, CancellationToken ct = default) =>
         await _db.Holdings.Include(h => h.Tags).FirstOrDefaultAsync(h => h.Id == id, ct);

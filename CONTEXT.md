@@ -9,16 +9,16 @@ dotnet ef migrations list --project Infrastructure/Infrastructure.csproj --start
 
 dotnet ef database update --context CashFlowDbContext --project Infrastructure/Infrastructure.csproj --startup-project WebApi/WebApi.csproj
 
-# AppDbContext
+# PortfolioDbContext
 
 dotnet ef migrations add SOMETEXT \
  --project Infrastructure/Infrastructure.csproj \
  --startup-project WebApi/WebApi.csproj \
- --context AppDbContext
+ --context PortfolioDbContext
 
-dotnet ef migrations list --project Infrastructure/Infrastructure.csproj --startup-project WebApi/WebApi.csproj --context AppDbContext
+dotnet ef migrations list --project Infrastructure/Infrastructure.csproj --startup-project WebApi/WebApi.csproj --context PortfolioDbContext
 
-dotnet ef database update --context AppDbContext --project Infrastructure/Infrastructure.csproj --startup-project WebApi/WebApi.csproj
+dotnet ef database update --context PortfolioDbContext --project Infrastructure/Infrastructure.csproj --startup-project WebApi/WebApi.csproj
 
 # ValuationDbContext
 

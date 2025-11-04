@@ -14,6 +14,9 @@ public class HoldingDTO
     /// Ticker symbol of the security (e.g., "AAPL").
     /// </summary>
     public string Symbol { get; set; } = string.Empty;
+    public string SymbolCurrency { get; set; } = string.Empty;
+    public string SymbolAssetClass { get; set; } = string.Empty;
+
 
     /// <summary>
     /// Full name of the instrument/security.

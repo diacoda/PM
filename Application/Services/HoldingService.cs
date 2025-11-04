@@ -48,7 +48,7 @@ namespace PM.Application.Services
             if (account == null)
                 throw new InvalidOperationException($"Account {accountId} not found");
 
-            var holding = account.Holdings.FirstOrDefault(h => h.Symbol.Equals(symbol));
+            var holding = account.Holdings.FirstOrDefault(h => h.Asset.Equals(symbol));
             if (holding == null)
                 return;
 
@@ -60,17 +60,18 @@ namespace PM.Application.Services
         public async Task<Holding?> GetHoldingAsync(int accountId, Symbol symbol, CancellationToken ct = default)
         {
             var holdings = await _holdingRepo.ListByAccountAsync(accountId, ct);
-            return holdings.FirstOrDefault(h => h.Symbol.Equals(symbol));
+            return holdings.FirstOrDefault(h => h.Asset.Equals(symbol));
         }
 
         public async Task<decimal> GetCashBalanceAsync(int accountId, Currency currency, CancellationToken ct = default)
         {
+            // TODO: we could use currency to fx on it but not used right now
             var symbol = new Symbol(currency.Code);
             var account = await _accountRepo.GetByIdAsync(accountId, ct);
             if (account == null)
                 return 0.0m;
 
-            var holding = account.Holdings.FirstOrDefault(h => h.Symbol == symbol);
+            var holding = account.Holdings.FirstOrDefault(h => h.Asset == symbol);
             return holding?.Quantity ?? 0;
         }
 
@@ -85,7 +86,7 @@ namespace PM.Application.Services
             if (account == null)
                 throw new InvalidOperationException($"Account {accountId} not found");
 
-            var holding = account.Holdings.FirstOrDefault(h => h.Symbol.Equals(symbol));
+            var holding = account.Holdings.FirstOrDefault(h => h.Asset.Equals(symbol));
             if (holding == null)
                 throw new InvalidOperationException($"Holding not found for {symbol}");
 
@@ -100,7 +101,7 @@ namespace PM.Application.Services
             if (account == null)
                 throw new InvalidOperationException($"Account {accountId} not found");
 
-            var holding = account.Holdings.FirstOrDefault(h => h.Symbol.Equals(symbol));
+            var holding = account.Holdings.FirstOrDefault(h => h.Asset.Equals(symbol));
             if (holding == null)
                 return;
 

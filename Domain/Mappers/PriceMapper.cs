@@ -11,7 +11,7 @@ public static class PriceMapper
     /// <summary>
     /// Converts a domain <see cref="InstrumentPrice"/> to a <see cref="PriceDTO"/>.
     /// </summary>
-    public static PriceDTO ToDTO(InstrumentPrice price)
+    public static PriceDTO ToDTO(AssetPrice price)
     {
         return new PriceDTO
         {
@@ -28,11 +28,11 @@ public static class PriceMapper
     /// <param name="symbol">The symbol entity corresponding to the DTO's symbol value.</param>
     /// <param name="currency">The currency of the price.</param>
     /// <param name="source">The source of the price (e.g., "Manual Entry", "Yahoo").</param>
-    public static InstrumentPrice ToEntity(PriceDTO dto)
+    public static AssetPrice ToEntity(PriceDTO dto)
     {
-        Currency cad = new Currency("CAD");
-        var money = new Money(dto.Close, cad);
-        Symbol s = new Symbol(dto.Symbol, "CAD");
-        return new InstrumentPrice(s, dto.Date, money, cad, "Manual");
+        var currency = Currency.CAD;
+        var money = new Money(dto.Close, currency);
+        Symbol s = new Symbol(dto.Symbol);
+        return new AssetPrice(s, dto.Date, money, "Manual");
     }
 }

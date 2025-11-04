@@ -2,14 +2,12 @@ using PM.Domain.Interfaces;
 
 namespace PM.Domain.Values
 {
+    /// <summary>
+    /// Represents a currency as a type of financial asset.
+    /// </summary>
     public sealed record Currency : IAsset
     {
-        public string Code { get; private set; } = String.Empty;
-        public AssetClass AssetClass => AssetClass.Cash;
-        Currency IAsset.Currency => throw new NotImplementedException();
-
-        private Currency() { } // EF
-
+        private Currency() { }
         public Currency(string code)
         {
             if (string.IsNullOrWhiteSpace(code))
@@ -22,6 +20,13 @@ namespace PM.Domain.Values
 
             Code = code;
         }
+
+        public string Code { get; private set; } = string.Empty;
+
+        Currency IAsset.Currency => this;
+
+        public AssetClass AssetClass => AssetClass.Cash;
+
         public static Currency CAD => new("CAD");
         public static Currency USD => new("USD");
         public static Currency EUR => new("EUR");

@@ -7,8 +7,8 @@ namespace PM.Infrastructure.Repositories
 {
     public class TransactionRepository : ITransactionRepository
     {
-        private readonly AppDbContext _db;
-        public TransactionRepository(AppDbContext db) => _db = db;
+        private readonly PortfolioDbContext _db;
+        public TransactionRepository(PortfolioDbContext db) => _db = db;
 
         public async Task<Transaction?> GetByIdAsync(int id, CancellationToken ct = default) =>
             await _db.Transactions.FirstOrDefaultAsync(t => t.Id == id, ct);

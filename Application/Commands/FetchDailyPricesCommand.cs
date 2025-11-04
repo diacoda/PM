@@ -55,7 +55,7 @@ public class FetchDailyPricesCommand
                 continue;
             }
 
-            if (date == DateOnly.FromDateTime(DateTime.Today) && !_calendar.IsAfterMarketClose(exchange))
+            if (_calendar.IsToday(date) && !_calendar.IsAfterMarketClose(exchange))
             {
                 skipped.Add($"{symbol.Code} ({exchange}) - before market close");
                 continue;
@@ -72,7 +72,7 @@ public class FetchDailyPricesCommand
                 ? "Yahoo"
                 : "Investing";
 
-            var provider = _providers.SingleOrDefault(p =>
+            var provider = _providers.FirstOrDefault(p =>
                 p.ProviderName.Equals(providerName, StringComparison.OrdinalIgnoreCase));
 
             if (provider == null)
@@ -86,7 +86,19 @@ public class FetchDailyPricesCommand
                 var price = await provider.GetPriceAsync(symbol, date, ct);
                 if (price != null)
                 {
-                    var toSave = price with { Source = provider.ProviderName };
+                    if (price.Symbol == null)
+                    {
+                        skipped.Add($"{symbol.Code} ({exchange}) - no symbol");
+                        continue; // skip null symbol
+                    }
+
+                    var toSave = new AssetPrice(
+                        price.Symbol,
+                        price.Date,
+                        price.Price,
+                        provider.ProviderName
+                    );
+
                     await _priceRepository.SaveAsync(toSave, ct);
                     fetched.Add($"{symbol.Code} ({exchange}) from {providerName}");
                 }
@@ -102,10 +114,11 @@ public class FetchDailyPricesCommand
         }
 
         // --------------------------
-        // Fetch FX rates
+        // Fetch FX rates (unique pairs only)
         // --------------------------
-        var fxPairs = Currencies.SelectMany(c1 => Currencies, (from, to) => (from, to))
-                                .Where(p => p.from != p.to);
+        var fxPairs = Currencies
+            .SelectMany(c1 => Currencies, (from, to) => (from, to))
+            .Where(p => string.Compare(p.from.Code, p.to.Code, StringComparison.Ordinal) < 0);
 
         foreach (var (from, to) in fxPairs)
         {
@@ -137,4 +150,5 @@ public class FetchDailyPricesCommand
 
         return new FetchPricesDTO(date, fetched, skipped, errors);
     }
+
 }

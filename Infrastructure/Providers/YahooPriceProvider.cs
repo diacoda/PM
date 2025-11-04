@@ -11,7 +11,7 @@ namespace PM.Infrastructure.Providers
         public YahooPriceProvider(IHttpClientFactory httpClientFactory)
             : base(httpClientFactory) { }
 
-        public async Task<InstrumentPrice?> GetPriceAsync(Symbol symbol, DateOnly date, CancellationToken ct = default)
+        public async Task<AssetPrice?> GetPriceAsync(Symbol symbol, DateOnly date, CancellationToken ct = default)
         {
             if (symbol is null)
                 throw new ArgumentNullException(nameof(symbol));
@@ -22,7 +22,7 @@ namespace PM.Infrastructure.Providers
                 return null;
 
             var currency = new Currency(symbol.Currency.Code);
-            return new InstrumentPrice(symbol, date, new Money(close.Value, currency), currency, ProviderName);
+            return new AssetPrice(symbol, date, new Money(close.Value, currency), ProviderName);
         }
     }
 }

@@ -1,9 +1,13 @@
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 using PM.SharedKernel;
 
 namespace PM.Domain.Entities;
 
 public class Tag : Entity
 {
+    [Key]
+    [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
     public int Id { get; set; } // Primary key for EF
     public string Name { get; private set; } = string.Empty;
 

@@ -11,7 +11,7 @@ using PM.Infrastructure.Data;
 namespace Infrastructure.Migrations.ValuationDb
 {
     [DbContext(typeof(ValuationDbContext))]
-    [Migration("20251028043135_FxRates")]
+    [Migration("20251104043354_FxRates")]
     partial class FxRates
     {
         /// <inheritdoc />
@@ -55,31 +55,7 @@ namespace Infrastructure.Migrations.ValuationDb
                     b.ToTable("ValuationRecords");
                 });
 
-            modelBuilder.Entity("PM.Domain.Values.FxRate", b =>
-                {
-                    b.Property<string>("FromCurrency")
-                        .HasMaxLength(3)
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("ToCurrency")
-                        .HasMaxLength(3)
-                        .HasColumnType("TEXT");
-
-                    b.Property<DateTime>("Date")
-                        .HasColumnType("TEXT");
-
-                    b.Property<decimal>("Rate")
-                        .HasPrecision(18, 6)
-                        .HasColumnType("TEXT");
-
-                    b.HasKey("FromCurrency", "ToCurrency", "Date");
-
-                    b.HasIndex("FromCurrency", "ToCurrency");
-
-                    b.ToTable("FxRates");
-                });
-
-            modelBuilder.Entity("PM.Domain.Values.InstrumentPrice", b =>
+            modelBuilder.Entity("PM.Domain.Values.AssetPrice", b =>
                 {
                     b.Property<string>("Symbol")
                         .HasMaxLength(24)
@@ -89,11 +65,6 @@ namespace Infrastructure.Migrations.ValuationDb
                         .HasColumnType("TEXT");
 
                     b.Property<DateTimeOffset>("CreatedAtUtc")
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("Currency")
-                        .IsRequired()
-                        .HasMaxLength(3)
                         .HasColumnType("TEXT");
 
                     b.Property<decimal>("Price")
@@ -107,6 +78,30 @@ namespace Infrastructure.Migrations.ValuationDb
                     b.HasKey("Symbol", "Date");
 
                     b.ToTable("Prices");
+                });
+
+            modelBuilder.Entity("PM.Domain.Values.FxRate", b =>
+                {
+                    b.Property<string>("FromCurrency")
+                        .HasMaxLength(3)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("ToCurrency")
+                        .HasMaxLength(3)
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateOnly>("Date")
+                        .HasColumnType("TEXT");
+
+                    b.Property<decimal>("Rate")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("FromCurrency", "ToCurrency", "Date");
+
+                    b.HasIndex("FromCurrency", "ToCurrency");
+
+                    b.ToTable("FxRates");
                 });
 
             modelBuilder.Entity("PM.Domain.Entities.ValuationRecord", b =>

@@ -10,7 +10,7 @@ namespace PM.Infrastructure.Data
             : base(options) { }
 
         public DbSet<ValuationRecord> ValuationRecords => Set<ValuationRecord>();
-        public DbSet<InstrumentPrice> Prices => Set<InstrumentPrice>();
+        public DbSet<AssetPrice> Prices => Set<AssetPrice>();
         public DbSet<FxRate> FxRates => Set<FxRate>();
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -46,13 +46,13 @@ namespace PM.Infrastructure.Data
             });
 
             // --- InstrumentPrice ---
-            modelBuilder.Entity<InstrumentPrice>(builder =>
+            modelBuilder.Entity<AssetPrice>(builder =>
             {
                 builder.HasKey(p => new { p.Symbol, p.Date });
 
                 builder.Property(p => p.Symbol)
                     .HasConversion(symbolStringConverter)
-                    .IsRequired()
+                    .IsRequired() 
                     .HasMaxLength(24);
 
                 builder.Property(p => p.Date)
@@ -61,11 +61,6 @@ namespace PM.Infrastructure.Data
                 builder.Property(p => p.Price)
                     .HasConversion(moneyAmountConverter)
                     .HasPrecision(18, 6) // safe for SQLite
-                    .IsRequired();
-
-                builder.Property(p => p.Currency)
-                    .HasConversion(currencyConverter)
-                    .HasMaxLength(3)
                     .IsRequired();
 
                 builder.Property(p => p.Source)

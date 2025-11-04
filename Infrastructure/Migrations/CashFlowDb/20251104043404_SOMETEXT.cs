@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace Infrastructure.Migrations.CashFlowDb
 {
     /// <inheritdoc />
-    public partial class InitialCashFlows : Migration
+    public partial class SOMETEXT : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)

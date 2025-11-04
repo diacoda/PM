@@ -11,8 +11,8 @@ using PM.Infrastructure.Data;
 namespace Infrastructure.Migrations.CashFlowDb
 {
     [DbContext(typeof(CashFlowDbContext))]
-    [Migration("20251027064921_InitialCashFlows")]
-    partial class InitialCashFlows
+    [Migration("20251104043404_SOMETEXT")]
+    partial class SOMETEXT
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)

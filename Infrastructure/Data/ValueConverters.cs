@@ -28,5 +28,5 @@ public static class ValueConverters
     public static ValueConverter<Symbol, string> SymbolStringConverter =
         new ValueConverter<Symbol, string>(
             m => m.Code,
-            d => new Symbol(d, "CAD", "TSX"));
+            d => new Symbol(d));
 }

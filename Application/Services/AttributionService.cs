@@ -38,7 +38,7 @@ public class AttributionService : IAttributionService
             var w = v0 / accountStart;
 
             results.Add(new ContributionRecord(
-                start, end, ccy, ContributionLevel.Security, h.Symbol.Code, w, r, w * r
+                start, end, ccy, ContributionLevel.Security, h.Asset.Code, w, r, w * r
             ));
         }
 
@@ -59,7 +59,7 @@ public class AttributionService : IAttributionService
 
         var groupedHoldings = portfolio.Accounts
             .SelectMany(a => a.Holdings)
-            .GroupBy(h => h.Symbol.Code);
+            .GroupBy(h => h.Asset.Code);
 
         foreach (var g in groupedHoldings)
         {
@@ -118,8 +118,8 @@ public class AttributionService : IAttributionService
     {
         foreach (var a in portfolio.Accounts)
         {
-            var h = a.Holdings.FirstOrDefault(hh => hh.Symbol.Code == symbol);
-            if (h != null) return h.Symbol.AssetClass.ToString();
+            var h = a.Holdings.FirstOrDefault(hh => hh.Asset.Code == symbol);
+            if (h != null) return h.Asset.AssetClass.ToString();
         }
         return "Other";
     }

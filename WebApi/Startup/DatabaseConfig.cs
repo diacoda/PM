@@ -24,7 +24,7 @@ public static class DatabaseExtensions
         var valuationPath = DatabasePathResolver.ResolveAbsolutePath("valuation", config);
 
         // Register each DbContext using scoped lifetime
-        services.AddDbContext<AppDbContext>(options =>
+        services.AddDbContext<PortfolioDbContext>(options =>
             options.UseSqlite(DatabasePathResolver.BuildSqliteConnectionString(portfolioPath)));
 
         services.AddDbContext<CashFlowDbContext>(options =>

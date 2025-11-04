@@ -7,9 +7,9 @@ namespace PM.Infrastructure.Repositories;
 
 public class TagRepository : ITagRepository
 {
-    private readonly AppDbContext _context;
+    private readonly PortfolioDbContext _context;
 
-    public TagRepository(AppDbContext context)
+    public TagRepository(PortfolioDbContext context)
     {
         _context = context;
     }

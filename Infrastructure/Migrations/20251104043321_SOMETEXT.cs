@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace Infrastructure.Migrations
 {
     /// <inheritdoc />
-    public partial class Initial : Migration
+    public partial class SOMETEXT : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -17,7 +17,7 @@ namespace Infrastructure.Migrations
                 {
                     Id = table.Column<int>(type: "INTEGER", nullable: false)
                         .Annotation("Sqlite:Autoincrement", true),
-                    Owner = table.Column<string>(type: "TEXT", maxLength: 100, nullable: false)
+                    Owner = table.Column<string>(type: "TEXT", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -30,10 +30,10 @@ namespace Infrastructure.Migrations
                 {
                     Id = table.Column<int>(type: "INTEGER", nullable: false)
                         .Annotation("Sqlite:Autoincrement", true),
-                    Name = table.Column<string>(type: "TEXT", maxLength: 100, nullable: false),
+                    Name = table.Column<string>(type: "TEXT", nullable: false),
                     FinancialInstitution = table.Column<int>(type: "INTEGER", nullable: false),
-                    Currency = table.Column<string>(type: "TEXT", maxLength: 3, nullable: false),
-                    PortfolioId = table.Column<int>(type: "INTEGER", nullable: true)
+                    CurrencyCode = table.Column<string>(type: "TEXT", nullable: false),
+                    PortfolioId = table.Column<int>(type: "INTEGER", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -52,11 +52,11 @@ namespace Infrastructure.Migrations
                 {
                     Id = table.Column<int>(type: "INTEGER", nullable: false)
                         .Annotation("Sqlite:Autoincrement", true),
-                    Instrument_Symbol_Value = table.Column<string>(type: "TEXT", maxLength: 20, nullable: false),
-                    Instrument_Name = table.Column<string>(type: "TEXT", maxLength: 100, nullable: false),
-                    Instrument_AssetClass = table.Column<int>(type: "INTEGER", nullable: false),
                     Quantity = table.Column<decimal>(type: "TEXT", nullable: false),
-                    AccountId = table.Column<int>(type: "INTEGER", nullable: false)
+                    AccountId = table.Column<int>(type: "INTEGER", nullable: false),
+                    AssetCode = table.Column<string>(type: "TEXT", nullable: true),
+                    AssetCurrency = table.Column<string>(type: "TEXT", nullable: true),
+                    AssetClass = table.Column<int>(type: "INTEGER", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -77,14 +77,15 @@ namespace Infrastructure.Migrations
                         .Annotation("Sqlite:Autoincrement", true),
                     Date = table.Column<DateTime>(type: "TEXT", nullable: false),
                     Type = table.Column<int>(type: "INTEGER", nullable: false),
-                    Instrument_Symbol_Value = table.Column<string>(type: "TEXT", maxLength: 20, nullable: false),
-                    Instrument_Name = table.Column<string>(type: "TEXT", maxLength: 100, nullable: false),
-                    Instrument_AssetClass = table.Column<int>(type: "INTEGER", nullable: false),
+                    AssetCode = table.Column<string>(type: "TEXT", nullable: false),
+                    AssetClass = table.Column<int>(type: "INTEGER", nullable: false),
+                    Symbol_CurrencyCode = table.Column<string>(type: "TEXT", nullable: false),
+                    Currency = table.Column<string>(type: "TEXT", nullable: false),
                     Quantity = table.Column<decimal>(type: "TEXT", nullable: false),
-                    Amount_Amount = table.Column<decimal>(type: "TEXT", nullable: false),
-                    Amount_Currency_Code = table.Column<string>(type: "TEXT", maxLength: 3, nullable: false),
-                    Costs_Amount = table.Column<decimal>(type: "TEXT", nullable: true),
-                    Costs_Currency_Code = table.Column<string>(type: "TEXT", maxLength: 3, nullable: true),
+                    Amount = table.Column<decimal>(type: "TEXT", nullable: false),
+                    AmountCurrency = table.Column<string>(type: "TEXT", nullable: false),
+                    CostAmount = table.Column<decimal>(type: "TEXT", nullable: true),
+                    CostCurrency = table.Column<string>(type: "TEXT", nullable: true),
                     AccountId = table.Column<int>(type: "INTEGER", nullable: false)
                 },
                 constraints: table =>
@@ -104,7 +105,7 @@ namespace Infrastructure.Migrations
                 {
                     Id = table.Column<int>(type: "INTEGER", nullable: false)
                         .Annotation("Sqlite:Autoincrement", true),
-                    Name = table.Column<string>(type: "TEXT", maxLength: 50, nullable: false),
+                    Name = table.Column<string>(type: "TEXT", nullable: false),
                     AccountId = table.Column<int>(type: "INTEGER", nullable: true),
                     HoldingId = table.Column<int>(type: "INTEGER", nullable: true)
                 },
@@ -123,73 +124,15 @@ namespace Infrastructure.Migrations
                         principalColumn: "Id");
                 });
 
-            migrationBuilder.CreateTable(
-                name: "AccountTag",
-                columns: table => new
-                {
-                    AccountId = table.Column<int>(type: "INTEGER", nullable: false),
-                    TagId = table.Column<int>(type: "INTEGER", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_AccountTag", x => new { x.AccountId, x.TagId });
-                    table.ForeignKey(
-                        name: "FK_AccountTag_Accounts_AccountId",
-                        column: x => x.AccountId,
-                        principalTable: "Accounts",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_AccountTag_Tags_TagId",
-                        column: x => x.TagId,
-                        principalTable: "Tags",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "HoldingTag",
-                columns: table => new
-                {
-                    HoldingId = table.Column<int>(type: "INTEGER", nullable: false),
-                    TagId = table.Column<int>(type: "INTEGER", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_HoldingTag", x => new { x.HoldingId, x.TagId });
-                    table.ForeignKey(
-                        name: "FK_HoldingTag_Holdings_HoldingId",
-                        column: x => x.HoldingId,
-                        principalTable: "Holdings",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_HoldingTag_Tags_TagId",
-                        column: x => x.TagId,
-                        principalTable: "Tags",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
             migrationBuilder.CreateIndex(
                 name: "IX_Accounts_PortfolioId",
                 table: "Accounts",
                 column: "PortfolioId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_AccountTag_TagId",
-                table: "AccountTag",
-                column: "TagId");
-
-            migrationBuilder.CreateIndex(
                 name: "IX_Holdings_AccountId",
                 table: "Holdings",
                 column: "AccountId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_HoldingTag_TagId",
-                table: "HoldingTag",
-                column: "TagId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Tags_AccountId",
@@ -211,16 +154,10 @@ namespace Infrastructure.Migrations
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
-                name: "AccountTag");
-
-            migrationBuilder.DropTable(
-                name: "HoldingTag");
+                name: "Tags");
 
             migrationBuilder.DropTable(
                 name: "Transactions");
-
-            migrationBuilder.DropTable(
-                name: "Tags");
 
             migrationBuilder.DropTable(
                 name: "Holdings");

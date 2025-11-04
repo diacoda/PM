@@ -23,7 +23,7 @@ namespace PM.API.Startup
         /// <remarks>
         /// Adds:
         /// <list type="bullet">
-        /// <item><description><see cref="AppDbContext"/> health check to verify database connectivity.</description></item>
+        /// <item><description><see cref="PortfolioDbContext"/> health check to verify database connectivity.</description></item>
         /// <item><description><see cref="PriceProviderHealthCheck"/> to verify external price data provider availability.</description></item>
         /// </list>
         /// Health checks are tagged as <c>"ready"</c> to distinguish them from liveness probes.
@@ -31,7 +31,7 @@ namespace PM.API.Startup
         public static IServiceCollection AddHealthChecksWithDependencies(this IServiceCollection services, IConfiguration config)
         {
             services.AddHealthChecks()
-                .AddDbContextCheck<AppDbContext>("db", tags: new[] { "ready" })
+                .AddDbContextCheck<PortfolioDbContext>("db", tags: new[] { "ready" })
                 .AddCheck<PriceProviderHealthCheck>("price", tags: new[] { "ready" });
 
             return services;

@@ -1,109 +1,97 @@
+using System.ComponentModel.DataAnnotations.Schema;
 using PM.Domain.Interfaces;
 
 namespace PM.Domain.Values;
 
-/// <summary>
-/// Represents a financial symbol with associated currency, exchange, and asset class.
-/// </summary>
-public sealed class Symbol : IEquatable<Symbol>, IAsset
+public class Symbol : IAsset
 {
-    /// <summary>
-    /// The symbol value (e.g., "VFV.TO").
-    /// </summary>
-    public string Code { get; } = default!;
+    public string Code { get; set; } = string.Empty;
 
-    /// <summary>
-    /// The currency of the symbol (e.g., "CAD").
-    /// </summary>
-    public Currency Currency { get; } = default!;
-
-    /// <summary>
-    /// The exchange where the symbol trades (e.g., "TSX").
-    /// </summary>
+    public AssetClass AssetClass { get; } = default!;
+    
+    [NotMapped]
     public string Exchange { get; } = default!;
 
-    /// <summary>
-    /// The asset class of the symbol.
-    /// </summary>
-    public AssetClass AssetClass { get; }
+    // EF-friendly backing property for Currency
+    public string CurrencyCode
+    {
+        get => Currency.Code;
+        private set => Currency = new Currency(value);
+    }
 
-    /// <summary>
-    /// Private constructor for EF Core or serialization.
-    /// </summary>
+    [NotMapped]
+    public Currency Currency { get; private set; } = Currency.CAD;
+
+    // EF Core requires parameterless constructor
     private Symbol() { }
 
-    /// <summary>
-    /// Creates a new <see cref="Symbol"/> with default exchange and auto-resolved asset class.
-    /// </summary>
-    /// <param name="code">The symbol value.</param>
-    /// <param name="currency">The currency code (default "CAD").</param>
-    /// <param name="exchange">The exchange code (default "TSX").</param>
-    public Symbol(string code, string currency = "CAD", string exchange = "TSX")
-        : this(code, currency, exchange, ResolveAssetClass(code)) { }
+    public Symbol(string code, string currency)
+    {
+        Code = code;
+        Currency = new Currency(currency);
+        AssetClass = ResolveAssetClass(code);
+        Exchange = ResolveExchange(code);
+    }
+    public Symbol(string code) : this(code, "CAD")
+    {
+    }
 
-    /// <summary>
-    /// Creates a new <see cref="Symbol"/> with explicit asset class.
-    /// </summary>
-    /// <param name="code">The symbol value.</param>
-    /// <param name="currency">The currency code.</param>
-    /// <param name="exchange">The exchange code.</param>
-    /// <param name="assetClass">The asset class of the symbol.</param>
-    public Symbol(string code, string currency, string exchange, AssetClass assetClass)
+    private static AssetClass ResolveAssetClass(string code)
     {
         if (string.IsNullOrWhiteSpace(code))
-            throw new ArgumentException("Symbol is required.", nameof(code));
+            return AssetClass.Other;
 
-        if (string.IsNullOrWhiteSpace(currency))
-            throw new ArgumentException("Currency is required.", nameof(currency));
-
-        var normalized = code.Trim().ToUpperInvariant();
-        if (normalized.Length > 20)
-            throw new ArgumentException("Symbol is too long (max 20).", nameof(code));
-
-        Code = normalized;
-        Currency = new Currency(currency);
-        Exchange = exchange.Trim().ToUpperInvariant();
-        AssetClass = assetClass;
+        return _assetClasses.TryGetValue(code, out var ac) ? ac : AssetClass.Other;
     }
-
-    /// <summary>
-    /// Resolves the asset class from a static map of known symbols.
-    /// Returns <see cref="AssetClass.Other"/> if unknown.
-    /// </summary>
-    public static AssetClass ResolveAssetClass(string symbol)
-    {
-        if (SymbolAssetClassMap.TryGetValue(symbol.Trim().ToUpperInvariant(), out var cls))
-            return cls;
-
-        return AssetClass.Other;
-    }
-
-    private static readonly Dictionary<string, AssetClass> SymbolAssetClassMap = new(StringComparer.OrdinalIgnoreCase)
+    private static readonly Dictionary<string, AssetClass> _assetClasses = new()
     {
         { "VFV.TO", AssetClass.USEquity },
-        { "VCE.TO", AssetClass.CanadianEquity },
         { "HXQ.TO", AssetClass.USEquity },
+        { "VCE.TO", AssetClass.CanadianEquity },
         { "MFC.TO", AssetClass.CanadianEquity },
         { "VDY.TO", AssetClass.CanadianEquity },
         { "BKCC.TO", AssetClass.CanadianEquity },
         { "ZGLD.TO", AssetClass.Commodity },
-        { "VI.TO", AssetClass.DevelopedEquity },
+        { "VI.TO", AssetClass.CanadianEquity },
         { "BTCC.TO", AssetClass.Crypto },
-        { "CAD", AssetClass.Cash },
-        { "USD", AssetClass.Cash },
         { "TDB900", AssetClass.CanadianEquity },
         { "TDB902", AssetClass.USEquity },
         { "TDB911", AssetClass.DevelopedEquity },
-        { "ZGLH.TO", AssetClass.Commodity }
+        { "ZGLH.TO", AssetClass.Commodity },
+        { "CAD", AssetClass.Cash},
+        { "USD", AssetClass.Cash},
+        { "TRI", AssetClass.USEquity},
     };
 
-    public override string ToString() => $"{Code} ({Currency})";
+    private static string ResolveExchange(string code)
+    {
+        if (string.IsNullOrWhiteSpace(code))
+            throw new ApplicationException("Symbol code can't be empty or null");
 
-    public bool Equals(Symbol? other) =>
-        other is not null && Code == other.Code && Currency == other.Currency;
+        if (!_exchanges.TryGetValue(code, out var ac))
+        {
+            throw new ApplicationException("Symbol code must have an exchange");
+        }
+        return ac;
+    }
 
-    public override bool Equals(object? obj) => obj is Symbol s && Equals(s);
-
-    public override int GetHashCode() =>
-        HashCode.Combine(StringComparer.Ordinal.GetHashCode(Code), StringComparer.Ordinal.GetHashCode(Currency));
+    private static readonly Dictionary<string, string> _exchanges = new()
+    {
+        { "VFV.TO", "TSX" },
+        { "HXQ.TO", "TSX" },
+        { "VCE.TO", "TSX" },
+        { "MFC.TO", "TSX" },
+        { "VDY.TO", "TSX" },
+        { "BKCC.TO", "TSX" },
+        { "ZGLD.TO", "TSX" },
+        { "VI.TO", "TSX" },
+        { "BTCC.TO", "TSX" },
+        { "TDB900", "TSX" },
+        { "TDB902", "TSX" },
+        { "TDB911", "TSX" },
+        { "ZGLH.TO", "TSX" },
+        { "CAD", "TSX"},
+        { "USD", "TSX"},
+        { "TRI", "NYSE"}
+    };
 }

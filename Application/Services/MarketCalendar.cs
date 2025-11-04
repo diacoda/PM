@@ -11,6 +11,10 @@ public class MarketCalendar : IMarketCalendar
         _holidays = holidays;
     }
 
+    public bool IsToday(DateOnly date)
+    {
+        return date == DateOnly.FromDateTime(DateTime.Today);
+    }
     public bool IsMarketOpen(DateOnly date, string? market = "TSX")
     {
         if (date.DayOfWeek is DayOfWeek.Saturday or DayOfWeek.Sunday)

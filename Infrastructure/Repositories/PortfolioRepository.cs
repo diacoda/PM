@@ -8,7 +8,7 @@ namespace PM.Infrastructure.Repositories
 {
     public class PortfolioRepository : BaseRepository<Portfolio>, IPortfolioRepository
     {
-        public PortfolioRepository(AppDbContext db) : base(db)
+        public PortfolioRepository(PortfolioDbContext db) : base(db)
         {
         }
 

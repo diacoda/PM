@@ -8,7 +8,7 @@ namespace PM.Infrastructure.Repositories;
 
 public class AccountRepository : BaseRepository<Account>, IAccountRepository
 {
-    public AccountRepository(AppDbContext db) : base(db) { }
+    public AccountRepository(PortfolioDbContext db) : base(db) { }
 
     /// <summary>
     /// Applies conditional includes based on the requested include list.
