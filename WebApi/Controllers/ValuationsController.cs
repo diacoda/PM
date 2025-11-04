@@ -52,35 +52,13 @@ namespace PM.API.Controllers
             if (portfolio is null)
                 return BadRequest(new ProblemDetails { Title = "Invalid portfolio" });
 
-            await _valuationService.GenerateAndStorePortfolioValuations(
+            await _valuationService.GeneratePortfolioValuationSnapshot(
                 portfolioId,
                 dto.Date,
                 new Currency(dto.Currency),
-                ValuationPeriod.Daily,
                 ct);
 
             return Ok();
-        }
-
-        /// <summary>
-        /// Retrieves all daily valuations for a given portfolio.
-        /// </summary>
-        /// <param name="portfolioId">The ID of the portfolio.</param>
-        /// <param name="ct">Cancellation token.</param>
-        /// <returns>
-        /// Returns a list of valuation records for the portfolio. Returns 400 Bad Request if the portfolio is invalid.
-        /// </returns>
-        [HttpGet("{portfolioId}")]
-        [ProducesResponseType(typeof(IEnumerable<ValuationRecord>), StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
-        public async Task<IActionResult> GetValuations(int portfolioId, CancellationToken ct = default)
-        {
-            var portfolio = await _portfolioService.GetByIdAsync(portfolioId, ct);
-            if (portfolio is null)
-                return BadRequest(new ProblemDetails { Title = "Invalid portfolio" });
-
-            var valuations = await _valuationService.GetByPortfolioAsync(portfolioId, ValuationPeriod.Daily, ct);
-            return Ok(valuations);
         }
     }
 }

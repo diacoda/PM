@@ -3,7 +3,7 @@ using PM.Domain.Enums;
 
 namespace PM.Application.Services;
 
-public class ValuationScheduler
+public class ValuationScheduler : IValuationScheduler
 {
     private readonly IMarketCalendar _marketCalendar;
 

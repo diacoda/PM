@@ -1,26 +1,22 @@
-using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
+
 using PM.Application.Interfaces;
 
-namespace PM.Application.Services;
+namespace PM.API.HostedServices;
 
 public class DailyValuationService : BackgroundService
 {
     private readonly ILogger<DailyValuationService> _logger;
-    private readonly IValuationCalculator _valuationCalculator;
-    private readonly ValuationScheduler _valuationScheduler;
     private readonly IMarketCalendar _marketCalendar;
+    private readonly IServiceScopeFactory _scopeFactory;
 
     public DailyValuationService(
         ILogger<DailyValuationService> logger,
-        IValuationCalculator valuationCalculator,
-        ValuationScheduler valuationScheduler,
-        IMarketCalendar marketCalendar)
+        IMarketCalendar marketCalendar,
+        IServiceScopeFactory scopeFactory)
     {
         _logger = logger;
-        _valuationCalculator = valuationCalculator;
-        _valuationScheduler = valuationScheduler;
         _marketCalendar = marketCalendar;
+        _scopeFactory = scopeFactory;
     }
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -32,26 +28,26 @@ public class DailyValuationService : BackgroundService
             var today = DateTime.Today;
             var dateOnly = DateOnly.FromDateTime(today);
 
-            // Only run if the market is open or if you want to include weekends/holidays
-            if (_marketCalendar.IsMarketOpen(dateOnly) || true) // remove '|| true' if you skip weekends
+            if (_marketCalendar.IsMarketOpen(dateOnly) || true)
             {
-                var periodsToRun = _valuationScheduler.GetValuationsForToday(today);
+                using var scope = _scopeFactory.CreateScope();
+                var valuationScheduler = scope.ServiceProvider.GetRequiredService<IValuationScheduler>();
+                var valuationCalculator = scope.ServiceProvider.GetRequiredService<IValuationCalculator>();
 
-                foreach (var period in periodsToRun)
+                var periodsToRun = valuationScheduler.GetValuationsForToday(today);
+
+                _logger.LogInformation("Calculating valuations for {Date} for periods: {Periods}", today, string.Join(", ", periodsToRun));
+
+                try
                 {
-                    _logger.LogInformation("Calculating {Period} valuation for {Date}", period, today);
-                    try
-                    {
-                        await _valuationCalculator.CalculateValuationAsync(today, period, stoppingToken);
-                    }
-                    catch (Exception ex)
-                    {
-                        _logger.LogError(ex, "Error calculating {Period} valuation for {Date}", period, today);
-                    }
+                    await valuationCalculator.CalculateValuationsAsync(today, periodsToRun, stoppingToken);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Error calculating valuations for {Date}", today);
                 }
             }
 
-            // Wait until the next day at a specific time (e.g., 02:00 AM)
             var nextRunTime = DateTime.Today.AddDays(1).AddHours(2);
             var delay = nextRunTime - DateTime.Now;
 

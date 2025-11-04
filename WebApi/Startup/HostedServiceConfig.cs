@@ -42,6 +42,9 @@ namespace PM.API.Startup
             // Register the command that supports the hosted service
             services.AddScoped<FetchDailyPricesCommand>();
 
+            services.AddScoped<IValuationScheduler, ValuationScheduler>();
+            services.AddHostedService<DailyValuationService>();
+
             return services;
         }
     }

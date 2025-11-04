@@ -1,58 +1,36 @@
-using PM.Domain.Entities;
-using PM.Domain.Values;
 using PM.Application.Interfaces;
+using PM.Domain.Entities;
 using PM.Domain.Enums;
+using PM.Domain.Values;
 using PM.SharedKernel;
-using PM.DTO;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace PM.Application.Services
 {
-    /// <summary>
-    /// Daily-focused Valuation Calculator.
-    /// Produces and stores valuation snapshots for a single date.
-    /// Adds per-snapshot component breakdown (SecuritiesValue, CashValue, IncomeForDay)
-    /// and optionally persists Asset-Class slices with Percentage weights.
-    /// </summary>
-    public class DailyValuationCalculator : IValuationService
+    public class ValuationService : IValuationService
     {
-        private readonly IPricingService _pricingService;
-        private readonly IValuationRepository _repository;
         private readonly IPortfolioRepository _portfolioRepository;
         private readonly IAccountRepository _accountRepository;
+        private readonly IValuationRepository _valuationRepository;
+        private readonly IPricingService _pricingService;
 
-        public DailyValuationCalculator(
-            IPricingService pricingService,
-            IValuationRepository repository,
+        public ValuationService(
             IPortfolioRepository portfolioRepository,
-            IAccountRepository accountRepository)
+            IAccountRepository accountRepository,
+            IValuationRepository valuationRepository,
+            IPricingService pricingService)
         {
-            _pricingService = pricingService;
-            _repository = repository;
             _portfolioRepository = portfolioRepository;
             _accountRepository = accountRepository;
+            _valuationRepository = valuationRepository;
+            _pricingService = pricingService;
         }
 
-        public async Task<IEnumerable<ValuationRecord>> GetByPortfolioAsync(
-            int portfolioId,
-            ValuationPeriod period,
-            CancellationToken ct = default)
-        {
-            if (portfolioId <= 0)
-                throw new ArgumentException("Invalid portfolio ID", nameof(portfolioId));
+        // ---------------- SNAPSHOT GENERATION ----------------
 
-            return await _repository.GetByPortfolioAsync(portfolioId, period, ct);
-        }
-
-        public async Task GenerateAndStorePortfolioValuations(
+        public async Task<ValuationRecord> GeneratePortfolioValuationSnapshot(
             int portfolioId,
             DateOnly date,
             Currency reportingCurrency,
-            ValuationPeriod period,
             CancellationToken ct = default)
         {
             var portfolio = await _portfolioRepository.GetByIdWithIncludesAsync(
@@ -60,7 +38,8 @@ namespace PM.Application.Services
                 new[] { IncludeOption.Accounts, IncludeOption.Holdings },
                 ct);
 
-            if (portfolio is null) return;
+            if (portfolio is null)
+                throw new ArgumentException($"Portfolio {portfolioId} not found.");
 
             var total = await _pricingService.CalculatePortfolioValueAsync(portfolio, date, reportingCurrency, ct);
 
@@ -75,10 +54,9 @@ namespace PM.Application.Services
             foreach (var account in portfolio.Accounts)
                 divNet += SumAccountNetDividendsForDay(account, date, reportingCurrency);
 
-            var record = new ValuationRecord
+            return new ValuationRecord
             {
                 Date = date,
-                Period = period,
                 ReportingCurrency = reportingCurrency,
                 Value = total,
                 PortfolioId = portfolio.Id,
@@ -86,16 +64,13 @@ namespace PM.Application.Services
                 CashValue = cash,
                 IncomeForDay = divNet == 0m ? null : new Money(divNet, reportingCurrency)
             };
-
-            await _repository.SaveAsync(record, ct);
         }
 
-        public async Task GenerateAndStoreAccountValuations(
+        public async Task<ValuationRecord> GenerateAccountValuationSnapshot(
             int portfolioId,
             int accountId,
             DateOnly date,
             Currency reportingCurrency,
-            ValuationPeriod period,
             CancellationToken ct = default)
         {
             var account = await _accountRepository.GetByIdWithIncludesAsync(
@@ -103,7 +78,8 @@ namespace PM.Application.Services
                 new[] { IncludeOption.Holdings },
                 ct);
 
-            if (account is null) return;
+            if (account is null)
+                throw new ArgumentException($"Account {accountId} not found.");
 
             var total = await _pricingService.CalculateAccountValueAsync(account, date, reportingCurrency, ct);
 
@@ -113,10 +89,9 @@ namespace PM.Application.Services
 
             var divNet = SumAccountNetDividendsForDay(account, date, reportingCurrency);
 
-            var record = new ValuationRecord
+            return new ValuationRecord
             {
                 Date = date,
-                Period = period,
                 ReportingCurrency = reportingCurrency,
                 Value = total,
                 AccountId = account.Id,
@@ -124,15 +99,12 @@ namespace PM.Application.Services
                 CashValue = cash,
                 IncomeForDay = divNet == 0m ? null : new Money(divNet, reportingCurrency)
             };
-
-            await _repository.SaveAsync(record, ct);
         }
 
-        public async Task GenerateAndStorePortfolioValuationsByAssetClass(
+        public async Task<IEnumerable<ValuationRecord>> GeneratePortfolioAssetClassValuationSnapshot(
             int portfolioId,
             DateOnly date,
             Currency reportingCurrency,
-            ValuationPeriod period,
             CancellationToken ct = default)
         {
             var portfolio = await _portfolioRepository.GetByIdWithIncludesAsync(
@@ -140,38 +112,30 @@ namespace PM.Application.Services
                 new[] { IncludeOption.Accounts, IncludeOption.Holdings },
                 ct);
 
-            if (portfolio is null) return;
+            if (portfolio is null)
+                throw new ArgumentException($"Portfolio {portfolioId} not found.");
 
             var totalMoney = await _pricingService.CalculatePortfolioValueAsync(portfolio, date, reportingCurrency, ct);
             var total = totalMoney.Amount;
-            if (total <= 0m) return;
+            if (total <= 0m) return Enumerable.Empty<ValuationRecord>();
 
             var byClass = await AggregateByAssetClassAsync(portfolio, date, reportingCurrency, ct);
-            foreach (var kvp in byClass)
+            return byClass.Select(kvp => new ValuationRecord
             {
-                var value = kvp.Value;
-                var pct = value.Amount / total;
-
-                var record = new ValuationRecord
-                {
-                    Date = date,
-                    Period = period,
-                    ReportingCurrency = reportingCurrency,
-                    Value = value,
-                    PortfolioId = portfolio.Id,
-                    AssetClass = kvp.Key,
-                    Percentage = pct
-                };
-                await _repository.SaveAsync(record, ct);
-            }
+                Date = date,
+                ReportingCurrency = reportingCurrency,
+                Value = kvp.Value,
+                PortfolioId = portfolio.Id,
+                AssetClass = kvp.Key,
+                Percentage = kvp.Value.Amount / total
+            }).ToList();
         }
 
-        public async Task GenerateAndStoreAccountValuationsByAssetClass(
+        public async Task<IEnumerable<ValuationRecord>> GenerateAccountAssetClassValuationSnapshot(
             int portfolioId,
             int accountId,
             DateOnly date,
             Currency reportingCurrency,
-            ValuationPeriod period,
             CancellationToken ct = default)
         {
             var account = await _accountRepository.GetByIdWithIncludesAsync(
@@ -179,35 +143,58 @@ namespace PM.Application.Services
                 new[] { IncludeOption.Holdings },
                 ct);
 
-            if (account is null) return;
+            if (account is null)
+                throw new ArgumentException($"Account {accountId} not found.");
 
             var totalMoney = await _pricingService.CalculateAccountValueAsync(account, date, reportingCurrency, ct);
             var total = totalMoney.Amount;
-            if (total <= 0m) return;
+            if (total <= 0m) return Enumerable.Empty<ValuationRecord>();
 
             var byClass = await AggregateByAssetClassAsync(account, date, reportingCurrency, ct);
-            foreach (var kvp in byClass)
+            return byClass.Select(kvp => new ValuationRecord
             {
-                var value = kvp.Value;
-                var pct = value.Amount / total;
+                Date = date,
+                ReportingCurrency = reportingCurrency,
+                Value = kvp.Value,
+                AccountId = account.Id,
+                AssetClass = kvp.Key,
+                Percentage = kvp.Value.Amount / total
+            }).ToList();
+        }
 
-                var record = new ValuationRecord
-                {
-                    Date = date,
-                    Period = period,
-                    ReportingCurrency = reportingCurrency,
-                    Value = value,
-                    AccountId = account.Id,
-                    AssetClass = kvp.Key,
-                    Percentage = pct
-                };
-                await _repository.SaveAsync(record, ct);
+        // ---------------- STORAGE ----------------
+
+        public async Task StorePortfolioValuation(int portfolioId, ValuationRecord valuation, DateOnly date, ValuationPeriod period, CancellationToken ct = default)
+        {
+            valuation.Period = period;
+            await _valuationRepository.SaveAsync(valuation, ct);
+        }
+
+        public async Task StoreAccountValuation(int portfolioId, int accountId, ValuationRecord valuation, DateOnly date, ValuationPeriod period, CancellationToken ct = default)
+        {
+            valuation.Period = period;
+            await _valuationRepository.SaveAsync(valuation, ct);
+        }
+
+        public async Task StorePortfolioAssetClassValuation(int portfolioId, IEnumerable<ValuationRecord> valuations, DateOnly date, ValuationPeriod period, CancellationToken ct = default)
+        {
+            foreach (var v in valuations)
+            {
+                v.Period = period;
+                await _valuationRepository.SaveAsync(v, ct);
             }
         }
 
-        // ---------------------------------------------------------------------
-        // Helpers
-        // ---------------------------------------------------------------------
+        public async Task StoreAccountAssetClassValuation(int portfolioId, int accountId, IEnumerable<ValuationRecord> valuations, DateOnly date, ValuationPeriod period, CancellationToken ct = default)
+        {
+            foreach (var v in valuations)
+            {
+                v.Period = period;
+                await _valuationRepository.SaveAsync(v, ct);
+            }
+        }
+
+        // ---------------- PRIVATE HELPERS ----------------
 
         private async Task<Dictionary<AssetClass, Money>> AggregateByAssetClassAsync(Account account, DateOnly date, Currency reportingCurrency, CancellationToken ct = default)
         {
@@ -260,5 +247,6 @@ namespace PM.Application.Services
                 .Sum(t => (t.Amount.Amount - (t.Costs?.Amount ?? 0m)));
             return net;
         }
+
     }
 }
