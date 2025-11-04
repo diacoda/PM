@@ -18,8 +18,7 @@ public interface IValuationService
 
     Task GenerateAndStorePortfolioValuations(
         int portfolioId,
-        DateTime startDate,
-        DateTime endDate,
+        DateTime date,
         Currency reportingCurrency,
         ValuationPeriod period, CancellationToken ct = default);
     Task GenerateAndStoreAccountValuations(

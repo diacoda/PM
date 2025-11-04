@@ -2,6 +2,7 @@ using PM.DTO;
 using PM.Domain.Entities;
 using PM.Domain.Values;
 using PM.SharedKernel;
+using PM.Domain.Enums;
 
 namespace PM.Domain.Mappers;
 
@@ -11,13 +12,13 @@ public static class AccountMapper
         new Account(
             dto.Name,
             new Currency(dto.Currency),
-            Enum.Parse<Domain.Enums.FinancialInstitutions>(dto.FinancialInstitution));
+            Enum.Parse<FinancialInstitutions>(dto.FinancialInstitution));
 
     public static Account ToEntity(AccountDTO dto) =>
         new Account(
             dto.Name,
             new Currency(dto.Currency),
-            Enum.Parse<Domain.Enums.FinancialInstitutions>(dto.FinancialInstitution));
+            Enum.Parse<FinancialInstitutions>(dto.FinancialInstitution));
 
     public static AccountDTO ToDTO(Account account) => new AccountDTO
     {
@@ -56,7 +57,7 @@ public static class AccountMapper
         var account = new Account(
             dto.Name,
             new Currency(dto.Currency),
-            Enum.Parse<Domain.Enums.FinancialInstitutions>(dto.FinancialInstitution));
+            Enum.Parse<FinancialInstitutions>(dto.FinancialInstitution));
 
         if (includes.Contains(IncludeOption.Holdings) && dto.Holdings is not null)
         {

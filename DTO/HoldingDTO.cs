@@ -17,12 +17,6 @@ public class HoldingDTO
     public string SymbolCurrency { get; set; } = string.Empty;
     public string SymbolAssetClass { get; set; } = string.Empty;
 
-
-    /// <summary>
-    /// Full name of the instrument/security.
-    /// </summary>
-    public string InstrumentName { get; set; } = string.Empty;
-
     /// <summary>
     /// Quantity of the holding in the account.
     /// </summary>
