@@ -40,7 +40,7 @@ namespace PM.API.Controllers
         /// <returns>
         /// Returns 200 OK if valuations were successfully generated, or 400 Bad Request if the portfolio is invalid.
         /// </returns>
-        [HttpPost("{portfolioId}")]
+        [HttpGet("{portfolioId}")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> GeneratePortfolioValuations(

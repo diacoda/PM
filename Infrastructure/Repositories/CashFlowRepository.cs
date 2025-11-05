@@ -18,7 +18,7 @@ namespace PM.Infrastructure.Repositories
 
         public async Task RecordCashFlowAsync(CashFlow flow, CancellationToken ct = default)
         {
-            _context.CashFlows.Add(flow);
+            await _context.CashFlows.AddAsync(flow);
             await _context.SaveChangesAsync(ct);
         }
 
