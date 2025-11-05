@@ -79,13 +79,7 @@ public class PriceService : IPriceService
         var dbPrice = await _repository.GetAsync(symbol, date, ct);
         if (dbPrice is not null)
         {
-            var dto = new PriceDTO
-            {
-                Symbol = dbPrice.Symbol.Code,
-                Date = dbPrice.Date,
-                Close = dbPrice.Price.Amount
-            };
-
+            var dto = PriceMapper.ToDTO(dbPrice);
             CachePrice(cacheKey, dto);
             return dto;
         }
@@ -106,13 +100,7 @@ public class PriceService : IPriceService
             throw new InvalidOperationException($"No valid price found for {symbolValue} on {date}.");
 
         await _repository.UpsertAsync(fetched, ct);
-
-        var dtoFromProvider = new PriceDTO
-        {
-            Symbol = fetched.Symbol.Code,
-            Date = fetched.Date,
-            Close = fetched.Price.Amount
-        };
+        var dtoFromProvider = PriceMapper.ToDTO(fetched);
 
         CachePrice(cacheKey, dtoFromProvider);
         return dtoFromProvider;
@@ -130,13 +118,7 @@ public class PriceService : IPriceService
         var price = new AssetPrice(symbol, request.Date, money);
 
         await _repository.UpsertAsync(price, ct);
-
-        var dto = new PriceDTO
-        {
-            Symbol = price.Symbol.Code,
-            Date = price.Date,
-            Close = price.Price.Amount
-        };
+        var dto = PriceMapper.ToDTO(price);
 
         CachePrice(BuildCacheKey(symbol.Code, request.Date), dto);
         return dto;
@@ -149,12 +131,8 @@ public class PriceService : IPriceService
             throw new ArgumentException($"Symbol '{symbolValue}' is not in the accepted symbols list.");
 
         var prices = await _repository.GetAllForSymbolAsync(symbol, ct);
-        return prices.Select(p => new PriceDTO
-        {
-            Symbol = p.Symbol.Code,
-            Date = p.Date,
-            Close = p.Price.Amount
-        }).ToList();
+        return prices.Select(p => PriceMapper.ToDTO(p))
+            .ToList();
     }
 
     public async Task<bool> DeletePriceAsync(string symbolValue, DateOnly date, CancellationToken ct)
