@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using PM.Domain.Values;
+namespace PM.Infrastructure.Data;
 
 public static class ValueConverters
 {

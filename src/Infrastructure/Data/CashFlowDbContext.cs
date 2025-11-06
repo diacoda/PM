@@ -15,9 +15,8 @@ namespace PM.Infrastructure.Data
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
+            modelBuilder.ApplyConfiguration(new CashFlowConfiguration());
 
-            // Automatically apply all IEntityTypeConfiguration<T> classes in this assembly
-            modelBuilder.ApplyConfigurationsFromAssembly(typeof(CashFlowDbContext).Assembly);
         }
     }
 }

@@ -42,12 +42,4 @@ public interface IValuationService
         Currency currency,
         ValuationPeriod? period = null,
         CancellationToken ct = default);
-
-    Task RecalculateAndSaveAsync(
-        EntityKind kind,
-        int entityId,
-        DateOnly date,
-        Currency currency,
-        ValuationPeriod period,
-        CancellationToken ct = default);
 }

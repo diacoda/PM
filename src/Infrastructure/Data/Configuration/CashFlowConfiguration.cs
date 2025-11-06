@@ -2,37 +2,20 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using PM.Domain.Entities;
 using PM.Domain.Values;
-namespace PM.Infrastructure.Data.Configuration;
 
-public class CashFlowConfiguration : IEntityTypeConfiguration<CashFlow>
+namespace PM.Infrastructure.Data.Configuration
 {
-    public void Configure(EntityTypeBuilder<CashFlow> builder)
+    public class CashFlowConfiguration : IEntityTypeConfiguration<CashFlow>
     {
-        builder.HasKey(c => c.Id);
-
-        builder.Property(c => c.AccountId)
-               .IsRequired();
-
-        builder.Property(c => c.Type)
-               .HasConversion<int>()
-               .IsRequired();
-
-        builder.Property(c => c.Note)
-               .HasMaxLength(200);
-
-        // Configure owned type Money
-        builder.OwnsOne(c => c.Amount, m =>
+        public void Configure(EntityTypeBuilder<CashFlow> builder)
         {
-            m.Property(x => x.Amount)
-             .HasColumnType("decimal(18,4)")
-             .IsRequired();
+            builder.HasKey(c => c.Id);
 
-            m.Property(x => x.Currency)
-             .HasConversion(new Microsoft.EntityFrameworkCore.Storage.ValueConversion.ValueConverter<Currency, string>(
-                 c => c.Code,
-                 s => new Currency(s)))
-             .HasMaxLength(3)
-             .IsRequired();
-        });
+            builder.Property(c => c.AccountId).IsRequired();
+            builder.Property(c => c.Type).HasConversion<int>().IsRequired();
+            builder.Property(c => c.Note).HasMaxLength(200);
+
+            builder.OwnsOne(c => c.Amount, mb => mb.ConfigureMoney());
+        }
     }
 }

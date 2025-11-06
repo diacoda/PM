@@ -25,7 +25,7 @@ public class AccountRepository : BaseRepository<Account>, IAccountRepository
         if (includes.Contains(IncludeOption.Tags))
             query = query.Include(a => a.Tags);
 
-        return query;
+        return query.AsSplitQuery();
     }
 
     /// <summary>
