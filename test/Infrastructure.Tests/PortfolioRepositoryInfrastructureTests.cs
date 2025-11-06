@@ -11,8 +11,7 @@ using PM.Infrastructure.Data;
 using PM.Infrastructure.Repositories;
 using PM.SharedKernel;
 using Xunit;
-
-namespace Integration.Tests
+namespace PM.Infrastructure.Tests
 {
     public class PortfolioRepositoryTests : IAsyncLifetime
     {
