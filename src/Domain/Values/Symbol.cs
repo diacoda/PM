@@ -94,4 +94,19 @@ public class Symbol : IAsset
         { "USD", "TSX"},
         { "TRI", "NYSE"}
     };
+
+
+    public override bool Equals(object? obj)
+    {
+        if (obj is Symbol other)
+        {
+            return Code.Equals(other.Code, StringComparison.OrdinalIgnoreCase)
+                    && Currency.Code.Equals(other.Currency.Code, StringComparison.OrdinalIgnoreCase);
+        }
+        return false;
+    }
+
+    public override int GetHashCode() =>
+        HashCode.Combine(Code.ToUpperInvariant(), Currency.Code.ToUpperInvariant());
+
 }

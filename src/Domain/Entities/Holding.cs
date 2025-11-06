@@ -103,5 +103,18 @@ namespace PM.Domain.Entities
         /// </summary>
         /// <param name="tag">The tag to remove.</param>
         public void RemoveTag(Tag tag) => Tags.Remove(tag);
+
+
+        public override bool Equals(object? obj)
+        {
+            if (obj is Holding other)
+            {
+                return Asset.Equals(other.Asset);
+            }
+            return false;
+        }
+
+        public override int GetHashCode() => Asset.GetHashCode();
+
     }
 }
