@@ -48,45 +48,47 @@ public class TransactionWorkflowService : ITransactionWorkflowService
                 ct);
         }
 
-        await ApplyToHoldingsAsync(tx, ct);
+        Holding? holding = await ApplyToHoldingsAsync(tx, ct);
 
         return savedTx;
     }
 
-    private async Task ApplyToHoldingsAsync(Transaction tx, CancellationToken ct)
+    private async Task<Holding?> ApplyToHoldingsAsync(Transaction tx, CancellationToken ct)
     {
         var symbol = tx.Symbol;
         var currency = tx.Amount.Currency;
         var cashSymbol = new Symbol(currency.Code);
         var cost = tx.Costs?.Amount ?? 0m;
 
+        Holding holding = null;
         switch (tx.Type)
         {
             case TransactionType.Deposit:
-                await _holdingService.UpsertHoldingAsync(tx.AccountId, cashSymbol, tx.Amount.Amount, ct);
+                holding = await _holdingService.UpsertHoldingAsync(tx.AccountId, cashSymbol, tx.Amount.Amount, ct);
                 break;
 
             case TransactionType.Withdrawal:
-                await _holdingService.UpsertHoldingAsync(tx.AccountId, cashSymbol, -tx.Amount.Amount, ct);
+                holding = await _holdingService.UpsertHoldingAsync(tx.AccountId, cashSymbol, -tx.Amount.Amount, ct);
                 break;
 
             case TransactionType.Buy:
-                await _holdingService.UpsertHoldingAsync(tx.AccountId, symbol, tx.Quantity, ct);
+                holding = await _holdingService.UpsertHoldingAsync(tx.AccountId, symbol, tx.Quantity, ct);
                 await _holdingService.UpsertHoldingAsync(tx.AccountId, cashSymbol, -(tx.Amount.Amount + cost), ct);
                 break;
 
             case TransactionType.Sell:
-                await _holdingService.UpsertHoldingAsync(tx.AccountId, symbol, -tx.Quantity, ct);
+                holding = await _holdingService.UpsertHoldingAsync(tx.AccountId, symbol, -tx.Quantity, ct);
                 await _holdingService.UpsertHoldingAsync(tx.AccountId, cashSymbol, tx.Amount.Amount - cost, ct);
                 break;
 
             case TransactionType.Dividend:
-                await _holdingService.UpsertHoldingAsync(tx.AccountId, cashSymbol, tx.Amount.Amount - cost, ct);
+                holding = await _holdingService.UpsertHoldingAsync(tx.AccountId, cashSymbol, tx.Amount.Amount - cost, ct);
                 break;
 
             default:
                 // Other types can be handled here if needed
                 break;
         }
+        return holding;
     }
 }
