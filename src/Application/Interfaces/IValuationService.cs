@@ -17,4 +17,37 @@ public interface IValuationService
     Task StoreAccountValuation(int portfolioId, int accountId, ValuationRecord valuation, DateOnly date, ValuationPeriod period, CancellationToken ct = default);
     Task StorePortfolioAssetClassValuation(int portfolioId, IEnumerable<ValuationRecord> valuations, DateOnly date, ValuationPeriod period, CancellationToken ct = default);
     Task StoreAccountAssetClassValuation(int portfolioId, int accountId, IEnumerable<ValuationRecord> valuations, DateOnly date, ValuationPeriod period, CancellationToken ct = default);
+
+    //READ
+    Task<ValuationRecord?> GetLatestAsync(
+            EntityKind kind,
+            int entityId,
+            Currency currency,
+            ValuationPeriod? period = null,
+            bool includeAssetClass = false,
+            CancellationToken ct = default);
+
+    Task<IEnumerable<ValuationRecord>> GetHistoryAsync(
+        EntityKind kind,
+        int entityId,
+        DateOnly start,
+        DateOnly end,
+        Currency currency,
+        ValuationPeriod? period = null,
+        CancellationToken ct = default);
+
+    Task<IEnumerable<ValuationRecord>> GetAsOfDateAsync(
+        EntityKind kind,
+        DateOnly date,
+        Currency currency,
+        ValuationPeriod? period = null,
+        CancellationToken ct = default);
+
+    Task RecalculateAndSaveAsync(
+        EntityKind kind,
+        int entityId,
+        DateOnly date,
+        Currency currency,
+        ValuationPeriod period,
+        CancellationToken ct = default);
 }

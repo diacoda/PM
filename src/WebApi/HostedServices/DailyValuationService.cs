@@ -36,11 +36,11 @@ public class DailyValuationService : BackgroundService
 
                 var periodsToRun = valuationScheduler.GetValuationsForToday(today);
 
-                _logger.LogInformation("Calculating valuations for {Date} for periods: {Periods}", today, string.Join(", ", periodsToRun));
+                _logger.LogInformation("Calculating valuations for {Date} for periods: {Periods}", dateOnly, string.Join(", ", periodsToRun));
 
                 try
                 {
-                    await valuationCalculator.CalculateValuationsAsync(today, periodsToRun, stoppingToken);
+                    await valuationCalculator.CalculateValuationsAsync(dateOnly, periodsToRun, stoppingToken);
                 }
                 catch (Exception ex)
                 {

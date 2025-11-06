@@ -3,6 +3,7 @@ using PM.Domain.Entities;
 using PM.Domain.Enums;
 using PM.Application.Interfaces;
 using PM.Infrastructure.Data;
+using PM.Domain.Values;
 
 namespace PM.Infrastructure.Repositories;
 
@@ -62,5 +63,92 @@ public class ValuationRepository : IValuationRepository
         if (to.HasValue) q = q.Where(r => r.Date <= to.Value);
 
         return Task.FromResult(q.OrderBy(r => r.Date).ThenBy(r => r.AssetClass).AsEnumerable());
+    }
+    public async Task<ValuationRecord?> GetLatestAsync(
+            EntityKind kind,
+            int entityId,
+            Currency reportingCurrency,
+            ValuationPeriod? period = null,
+            bool includeAssetClass = false,
+            CancellationToken ct = default)
+    {
+        var query = _context.ValuationRecords.AsQueryable();
+
+        query = kind switch
+        {
+            EntityKind.Portfolio => query.Where(v => v.PortfolioId == entityId),
+            EntityKind.Account => query.Where(v => v.AccountId == entityId),
+            _ => throw new ArgumentOutOfRangeException(nameof(kind))
+        };
+
+        query = query.Where(v => v.ReportingCurrency == reportingCurrency);
+
+        if (period != null)
+            query = query.Where(v => v.Period == period);
+
+        if (!includeAssetClass)
+            query = query.Where(v => v.AssetClass == null);
+
+        return await query
+            .OrderByDescending(v => v.Date)
+            .FirstOrDefaultAsync(ct);
+    }
+
+    public async Task<IEnumerable<ValuationRecord>> GetRangeAsync(
+        EntityKind kind,
+        int entityId,
+        DateOnly start,
+        DateOnly end,
+        Currency reportingCurrency,
+        ValuationPeriod? period = null,
+        AssetClass? assetClass = null,
+        CancellationToken ct = default)
+    {
+        var query = _context.ValuationRecords.AsQueryable();
+
+        query = kind switch
+        {
+            EntityKind.Portfolio => query.Where(v => v.PortfolioId == entityId),
+            EntityKind.Account => query.Where(v => v.AccountId == entityId),
+            _ => throw new ArgumentOutOfRangeException(nameof(kind))
+        };
+
+        query = query
+            .Where(v => v.ReportingCurrency == reportingCurrency)
+            .Where(v => v.Date >= start && v.Date <= end);
+
+        if (period != null)
+            query = query.Where(v => v.Period == period);
+
+        if (assetClass != null)
+            query = query.Where(v => v.AssetClass == assetClass);
+
+        return await query.OrderBy(v => v.Date).ToListAsync(ct);
+    }
+
+    public async Task<IEnumerable<ValuationRecord>> GetAsOfDateAsync(
+        EntityKind kind,
+        DateOnly date,
+        Currency reportingCurrency,
+        ValuationPeriod? period = null,
+        CancellationToken ct = default)
+    {
+        var query = _context.ValuationRecords.AsQueryable();
+
+        query = kind switch
+        {
+            EntityKind.Portfolio => query.Where(v => v.PortfolioId != null),
+            EntityKind.Account => query.Where(v => v.AccountId != null),
+            _ => throw new ArgumentOutOfRangeException(nameof(kind))
+        };
+
+        query = query
+            .Where(v => v.Date == date)
+            .Where(v => v.ReportingCurrency == reportingCurrency);
+
+        if (period != null)
+            query = query.Where(v => v.Period == period);
+
+        return await query.ToListAsync(ct);
     }
 }

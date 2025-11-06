@@ -3,6 +3,7 @@ using PM.Application.Interfaces;
 using PM.Domain.Enums;
 using PM.Domain.Values;
 using PM.DTO;
+using PM.Domain.Mappers;
 
 namespace PM.API.Controllers
 {
@@ -58,16 +59,12 @@ namespace PM.API.Controllers
 
             return Ok();
         }
-/*
+
         // ---------------- GET LATEST ----------------
 
         /// <summary>
-        /// Gets the latest valuation record for a portfolio or account.
+        /// Gets the latest valuation for a given portfolio or account.
         /// </summary>
-        /// <param name="kind">Entity kind: "Portfolio" or "Account".</param>
-        /// <param name="entityId">ID of the entity.</param>
-        /// <param name="currency">Reporting currency code (e.g. "CAD").</param>
-        /// <param name="period">Optional valuation period (e.g. Daily).</param>
         [HttpGet("latest")]
         [ProducesResponseType(typeof(ValuationRecordDTO), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -78,7 +75,14 @@ namespace PM.API.Controllers
             [FromQuery] ValuationPeriod? period,
             CancellationToken ct = default)
         {
-            var result = await _valuationService.GetLatestAsync(kind, entityId, new Currency(currency), period, false, ct);
+            var result = await _valuationService.GetLatestAsync(
+                kind,
+                entityId,
+                new Currency(currency),
+                period,
+                includeAssetClass: false,
+                ct);
+
             if (result is null)
                 return NotFound();
 
@@ -128,6 +132,6 @@ namespace PM.API.Controllers
             var records = await _valuationService.GetAsOfDateAsync(kind, date, new Currency(currency), period, ct);
             return Ok(records.Select(r => r.ToDTO()));
         }
-*/
+
     }
 }

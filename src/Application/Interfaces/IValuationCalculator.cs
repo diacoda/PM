@@ -7,5 +7,5 @@ public interface IValuationCalculator
     /// <summary>
     /// Calculates valuations for all portfolios/accounts for a given date and stores them under all applicable periods.
     /// </summary>
-    Task CalculateValuationsAsync(DateTime date, IEnumerable<ValuationPeriod> periods, CancellationToken ct = default);
+    Task CalculateValuationsAsync(DateOnly date, IEnumerable<ValuationPeriod> periods, CancellationToken ct = default);
 }

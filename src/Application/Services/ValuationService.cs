@@ -11,17 +11,20 @@ namespace PM.Application.Services
         private readonly IPortfolioRepository _portfolioRepository;
         private readonly IAccountRepository _accountRepository;
         private readonly IValuationRepository _valuationRepository;
+        private readonly IValuationCalculator _valuationCalculator;
         private readonly IPricingService _pricingService;
 
         public ValuationService(
             IPortfolioRepository portfolioRepository,
             IAccountRepository accountRepository,
             IValuationRepository valuationRepository,
+            IValuationCalculator valuationCalculator,
             IPricingService pricingService)
         {
             _portfolioRepository = portfolioRepository;
             _accountRepository = accountRepository;
             _valuationRepository = valuationRepository;
+            _valuationCalculator = valuationCalculator;
             _pricingService = pricingService;
         }
 
@@ -248,5 +251,51 @@ namespace PM.Application.Services
             return net;
         }
 
+        //read
+        public async Task<ValuationRecord?> GetLatestAsync(
+            EntityKind kind,
+            int entityId,
+            Currency currency,
+            ValuationPeriod? period = null,
+            bool includeAssetClass = false,
+            CancellationToken ct = default)
+        {
+            return await _valuationRepository.GetLatestAsync(kind, entityId, currency, period, includeAssetClass, ct);
+        }
+
+        public async Task<IEnumerable<ValuationRecord>> GetHistoryAsync(
+            EntityKind kind,
+            int entityId,
+            DateOnly start,
+            DateOnly end,
+            Currency currency,
+            ValuationPeriod? period = null,
+            CancellationToken ct = default)
+        {
+            return await _valuationRepository.GetRangeAsync(kind, entityId, start, end, currency, period, null, ct);
+        }
+
+        public async Task<IEnumerable<ValuationRecord>> GetAsOfDateAsync(
+            EntityKind kind,
+            DateOnly date,
+            Currency currency,
+            ValuationPeriod? period = null,
+            CancellationToken ct = default)
+        {
+            return await _valuationRepository.GetAsOfDateAsync(kind, date, currency, period, ct);
+        }
+
+        public async Task RecalculateAndSaveAsync(
+            EntityKind kind,
+            int entityId,
+            DateOnly date,
+            Currency currency,
+            ValuationPeriod period,
+            CancellationToken ct = default)
+            {
+            // Calculate valuation using the calculator abstraction
+            var periods = new List<ValuationPeriod> { period };
+            await _valuationCalculator.CalculateValuationsAsync(date, periods, ct);
+        }
     }
 }
