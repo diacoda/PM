@@ -8,7 +8,7 @@ using PM.Infrastructure.Data;
 
 namespace Integration.Tests
 {
-    public class PortfolioRepositoryIntegrationTests
+    public class PortfolioRepositoryInfrastructureTests
     {
         [Fact]
         public async Task Should_Save_And_Retrieve_Portfolio()
