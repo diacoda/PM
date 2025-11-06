@@ -31,9 +31,9 @@ namespace PM.Tests.Domain.Entities
         [InlineData(null)]
         [InlineData("")]
         [InlineData(" ")]
-        public void Constructor_ShouldThrow_ForInvalidOwner(string invalidOwner)
+        public void Constructor_ShouldThrow_ForInvalidOwner(string? invalidOwner)
         {
-            Assert.Throws<ArgumentException>(() => new Portfolio(invalidOwner));
+            Assert.Throws<ArgumentException>(() => new Portfolio(invalidOwner!));
         }
 
         [Fact]

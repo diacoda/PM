@@ -1,11 +1,12 @@
 namespace PM.DTO;
+
 public class ValuationRecordDTO
 {
     public DateOnly Date { get; set; }
-    public string Period { get; set; }
-    public string ReportingCurrency { get; set; }
+    public string Period { get; set; } = String.Empty;
+    public string ReportingCurrency { get; set; } = String.Empty;
     public decimal Value { get; set; }
-    public string ValueCurrency { get; set; }
+    public string ValueCurrency { get; set; } = String.Empty;
     public int? AccountId { get; set; }
     public int? PortfolioId { get; set; }
     public string? AssetClass { get; set; }

@@ -100,6 +100,7 @@ namespace PM.API.Controllers
         /// <param name="end">End date (YYYY-MM-DD).</param>
         /// <param name="currency">Currency code (e.g. "CAD").</param>
         /// <param name="period">Optional valuation period (e.g. Daily).</param>
+        /// <param name="ct">Cancellation token</param>
         [HttpGet("range")]
         [ProducesResponseType(typeof(IEnumerable<ValuationRecordDTO>), StatusCodes.Status200OK)]
         public async Task<IActionResult> GetRangeAsync(
