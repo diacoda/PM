@@ -6,7 +6,7 @@ using PM.Infrastructure.Data;
 using System.Linq;
 using System.Threading.Tasks;
 using PM.Domain.Values;
-namespace PM.Infrastructure.Tests;
+namespace PM.Infrastructure.Data.Tests;
 
 public class PortfolioConfigurationTests
 {

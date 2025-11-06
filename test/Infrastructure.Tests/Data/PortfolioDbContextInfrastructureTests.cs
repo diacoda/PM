@@ -11,14 +11,14 @@ using PM.Domain.Values;
 using PM.Infrastructure.Data;
 using Xunit;
 
-namespace PM.Infrastructure.Tests
+namespace PM.Infrastructure.Data.Tests
 {
-    public class PortfolioDbContextInfrastructureTests : IAsyncLifetime
+    public class PortfolioDbContextTests : IAsyncLifetime
     {
         private readonly DbConnection _connection;
         private readonly DbContextOptions<PortfolioDbContext> _options;
 
-        public PortfolioDbContextInfrastructureTests()
+        public PortfolioDbContextTests()
         {
             // Create a single in-memory SQLite connection
             _connection = new SqliteConnection("DataSource=:memory:");
