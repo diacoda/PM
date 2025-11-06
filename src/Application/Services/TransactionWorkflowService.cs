@@ -60,7 +60,7 @@ public class TransactionWorkflowService : ITransactionWorkflowService
         var cashSymbol = new Symbol(currency.Code);
         var cost = tx.Costs?.Amount ?? 0m;
 
-        Holding holding = null;
+        Holding? holding = null;
         switch (tx.Type)
         {
             case TransactionType.Deposit:
