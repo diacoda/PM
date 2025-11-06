@@ -230,7 +230,7 @@ namespace PM.Infrastructure.Tests.Repositories
             await repo.SaveChangesAsync();
 
             var results = await repo.ListByPortfolioWithIncludesAsync(
-                1,
+                portfolio.Id,
                 new[] { IncludeOption.Holdings, IncludeOption.Transactions, IncludeOption.Tags }
             );
 
