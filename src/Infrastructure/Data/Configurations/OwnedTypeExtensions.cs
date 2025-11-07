@@ -6,27 +6,7 @@ namespace PM.Infrastructure.Data.Configurations;
 
 public static class OwnedTypeExtensions
 {
-    /// <summary>
-    /// Configures a Money owned type with Amount and Currency.
-    /// </summary>
-    public static void ConfigureMoneyOld<T>(this OwnedNavigationBuilder<T, Money> builder, string? amountColumn = null, string? currencyColumn = null)
-        where T : class
-    {
-        var currencyConverter = ValueConverters.CurrencyConverter;
 
-        builder.Property(m => m.Amount)
-               .HasColumnName(amountColumn ?? "Amount")
-               .HasColumnType("decimal(18,4)")
-               .IsRequired();
-
-        builder.OwnsOne(m => m.Currency, cb =>
-        {
-            cb.Property(c => c.Code)
-              .HasColumnName(currencyColumn ?? "Currency")
-              .HasMaxLength(3)
-              .IsRequired();
-        });
-    }
 
     public static void ConfigureMoney<T>(this OwnedNavigationBuilder<T, Money> builder, string? amountColumn = null, string? currencyColumn = null)
         where T : class
