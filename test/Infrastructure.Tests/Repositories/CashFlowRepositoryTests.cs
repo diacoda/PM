@@ -73,6 +73,9 @@ namespace PM.Infrastructure.Tests.Repositories
             var fromDb = await context.CashFlows.FirstOrDefaultAsync();
             fromDb.Should().NotBeNull();
             fromDb!.AccountId.Should().Be(1);
+            fromDb.Amount.Should().NotBeNull();
+            fromDb.Amount.Amount.Should().Be(100m);
+            fromDb.Amount.Currency.Should().Be(Currency.CAD);
             fromDb.Amount.Should().Be(new Money(100m, Currency.CAD));
             fromDb.Type.Should().Be(CashFlowType.Deposit);
         }
