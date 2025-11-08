@@ -12,7 +12,7 @@ using PM.Infrastructure.Data;
 using PM.Infrastructure.Repositories;
 using Xunit;
 
-namespace PM.Infrastructure.Tests.Repositories
+namespace PM.Infrastructure.Repositories.Tests
 {
     public class CashFlowRepositoryTests : IAsyncLifetime
     {

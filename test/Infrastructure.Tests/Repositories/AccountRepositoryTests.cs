@@ -16,7 +16,7 @@ using PM.Infrastructure.Repositories;
 using PM.SharedKernel;
 using Xunit;
 
-namespace PM.Infrastructure.Tests.Repositories
+namespace PM.Infrastructure.Repositories.Tests
 {
     public class AccountRepositoryTests : IAsyncLifetime
     {
