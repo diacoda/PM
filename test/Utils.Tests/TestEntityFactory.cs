@@ -34,4 +34,11 @@ public static class TestEntityFactory
         tag.SetIdForTest(id);
         return tag;
     }
+
+    public static Holding CreateHolding(Symbol symbol, decimal quantity)
+    {
+        var holding = new Holding(symbol, quantity);
+        holding.SetIdForTest(_nextId++);
+        return holding;
+    }
 }

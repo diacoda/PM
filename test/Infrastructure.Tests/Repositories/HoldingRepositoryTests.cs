@@ -7,6 +7,7 @@ using PM.Infrastructure.Repositories;
 using Xunit;
 using FluentAssertions;
 using PM.Utils.Tests;
+using PM.Domain.Enums;
 
 namespace PM.Infrastructure.Tests.Repositories
 {
@@ -37,31 +38,43 @@ namespace PM.Infrastructure.Tests.Repositories
             return Task.CompletedTask;
         }
 
-        private async Task<HoldingRepository> CreateRepositoryWithHoldingsAsync(params Holding[] holdings)
-        {
-            await using var context = new PortfolioDbContext(_options);
-            await context.Holdings.AddRangeAsync(holdings);
-            await context.SaveChangesAsync();
-            return new HoldingRepository(context);
-        }
-
-        #region GetByIdAsync
-
         [Fact]
-        public async Task GetByIdAsync_ReturnsHolding_WhenExists()
+        public async Task GetByIdAsync_ReturnsHoldingWithTags_WhenExists()
         {
             // Arrange
-            var account = TestEntityFactory.CreateAccount("TestAccount", Currency.CAD);
-            var tag1 = TestEntityFactory.CreateTag("Tag1");
-            var tag2 = TestEntityFactory.CreateTag("Tag2");
+            await using var context = new PortfolioDbContext(_options);
 
-            var symbol = new Symbol("AAPL", "USD");
-            var holding = new Holding(symbol, 100);
+            // 1️⃣ Create and save a Portfolio
+            var portfolio = new Portfolio("My Portfolio");
+            await context.Portfolios.AddAsync(portfolio);
+            await context.SaveChangesAsync();
+
+            // 2️⃣ Create an Account linked to that Portfolio
+            var account = new Account("TestAccount", Currency.CAD, FinancialInstitutions.TD);
+            account.LinkToPortfolio(portfolio);
+
+            await context.Accounts.AddAsync(account);
+            await context.SaveChangesAsync();
+
+            // 3️⃣ Create and save Tags
+            var tag1 = new Tag("Tag1");
+            var tag2 = new Tag("Tag2");
+            await context.Tags.AddRangeAsync(tag1, tag2);
+            await context.SaveChangesAsync();
+
+            // 4️⃣ Create and save a Holding linked to the Account
+            var symbol = new Symbol("VFV.TO", "CAD");
+            var holding = new Holding(symbol, 100)
+            {
+                AccountId = account.Id
+            };
             holding.AddTag(tag1);
             holding.AddTag(tag2);
-            holding.AccountId = account.Id;
+            await context.Holdings.AddAsync(holding);
+            await context.SaveChangesAsync();
 
-            var repository = await CreateRepositoryWithHoldingsAsync(holding);
+            // 5️⃣ Create repository
+            var repository = new HoldingRepository(context);
 
             // Act
             var result = await repository.GetByIdAsync(holding.Id);
@@ -69,18 +82,21 @@ namespace PM.Infrastructure.Tests.Repositories
             // Assert
             result.Should().NotBeNull();
             result!.Id.Should().Be(holding.Id);
-            result.Asset.Should().Be("AAPL");
+            result.Asset.Should().Be(symbol);
             result.Quantity.Should().Be(100);
+            result.AccountId.Should().Be(account.Id);
             result.Tags.Should().HaveCount(2);
-            result.Tags.Should().Contain(t => t.Name == "Tag1");
-            result.Tags.Should().Contain(t => t.Name == "Tag2");
+            result.Tags.Select(t => t.Name).Should().Contain(new[] { "Tag1", "Tag2" });
         }
+
+
 
         [Fact]
         public async Task GetByIdAsync_ReturnsNull_WhenNotExists()
         {
             // Arrange
-            var repository = await CreateRepositoryWithHoldingsAsync();
+            await using var context = new PortfolioDbContext(_options);
+            var repository = new HoldingRepository(context);
 
             // Act
             var result = await repository.GetByIdAsync(999);
@@ -89,40 +105,59 @@ namespace PM.Infrastructure.Tests.Repositories
             result.Should().BeNull();
         }
 
-        #endregion
-
-        #region ListByAccountAsync
-
         [Fact]
         public async Task ListByAccountAsync_ReturnsAllHoldings_ForGivenAccount()
         {
             // Arrange
+            await using var context = new PortfolioDbContext(_options);
+
+            // 1️⃣ Create and save two portfolios
+            var portfolio1 = new Portfolio("Portfolio 1");
+            var portfolio2 = new Portfolio("Portfolio 2");
+            await context.Portfolios.AddRangeAsync(portfolio1, portfolio2);
+            await context.SaveChangesAsync();
+
+            // 2️⃣ Create accounts linked to portfolios
             var account1 = TestEntityFactory.CreateAccount("Account1", Currency.CAD);
+            account1.LinkToPortfolio(portfolio1);
+
             var account2 = TestEntityFactory.CreateAccount("Account2", Currency.USD);
+            account2.LinkToPortfolio(portfolio2);
 
-            var holdings = new[]
-            {
-                new Holding(new Symbol("AAPL", "USD"), 50) { AccountId = account1.Id },
-                new Holding(new Symbol("MSFT", "USD"), 30) { AccountId = account1.Id },
-                new Holding(new Symbol("GOOG", "USD"), 10) { AccountId = account2.Id }
-            };
+            await context.Accounts.AddRangeAsync(account1, account2);
+            await context.SaveChangesAsync();
 
-            var repository = await CreateRepositoryWithHoldingsAsync(holdings);
+            // 3️⃣ Create holdings and associate them with accounts
+            var h1 = TestEntityFactory.CreateHolding(new Symbol("VFV.TO", "CAD"), 100);
+            h1.AccountId = account1.Id;
+
+            var h2 = TestEntityFactory.CreateHolding(new Symbol("VCE.TO", "USD"), 50);
+            h2.AccountId = account1.Id;
+
+            var h3 = TestEntityFactory.CreateHolding(new Symbol("HXQ.TO", "USD"), 10);
+            h3.AccountId = account2.Id;
+
+            await context.Holdings.AddRangeAsync(h1, h2, h3);
+            await context.SaveChangesAsync();
+
+            // 4️⃣ Create repository
+            var repository = new HoldingRepository(context);
 
             // Act
             var result = await repository.ListByAccountAsync(account1.Id);
 
             // Assert
+            result.Should().NotBeNull();
             result.Should().HaveCount(2);
             result.Should().AllSatisfy(h => h.AccountId.Should().Be(account1.Id));
-            result.Select(h => h.Asset.Code).Should().Contain(new[] { "AAPL", "MSFT" });
+            result.Select(h => h.Asset.Code).Should().Contain(new[] { "VFV.TO", "VCE.TO" });
         }
-
         [Fact]
         public async Task ListByAccountAsync_ReturnsEmpty_WhenNoHoldingsForAccount()
         {
             // Arrange
-            var repository = await CreateRepositoryWithHoldingsAsync();
+            await using var context = new PortfolioDbContext(_options);
+            var repository = new HoldingRepository(context);
 
             // Act
             var result = await repository.ListByAccountAsync(123);
@@ -130,7 +165,5 @@ namespace PM.Infrastructure.Tests.Repositories
             // Assert
             result.Should().BeEmpty();
         }
-
-        #endregion
     }
 }
