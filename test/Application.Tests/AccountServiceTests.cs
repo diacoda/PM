@@ -6,9 +6,8 @@ using PM.Application.Interfaces;
 using PM.Domain.Entities;
 using PM.Domain.Values;
 using PM.Domain.Enums;
-using System.Threading.Tasks;
 
-namespace Application.Tests
+namespace PM.Application.Services.Tests
 {
     public class AccountServiceTests
     {

@@ -10,7 +10,7 @@ using PM.Domain.Values;
 using PM.Domain.Enums;
 using PM.Infrastructure.Services;
 using Xunit;
-using PM.Infrastructure.Tests.Utils;
+using PM.Utils.Tests;
 
 namespace PM.Infrastructure.Services.Tests
 {

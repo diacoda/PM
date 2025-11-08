@@ -2,11 +2,11 @@ using PM.Domain.Entities;
 using PM.Domain.Enums;
 using PM.Domain.Values;
 
-namespace PM.Infrastructure.Tests.Utils;
+namespace PM.Utils.Tests;
 
 public static class TestEntityFactory
 {
-    private static int _nextId = 0;
+    private static int _nextId = 1;
 
     public static Account CreateAccount(string name, Currency currency)
     {
@@ -19,5 +19,19 @@ public static class TestEntityFactory
         var acc = new Account(name, currency, financialInstitution);
         acc.SetIdForTest(_nextId++);
         return acc;
+    }
+
+    public static Tag CreateTag(string name)
+    {
+        var tag = new Tag(name);
+        tag.SetIdForTest(_nextId++);
+        return tag;
+    }
+
+    public static Tag CreateTag(string name, int id)
+    {
+        var tag = new Tag(name);
+        tag.SetIdForTest(id);
+        return tag;
     }
 }

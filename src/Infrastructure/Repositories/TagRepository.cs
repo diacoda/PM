@@ -36,7 +36,7 @@ public class TagRepository : ITagRepository
         var existingTag = await _context.Tags.FindAsync(updatedTag.Id, ct);
         if (existingTag is null) return false;
 
-        existingTag.UpdateName(updatedTag.Name); // or set Name directly if no method
+        existingTag.UpdateName(updatedTag.Name);
         return await _context.SaveChangesAsync(ct) > 0;
     }
 
