@@ -65,8 +65,9 @@ public class TagsControllerIntegrationTests : IClassFixture<CustomWebApplication
         response.StatusCode.Should().Be(HttpStatusCode.OK);
 
         var tags = await response.Content.ReadFromJsonAsync<List<TagDTO>>();
+        tags.Should().NotBeNull();
         tags.Should().HaveCountGreaterOrEqualTo(2);
-        tags.Select(t => t.Name).Should().Contain(new[] { "Tag1", "Tag2" });
+        tags!.Select(t => t.Name).Should().Contain(new[] { "Tag1", "Tag2" });
     }
 
     [Fact]

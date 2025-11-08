@@ -101,7 +101,7 @@ public class FxRatesControllerIntegrationTests : IClassFixture<CustomWebApplicat
         var list = await response.Content.ReadFromJsonAsync<List<FxRate>>();
         list.Should().NotBeNull();
         list!.Should().HaveCountGreaterThanOrEqualTo(2);
-        list.Select(x => x.ToCurrency)
+        list!.Select(x => x.ToCurrency)
             .Should()
             .AllSatisfy(c => c.Should().Be(toCurrency));
 
