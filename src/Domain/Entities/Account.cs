@@ -21,10 +21,6 @@ namespace PM.Domain.Entities
             FinancialInstitution = financialInstitution;
         }
 
-        [Key]
-        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
-        public int Id { get; private set; }
-
         public string Name { get; set; } = string.Empty;
 
         public FinancialInstitutions FinancialInstitution { get; set; }

@@ -11,13 +11,6 @@ namespace PM.Domain.Entities
     public class Portfolio : Entity
     {
         /// <summary>
-        /// Gets the unique identifier of the portfolio.
-        /// </summary>
-        [Key]
-        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
-        public int Id { get; private set; }
-
-        /// <summary>
         /// Gets or sets the name of the portfolio owner.
         /// </summary>
         public string Owner { get; set; } = string.Empty;

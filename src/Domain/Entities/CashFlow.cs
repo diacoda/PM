@@ -10,11 +10,6 @@ namespace PM.Domain.Entities
     public class CashFlow : Entity
     {
         /// <summary>
-        /// Gets or sets the unique identifier of the cash flow.
-        /// </summary>
-        public int Id { get; set; }
-
-        /// <summary>
         /// Gets or sets the foreign key of the account associated with this cash flow.
         /// </summary>
         public int AccountId { get; set; }

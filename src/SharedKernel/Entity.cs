@@ -1,4 +1,7 @@
-﻿namespace PM.SharedKernel
+﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
+
+namespace PM.SharedKernel
 {
     /// <summary>
     /// Represents the base class for all domain entities.
@@ -10,6 +13,18 @@
     /// </remarks>
     public abstract class Entity
     {
+        [Key]
+        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
+        public int Id { get; protected set; }
+
+        /// <summary>
+        /// Assigns a deterministic ID for testing. Internal to preserve DDD boundaries.
+        /// </summary>
+        protected internal void SetIdForTest(int id)
+        {
+            Id = id;
+        }
+
         private readonly List<IDomainEvent> _domainEvents = [];
 
         /// <summary>

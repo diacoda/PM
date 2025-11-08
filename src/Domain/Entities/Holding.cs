@@ -49,14 +49,6 @@ namespace PM.Domain.Entities
         }
 
         /// <summary>
-        /// Gets the unique identifier of the holding.
-        /// </summary>
-        [Key]
-        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
-        public int Id { get; private set; }
-
-
-        /// <summary>
         /// Gets or sets the quantity of the asset held.
         /// </summary>
         public decimal Quantity { get; set; }

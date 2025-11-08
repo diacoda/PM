@@ -37,7 +37,8 @@ public class TagService : ITagService
     {
         var tag = await _repo.GetByIdAsync(id, ct);
         if (tag is null) return false;
-        tag = new Tag(name) { Id = id }; // recreate with updated name
+
+        tag.UpdateName(name); // ✅ update using domain method
         return await _repo.UpdateAsync(tag, ct);
     }
 

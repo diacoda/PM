@@ -13,13 +13,6 @@ namespace PM.Domain.Entities
     public class Transaction : Entity
     {
         /// <summary>
-        /// Gets the unique identifier of the transaction.
-        /// </summary>
-        [Key]
-        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
-        public int Id { get; private set; }
-
-        /// <summary>
         /// Gets or sets the date of the transaction.
         /// </summary>
         public DateOnly Date { get; set; }

@@ -6,9 +6,6 @@ namespace PM.Domain.Entities;
 
 public class Tag : Entity
 {
-    [Key]
-    [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
-    public int Id { get; set; } // Primary key for EF
     public string Name { get; private set; } = string.Empty;
 
     // EF constructor
@@ -18,7 +15,7 @@ public class Tag : Entity
     {
         Name = name.Trim();
     }
-    
+
     public void UpdateName(string newName)
     {
         Name = newName?.Trim() ?? string.Empty;

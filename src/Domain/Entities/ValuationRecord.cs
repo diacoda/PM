@@ -8,7 +8,7 @@ using PM.SharedKernel;
 /// Represents a snapshot of the valuation of a portfolio or account at a specific date and period.
 /// Can include total value, cash, securities, and income components.
 /// </summary>
-public class ValuationRecord : Entity
+public class ValuationRecord
 {
     /// <summary>
     /// Gets or sets the unique identifier of the valuation record.
