@@ -18,12 +18,14 @@ public static class DatabaseExtensions
     /// <returns>The same <see cref="IServiceCollection"/> for chaining.</returns>
     public static IServiceCollection AddDatabase(this IServiceCollection services, IConfiguration config, IHostEnvironment env)
     {
-        // Resolve all absolute database file paths
+        if (env.IsEnvironment("IntegrationTests"))
+            return services.AddInMemorySqliteDatabases();
+
+        // Regular file-based SQLite for Development/Production
         var portfolioPath = DatabasePathResolver.ResolveAbsolutePath("portfolio", config);
         var cashFlowPath = DatabasePathResolver.ResolveAbsolutePath("cashFlow", config);
         var valuationPath = DatabasePathResolver.ResolveAbsolutePath("valuation", config);
 
-        // Register each DbContext using scoped lifetime
         services.AddDbContext<PortfolioDbContext>(options =>
             options.UseSqlite(DatabasePathResolver.BuildSqliteConnectionString(portfolioPath)));
 
@@ -33,9 +35,7 @@ public static class DatabaseExtensions
         services.AddDbContext<ValuationDbContext>(options =>
             options.UseSqlite(DatabasePathResolver.BuildSqliteConnectionString(valuationPath)));
 
-        // Expose the resolved paths for diagnostics/logging
         services.AddSingleton(new DatabasePaths(portfolioPath, cashFlowPath, valuationPath));
-
         return services;
     }
 }

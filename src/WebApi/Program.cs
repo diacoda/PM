@@ -47,3 +47,8 @@ if (app.Environment.IsDevelopment())
 }
 app.MapControllers();
 app.Run();
+
+/// <summary>
+/// Used for integration tests reference
+/// </summary>
+public partial class Program { }
