@@ -1,18 +1,11 @@
-using System;
-using System.Collections.Generic;
 using System.Data.Common;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 using FluentAssertions;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using PM.Domain.Entities;
 using PM.Domain.Enums;
 using PM.Domain.Values;
 using PM.Infrastructure.Data;
-using PM.Infrastructure.Repositories;
 using PM.SharedKernel;
 using Xunit;
 
@@ -20,7 +13,7 @@ namespace PM.Infrastructure.Repositories.Tests
 {
     public class AccountRepositoryTests : IAsyncLifetime
     {
-        private readonly DbConnection _connection;
+        private readonly SqliteConnection _connection;
         private readonly DbContextOptions<PortfolioDbContext> _options;
 
         public AccountRepositoryTests()

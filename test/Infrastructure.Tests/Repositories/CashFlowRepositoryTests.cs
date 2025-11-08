@@ -1,7 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using FluentAssertions;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
@@ -9,7 +5,6 @@ using PM.Domain.Entities;
 using PM.Domain.Enums;
 using PM.Domain.Values;
 using PM.Infrastructure.Data;
-using PM.Infrastructure.Repositories;
 using Xunit;
 
 namespace PM.Infrastructure.Repositories.Tests

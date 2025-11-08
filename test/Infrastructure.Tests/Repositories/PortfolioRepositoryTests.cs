@@ -1,14 +1,10 @@
-using System;
 using System.Data.Common;
-using System.Linq;
-using System.Threading.Tasks;
 using FluentAssertions;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using PM.Domain.Entities;
 using PM.Domain.Values;
 using PM.Infrastructure.Data;
-using PM.Infrastructure.Repositories;
 using PM.SharedKernel;
 using Xunit;
 
@@ -16,7 +12,7 @@ namespace PM.Infrastructure.Repositories.Tests
 {
     public class PortfolioRepositoryTests : IAsyncLifetime
     {
-        private readonly DbConnection _connection;
+        private readonly SqliteConnection _connection;
         private readonly DbContextOptions<PortfolioDbContext> _options;
 
         public PortfolioRepositoryTests()
