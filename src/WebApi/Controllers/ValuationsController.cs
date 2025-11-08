@@ -66,7 +66,7 @@ namespace PM.API.Controllers
         /// Gets the latest valuation for a given portfolio or account.
         /// </summary>
         [HttpGet("latest")]
-        [ProducesResponseType(typeof(ValuationRecordDTO), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ValuationSnapshotDTO), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> GetLatestAsync(
             [FromQuery] EntityKind kind,
@@ -102,7 +102,7 @@ namespace PM.API.Controllers
         /// <param name="period">Optional valuation period (e.g. Daily).</param>
         /// <param name="ct">Cancellation token</param>
         [HttpGet("range")]
-        [ProducesResponseType(typeof(IEnumerable<ValuationRecordDTO>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(IEnumerable<ValuationSnapshotDTO>), StatusCodes.Status200OK)]
         public async Task<IActionResult> GetRangeAsync(
             [FromQuery] EntityKind kind,
             [FromQuery] int entityId,
@@ -122,7 +122,7 @@ namespace PM.API.Controllers
         /// Gets all valuations as of a specific date for the given entity kind.
         /// </summary>
         [HttpGet("asof")]
-        [ProducesResponseType(typeof(IEnumerable<ValuationRecordDTO>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(IEnumerable<ValuationSnapshotDTO>), StatusCodes.Status200OK)]
         public async Task<IActionResult> GetAsOfDateAsync(
             [FromQuery] EntityKind kind,
             [FromQuery] DateOnly date,

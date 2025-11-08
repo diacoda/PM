@@ -1,13 +1,16 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using PM.Domain.Entities;
+using PM.Domain.Values;
 
 namespace PM.Infrastructure.Data.Configurations;
 
-public class ValuationRecordConfiguration : IEntityTypeConfiguration<ValuationRecord>
+public class ValuationSnapshotConfiguration : IEntityTypeConfiguration<ValuationSnapshot>
 {
-    public void Configure(EntityTypeBuilder<ValuationRecord> builder)
+    public void Configure(EntityTypeBuilder<ValuationSnapshot> builder)
     {
+        builder.ToTable("ValuationRecords");
+
         builder.HasKey(v => v.Id);
 
         var currencyConverter = ValueConverters.CurrencyConverter;

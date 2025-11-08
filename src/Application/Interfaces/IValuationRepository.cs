@@ -6,33 +6,33 @@ namespace PM.Application.Interfaces;
 
 public interface IValuationRepository
 {
-    Task SaveAsync(ValuationRecord record, CancellationToken ct = default);
-    Task<IEnumerable<ValuationRecord>> GetAllAsync(CancellationToken ct = default);
+    Task SaveAsync(ValuationSnapshot record, CancellationToken ct = default);
+    Task<IEnumerable<ValuationSnapshot>> GetAllAsync(CancellationToken ct = default);
 
-    Task<IEnumerable<ValuationRecord>> GetByPortfolioAsync(
+    Task<IEnumerable<ValuationSnapshot>> GetByPortfolioAsync(
         int portfolioId,
         ValuationPeriod period,
         CancellationToken ct = default);
-    Task<IEnumerable<ValuationRecord>> GetByAccountAsync(
+    Task<IEnumerable<ValuationSnapshot>> GetByAccountAsync(
         int accountId,
         ValuationPeriod period,
         CancellationToken ct = default);
 
-    Task<IEnumerable<ValuationRecord>> GetPortfolioAssetClassSnapshotsAsync(
+    Task<IEnumerable<ValuationSnapshot>> GetPortfolioAssetClassSnapshotsAsync(
         int portfolioId,
         ValuationPeriod period,
         DateOnly? from = null,
         DateOnly? to = null,
         CancellationToken ct = default);
 
-    Task<IEnumerable<ValuationRecord>> GetAccountAssetClassSnapshotsAsync(
+    Task<IEnumerable<ValuationSnapshot>> GetAccountAssetClassSnapshotsAsync(
         int accountId,
         ValuationPeriod period,
         DateOnly? from = null,
         DateOnly? to = null,
         CancellationToken ct = default);
 
-    Task<ValuationRecord?> GetLatestAsync(
+    Task<ValuationSnapshot?> GetLatestAsync(
             EntityKind kind,
             int entityId,
             Currency reportingCurrency,
@@ -40,7 +40,7 @@ public interface IValuationRepository
             bool includeAssetClass = false,
             CancellationToken ct = default);
 
-    Task<IEnumerable<ValuationRecord>> GetRangeAsync(
+    Task<IEnumerable<ValuationSnapshot>> GetRangeAsync(
         EntityKind kind,
         int entityId,
         DateOnly start,
@@ -50,7 +50,7 @@ public interface IValuationRepository
         AssetClass? assetClass = null,
         CancellationToken ct = default);
 
-    Task<IEnumerable<ValuationRecord>> GetAsOfDateAsync(
+    Task<IEnumerable<ValuationSnapshot>> GetAsOfDateAsync(
         EntityKind kind,
         DateOnly date,
         Currency reportingCurrency,

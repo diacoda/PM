@@ -41,7 +41,7 @@ namespace Infrastructure.Migrations.ValuationDb
                 });
 
             migrationBuilder.CreateTable(
-                name: "ValuationRecords",
+                name: "ValuationSnapshots",
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "TEXT", nullable: false),
@@ -63,7 +63,7 @@ namespace Infrastructure.Migrations.ValuationDb
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_ValuationRecords", x => x.Id);
+                    table.PrimaryKey("PK_ValuationSnapshots", x => x.Id);
                 });
 
             migrationBuilder.CreateIndex(
@@ -82,7 +82,7 @@ namespace Infrastructure.Migrations.ValuationDb
                 name: "Prices");
 
             migrationBuilder.DropTable(
-                name: "ValuationRecords");
+                name: "ValuationSnapshots");
         }
     }
 }

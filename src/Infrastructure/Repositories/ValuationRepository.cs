@@ -16,35 +16,35 @@ public class ValuationRepository : IValuationRepository
         _context = context;
     }
 
-    public async Task SaveAsync(ValuationRecord record, CancellationToken ct = default)
+    public async Task SaveAsync(ValuationSnapshot record, CancellationToken ct = default)
     {
-        await _context.ValuationRecords.AddAsync(record, ct);
+        await _context.ValuationSnapshots.AddAsync(record, ct);
         await _context.SaveChangesAsync(ct);
     }
 
-    public Task<IEnumerable<ValuationRecord>> GetAllAsync(CancellationToken ct = default)
-        => Task.FromResult(_context.ValuationRecords.AsEnumerable());
+    public Task<IEnumerable<ValuationSnapshot>> GetAllAsync(CancellationToken ct = default)
+        => Task.FromResult(_context.ValuationSnapshots.AsEnumerable());
 
-    public Task<IEnumerable<ValuationRecord>> GetByPortfolioAsync(int portfolioId, ValuationPeriod period, CancellationToken ct = default)
+    public Task<IEnumerable<ValuationSnapshot>> GetByPortfolioAsync(int portfolioId, ValuationPeriod period, CancellationToken ct = default)
     {
-        var q = _context.ValuationRecords
+        var q = _context.ValuationSnapshots
             .Where(r => r.PortfolioId == portfolioId && r.Period == period)
             .AsEnumerable();
         return Task.FromResult(q);
     }
 
-    public Task<IEnumerable<ValuationRecord>> GetByAccountAsync(int accountId, ValuationPeriod period, CancellationToken ct = default)
+    public Task<IEnumerable<ValuationSnapshot>> GetByAccountAsync(int accountId, ValuationPeriod period, CancellationToken ct = default)
     {
-        var q = _context.ValuationRecords
+        var q = _context.ValuationSnapshots
             .Where(r => r.AccountId == accountId && r.Period == period)
             .AsEnumerable();
         return Task.FromResult(q);
     }
 
-    public Task<IEnumerable<ValuationRecord>> GetPortfolioAssetClassSnapshotsAsync(
+    public Task<IEnumerable<ValuationSnapshot>> GetPortfolioAssetClassSnapshotsAsync(
         int portfolioId, ValuationPeriod period, DateOnly? from = null, DateOnly? to = null, CancellationToken ct = default)
     {
-        var q = _context.ValuationRecords
+        var q = _context.ValuationSnapshots
             .Where(r => r.PortfolioId == portfolioId && r.Period == period && r.AssetClass.HasValue);
 
         if (from.HasValue) q = q.Where(r => r.Date >= from.Value);
@@ -53,10 +53,10 @@ public class ValuationRepository : IValuationRepository
         return Task.FromResult(q.OrderBy(r => r.Date).ThenBy(r => r.AssetClass).AsEnumerable());
     }
 
-    public Task<IEnumerable<ValuationRecord>> GetAccountAssetClassSnapshotsAsync(
+    public Task<IEnumerable<ValuationSnapshot>> GetAccountAssetClassSnapshotsAsync(
         int accountId, ValuationPeriod period, DateOnly? from = null, DateOnly? to = null, CancellationToken ct = default)
     {
-        var q = _context.ValuationRecords
+        var q = _context.ValuationSnapshots
             .Where(r => r.AccountId == accountId && r.Period == period && r.AssetClass.HasValue);
 
         if (from.HasValue) q = q.Where(r => r.Date >= from.Value);
@@ -64,7 +64,7 @@ public class ValuationRepository : IValuationRepository
 
         return Task.FromResult(q.OrderBy(r => r.Date).ThenBy(r => r.AssetClass).AsEnumerable());
     }
-    public async Task<ValuationRecord?> GetLatestAsync(
+    public async Task<ValuationSnapshot?> GetLatestAsync(
             EntityKind kind,
             int entityId,
             Currency reportingCurrency,
@@ -72,7 +72,7 @@ public class ValuationRepository : IValuationRepository
             bool includeAssetClass = false,
             CancellationToken ct = default)
     {
-        var query = _context.ValuationRecords.AsQueryable();
+        var query = _context.ValuationSnapshots.AsQueryable();
 
         query = kind switch
         {
@@ -94,7 +94,7 @@ public class ValuationRepository : IValuationRepository
             .FirstOrDefaultAsync(ct);
     }
 
-    public async Task<IEnumerable<ValuationRecord>> GetRangeAsync(
+    public async Task<IEnumerable<ValuationSnapshot>> GetRangeAsync(
         EntityKind kind,
         int entityId,
         DateOnly start,
@@ -104,7 +104,7 @@ public class ValuationRepository : IValuationRepository
         AssetClass? assetClass = null,
         CancellationToken ct = default)
     {
-        var query = _context.ValuationRecords.AsQueryable();
+        var query = _context.ValuationSnapshots.AsQueryable();
 
         query = kind switch
         {
@@ -126,14 +126,14 @@ public class ValuationRepository : IValuationRepository
         return await query.OrderBy(v => v.Date).ToListAsync(ct);
     }
 
-    public async Task<IEnumerable<ValuationRecord>> GetAsOfDateAsync(
+    public async Task<IEnumerable<ValuationSnapshot>> GetAsOfDateAsync(
         EntityKind kind,
         DateOnly date,
         Currency reportingCurrency,
         ValuationPeriod? period = null,
         CancellationToken ct = default)
     {
-        var query = _context.ValuationRecords.AsQueryable();
+        var query = _context.ValuationSnapshots.AsQueryable();
 
         query = kind switch
         {

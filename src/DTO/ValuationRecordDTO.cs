@@ -1,6 +1,6 @@
 namespace PM.DTO;
 
-public class ValuationRecordDTO
+public class ValuationSnapshotDTO
 {
     public DateOnly Date { get; set; }
     public string Period { get; set; } = String.Empty;

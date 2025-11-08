@@ -6,18 +6,18 @@ using PM.DTO;
 namespace PM.Domain.Mappers;
 
 /// <summary>
-/// Provides mapping between <see cref="ValuationRecord"/> domain entities and <see cref="ValuationRecordDTO"/> objects.
+/// Provides mapping between <see cref="ValuationSnapshot"/> domain entities and <see cref="ValuationSnapshotDTO"/> objects.
 /// </summary>
-public static class ValuationRecordMapper
+public static class ValuationSnapshotMapper
 {
     /// <summary>
-    /// Converts a domain <see cref="ValuationRecord"/> to a <see cref="ValuationRecordDTO"/>.
+    /// Converts a domain <see cref="ValuationSnapshot"/> to a <see cref="ValuationSnapshotDTO"/>.
     /// </summary>
-    public static ValuationRecordDTO ToDTO(this ValuationRecord entity)
+    public static ValuationSnapshotDTO ToDTO(this ValuationSnapshot entity)
     {
         if (entity == null) throw new ArgumentNullException(nameof(entity));
 
-        return new ValuationRecordDTO
+        return new ValuationSnapshotDTO
         {
             Date = entity.Date,
             Period = entity.Period.ToString(),
@@ -38,15 +38,15 @@ public static class ValuationRecordMapper
     }
 
     /// <summary>
-    /// Converts a <see cref="ValuationRecordDTO"/> to a domain <see cref="ValuationRecord"/>.
+    /// Converts a <see cref="ValuationSnapshotDTO"/> to a domain <see cref="ValuationSnapshot"/>.
     /// </summary>
-    public static ValuationRecord ToEntity(this ValuationRecordDTO dto)
+    public static ValuationSnapshot ToEntity(this ValuationSnapshotDTO dto)
     {
         if (dto == null) throw new ArgumentNullException(nameof(dto));
 
         var reportingCurrency = new Currency(dto.ReportingCurrency);
 
-        return new ValuationRecord
+        return new ValuationSnapshot
         {
             Date = dto.Date,
             Period = Enum.TryParse<ValuationPeriod>(dto.Period, true, out var period)

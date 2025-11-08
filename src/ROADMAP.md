@@ -79,7 +79,7 @@ public class AppDbContext : DbContext
 public DbSet<Account> Accounts => Set<Account>();
 public DbSet<Portfolio> Portfolios => Set<Portfolio>();
 public DbSet<Transaction> Transactions => Set<Transaction>();
-public DbSet<ValuationRecord> ValuationRecords => Set<ValuationRecord>();
+public DbSet<ValuationSnapshot> ValuationSnapshots => Set<ValuationSnapshot>();
 public DbSet<DailyReturn> DailyReturns => Set<DailyReturn>();
 public DbSet<BenchmarkDefinition> Benchmarks => Set<BenchmarkDefinition>();
 
@@ -120,7 +120,7 @@ public DbSet<BenchmarkDefinition> Benchmarks => Set<BenchmarkDefinition>();
             });
         });
 
-        b.Entity<ValuationRecord>(cfg =>
+        b.Entity<ValuationSnapshot>(cfg =>
         {
             cfg.HasKey(x => x.Id);
             cfg.Property(x => x.Period).HasConversion<int>();

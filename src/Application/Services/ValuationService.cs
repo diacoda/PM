@@ -27,7 +27,7 @@ namespace PM.Application.Services
 
         // ---------------- SNAPSHOT GENERATION ----------------
 
-        public async Task<ValuationRecord> GeneratePortfolioValuationSnapshot(
+        public async Task<ValuationSnapshot> GeneratePortfolioValuationSnapshot(
             int portfolioId,
             DateOnly date,
             Currency reportingCurrency,
@@ -54,7 +54,7 @@ namespace PM.Application.Services
             foreach (var account in portfolio.Accounts)
                 divNet += SumAccountNetDividendsForDay(account, date, reportingCurrency);
 
-            return new ValuationRecord
+            return new ValuationSnapshot
             {
                 Date = date,
                 ReportingCurrency = reportingCurrency,
@@ -66,7 +66,7 @@ namespace PM.Application.Services
             };
         }
 
-        public async Task<ValuationRecord> GenerateAccountValuationSnapshot(
+        public async Task<ValuationSnapshot> GenerateAccountValuationSnapshot(
             int portfolioId,
             int accountId,
             DateOnly date,
@@ -89,7 +89,7 @@ namespace PM.Application.Services
 
             var divNet = SumAccountNetDividendsForDay(account, date, reportingCurrency);
 
-            return new ValuationRecord
+            return new ValuationSnapshot
             {
                 Date = date,
                 ReportingCurrency = reportingCurrency,
@@ -101,7 +101,7 @@ namespace PM.Application.Services
             };
         }
 
-        public async Task<IEnumerable<ValuationRecord>> GeneratePortfolioAssetClassValuationSnapshot(
+        public async Task<IEnumerable<ValuationSnapshot>> GeneratePortfolioAssetClassValuationSnapshot(
             int portfolioId,
             DateOnly date,
             Currency reportingCurrency,
@@ -117,10 +117,10 @@ namespace PM.Application.Services
 
             var totalMoney = await _pricingService.CalculatePortfolioValueAsync(portfolio, date, reportingCurrency, ct);
             var total = totalMoney.Amount;
-            if (total <= 0m) return Enumerable.Empty<ValuationRecord>();
+            if (total <= 0m) return Enumerable.Empty<ValuationSnapshot>();
 
             var byClass = await AggregateByAssetClassAsync(portfolio, date, reportingCurrency, ct);
-            return byClass.Select(kvp => new ValuationRecord
+            return byClass.Select(kvp => new ValuationSnapshot
             {
                 Date = date,
                 ReportingCurrency = reportingCurrency,
@@ -131,7 +131,7 @@ namespace PM.Application.Services
             }).ToList();
         }
 
-        public async Task<IEnumerable<ValuationRecord>> GenerateAccountAssetClassValuationSnapshot(
+        public async Task<IEnumerable<ValuationSnapshot>> GenerateAccountAssetClassValuationSnapshot(
             int portfolioId,
             int accountId,
             DateOnly date,
@@ -148,10 +148,10 @@ namespace PM.Application.Services
 
             var totalMoney = await _pricingService.CalculateAccountValueAsync(account, date, reportingCurrency, ct);
             var total = totalMoney.Amount;
-            if (total <= 0m) return Enumerable.Empty<ValuationRecord>();
+            if (total <= 0m) return Enumerable.Empty<ValuationSnapshot>();
 
             var byClass = await AggregateByAssetClassAsync(account, date, reportingCurrency, ct);
-            return byClass.Select(kvp => new ValuationRecord
+            return byClass.Select(kvp => new ValuationSnapshot
             {
                 Date = date,
                 ReportingCurrency = reportingCurrency,
@@ -164,19 +164,19 @@ namespace PM.Application.Services
 
         // ---------------- STORAGE ----------------
 
-        public async Task StorePortfolioValuation(int portfolioId, ValuationRecord valuation, DateOnly date, ValuationPeriod period, CancellationToken ct = default)
+        public async Task StorePortfolioValuation(int portfolioId, ValuationSnapshot valuation, DateOnly date, ValuationPeriod period, CancellationToken ct = default)
         {
             valuation.Period = period;
             await _valuationRepository.SaveAsync(valuation, ct);
         }
 
-        public async Task StoreAccountValuation(int portfolioId, int accountId, ValuationRecord valuation, DateOnly date, ValuationPeriod period, CancellationToken ct = default)
+        public async Task StoreAccountValuation(int portfolioId, int accountId, ValuationSnapshot valuation, DateOnly date, ValuationPeriod period, CancellationToken ct = default)
         {
             valuation.Period = period;
             await _valuationRepository.SaveAsync(valuation, ct);
         }
 
-        public async Task StorePortfolioAssetClassValuation(int portfolioId, IEnumerable<ValuationRecord> valuations, DateOnly date, ValuationPeriod period, CancellationToken ct = default)
+        public async Task StorePortfolioAssetClassValuation(int portfolioId, IEnumerable<ValuationSnapshot> valuations, DateOnly date, ValuationPeriod period, CancellationToken ct = default)
         {
             foreach (var v in valuations)
             {
@@ -185,7 +185,7 @@ namespace PM.Application.Services
             }
         }
 
-        public async Task StoreAccountAssetClassValuation(int portfolioId, int accountId, IEnumerable<ValuationRecord> valuations, DateOnly date, ValuationPeriod period, CancellationToken ct = default)
+        public async Task StoreAccountAssetClassValuation(int portfolioId, int accountId, IEnumerable<ValuationSnapshot> valuations, DateOnly date, ValuationPeriod period, CancellationToken ct = default)
         {
             foreach (var v in valuations)
             {
@@ -249,7 +249,7 @@ namespace PM.Application.Services
         }
 
         //read
-        public async Task<ValuationRecord?> GetLatestAsync(
+        public async Task<ValuationSnapshot?> GetLatestAsync(
             EntityKind kind,
             int entityId,
             Currency currency,
@@ -260,7 +260,7 @@ namespace PM.Application.Services
             return await _valuationRepository.GetLatestAsync(kind, entityId, currency, period, includeAssetClass, ct);
         }
 
-        public async Task<IEnumerable<ValuationRecord>> GetHistoryAsync(
+        public async Task<IEnumerable<ValuationSnapshot>> GetHistoryAsync(
             EntityKind kind,
             int entityId,
             DateOnly start,
@@ -272,7 +272,7 @@ namespace PM.Application.Services
             return await _valuationRepository.GetRangeAsync(kind, entityId, start, end, currency, period, null, ct);
         }
 
-        public async Task<IEnumerable<ValuationRecord>> GetAsOfDateAsync(
+        public async Task<IEnumerable<ValuationSnapshot>> GetAsOfDateAsync(
             EntityKind kind,
             DateOnly date,
             Currency currency,

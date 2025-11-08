@@ -17,7 +17,7 @@ namespace Infrastructure.Migrations.ValuationDb
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "9.0.10");
 
-            modelBuilder.Entity("PM.Domain.Entities.ValuationRecord", b =>
+            modelBuilder.Entity("PM.Domain.Entities.ValuationSnapshot", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -49,7 +49,7 @@ namespace Infrastructure.Migrations.ValuationDb
 
                     b.HasKey("Id");
 
-                    b.ToTable("ValuationRecords");
+                    b.ToTable("ValuationSnapshots");
                 });
 
             modelBuilder.Entity("PM.Domain.Values.AssetPrice", b =>
@@ -101,11 +101,11 @@ namespace Infrastructure.Migrations.ValuationDb
                     b.ToTable("FxRates");
                 });
 
-            modelBuilder.Entity("PM.Domain.Entities.ValuationRecord", b =>
+            modelBuilder.Entity("PM.Domain.Entities.ValuationSnapshot", b =>
                 {
                     b.OwnsOne("PM.Domain.Values.Money", "CashValue", b1 =>
                         {
-                            b1.Property<Guid>("ValuationRecordId")
+                            b1.Property<Guid>("ValuationSnapshotId")
                                 .HasColumnType("TEXT");
 
                             b1.Property<decimal>("Amount")
@@ -117,17 +117,17 @@ namespace Infrastructure.Migrations.ValuationDb
                                 .HasMaxLength(3)
                                 .HasColumnType("TEXT");
 
-                            b1.HasKey("ValuationRecordId");
+                            b1.HasKey("ValuationSnapshotId");
 
-                            b1.ToTable("ValuationRecords");
+                            b1.ToTable("ValuationSnapshots");
 
                             b1.WithOwner()
-                                .HasForeignKey("ValuationRecordId");
+                                .HasForeignKey("ValuationSnapshotId");
                         });
 
                     b.OwnsOne("PM.Domain.Values.Money", "IncomeForDay", b1 =>
                         {
-                            b1.Property<Guid>("ValuationRecordId")
+                            b1.Property<Guid>("ValuationSnapshotId")
                                 .HasColumnType("TEXT");
 
                             b1.Property<decimal>("Amount")
@@ -139,17 +139,17 @@ namespace Infrastructure.Migrations.ValuationDb
                                 .HasMaxLength(3)
                                 .HasColumnType("TEXT");
 
-                            b1.HasKey("ValuationRecordId");
+                            b1.HasKey("ValuationSnapshotId");
 
-                            b1.ToTable("ValuationRecords");
+                            b1.ToTable("ValuationSnapshots");
 
                             b1.WithOwner()
-                                .HasForeignKey("ValuationRecordId");
+                                .HasForeignKey("ValuationSnapshotId");
                         });
 
                     b.OwnsOne("PM.Domain.Values.Money", "SecuritiesValue", b1 =>
                         {
-                            b1.Property<Guid>("ValuationRecordId")
+                            b1.Property<Guid>("ValuationSnapshotId")
                                 .HasColumnType("TEXT");
 
                             b1.Property<decimal>("Amount")
@@ -161,17 +161,17 @@ namespace Infrastructure.Migrations.ValuationDb
                                 .HasMaxLength(3)
                                 .HasColumnType("TEXT");
 
-                            b1.HasKey("ValuationRecordId");
+                            b1.HasKey("ValuationSnapshotId");
 
-                            b1.ToTable("ValuationRecords");
+                            b1.ToTable("ValuationSnapshots");
 
                             b1.WithOwner()
-                                .HasForeignKey("ValuationRecordId");
+                                .HasForeignKey("ValuationSnapshotId");
                         });
 
                     b.OwnsOne("PM.Domain.Values.Money", "Value", b1 =>
                         {
-                            b1.Property<Guid>("ValuationRecordId")
+                            b1.Property<Guid>("ValuationSnapshotId")
                                 .HasColumnType("TEXT");
 
                             b1.Property<decimal>("Amount")
@@ -183,12 +183,12 @@ namespace Infrastructure.Migrations.ValuationDb
                                 .HasMaxLength(3)
                                 .HasColumnType("TEXT");
 
-                            b1.HasKey("ValuationRecordId");
+                            b1.HasKey("ValuationSnapshotId");
 
-                            b1.ToTable("ValuationRecords");
+                            b1.ToTable("ValuationSnapshots");
 
                             b1.WithOwner()
-                                .HasForeignKey("ValuationRecordId");
+                                .HasForeignKey("ValuationSnapshotId");
                         });
 
                     b.Navigation("CashValue");
