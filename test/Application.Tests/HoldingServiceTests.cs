@@ -12,7 +12,7 @@ using PM.Utils.Tests;
 using PM.SharedKernel;
 using Xunit;
 
-namespace PM.Application.Tests.Services
+namespace M.Application.Services.Tests
 {
     public class HoldingServiceTests
     {

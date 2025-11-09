@@ -11,7 +11,7 @@ using PM.Utils.Tests;
 using PM.DTO;
 using Xunit;
 
-namespace PM.Application.Services.Tests
+namespace M.Application.Services.Tests
 {
     public class TagServiceTests
     {
@@ -89,14 +89,28 @@ namespace PM.Application.Services.Tests
         [Fact]
         public async Task UpdateAsync_Should_Return_True_When_Tag_Exists()
         {
-            var tag = TestEntityFactory.CreateTag("OldName");
-            _repoMock.Setup(r => r.GetByIdAsync(1, It.IsAny<CancellationToken>())).ReturnsAsync(tag);
-            _repoMock.Setup(r => r.UpdateAsync(It.IsAny<Tag>(), It.IsAny<CancellationToken>())).ReturnsAsync(true);
+            // Arrange
+            var tag = TestEntityFactory.CreateTag("OldName"); // original tag
+            Tag? capturedTag = null; // will hold the argument passed to UpdateAsync
 
+            _repoMock.Setup(r => r.GetByIdAsync(1, It.IsAny<CancellationToken>()))
+                     .ReturnsAsync(tag);
+
+            _repoMock.Setup(r => r.UpdateAsync(It.IsAny<Tag>(), It.IsAny<CancellationToken>()))
+                     .Callback<Tag, CancellationToken>((t, _) => capturedTag = t)
+                     .ReturnsAsync(true);
+
+            // Act
             var result = await _service.UpdateAsync(1, "NewName");
 
+            // Assert
             result.Should().BeTrue();
-            _repoMock.Verify(r => r.UpdateAsync(It.Is<Tag>(t => t.Id == 1 && t.Name == "NewName"), It.IsAny<CancellationToken>()), Times.Once);
+
+            capturedTag.Should().NotBeNull();
+            capturedTag!.Id.Should().Be(1);
+            capturedTag.Name.Should().Be("NewName");
+
+            _repoMock.Verify(r => r.UpdateAsync(It.IsAny<Tag>(), It.IsAny<CancellationToken>()), Times.Once);
         }
 
         [Fact]
