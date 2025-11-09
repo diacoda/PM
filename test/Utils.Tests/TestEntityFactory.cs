@@ -100,5 +100,26 @@ namespace PM.Utils.Tests
 
             return CreatePortfolio("My Portfolio", acc1, acc2);
         }
+
+        public static Transaction CreateTransaction(
+            int accountId,
+            TransactionType type,
+            Symbol instrument,
+            decimal quantity,
+            Money amount,
+            DateOnly date)
+        {
+            var tx = new Transaction
+            {
+                AccountId = accountId,
+                Type = type,
+                Symbol = instrument,
+                Quantity = quantity,
+                Amount = amount,
+                Date = date
+            };
+            tx.SetIdForTest(_nextId++);
+            return tx;
+        }
     }
 }
