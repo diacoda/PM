@@ -64,25 +64,25 @@ public class TransactionWorkflowService : ITransactionWorkflowService
         switch (tx.Type)
         {
             case TransactionType.Deposit:
-                holding = await _holdingService.UpsertHoldingAsync(tx.AccountId, cashSymbol, tx.Amount.Amount, ct);
+                holding = await _holdingService.UpsertHoldingAsync(tx.AccountId, cashSymbol.ToAsset(), tx.Amount.Amount, ct);
                 break;
 
             case TransactionType.Withdrawal:
-                holding = await _holdingService.UpsertHoldingAsync(tx.AccountId, cashSymbol, -tx.Amount.Amount, ct);
+                holding = await _holdingService.UpsertHoldingAsync(tx.AccountId, cashSymbol.ToAsset(), -tx.Amount.Amount, ct);
                 break;
 
             case TransactionType.Buy:
-                holding = await _holdingService.UpsertHoldingAsync(tx.AccountId, symbol, tx.Quantity, ct);
-                await _holdingService.UpsertHoldingAsync(tx.AccountId, cashSymbol, -(tx.Amount.Amount + cost), ct);
+                holding = await _holdingService.UpsertHoldingAsync(tx.AccountId, symbol.ToAsset(), tx.Quantity, ct);
+                await _holdingService.UpsertHoldingAsync(tx.AccountId, cashSymbol.ToAsset(), -(tx.Amount.Amount + cost), ct);
                 break;
 
             case TransactionType.Sell:
-                holding = await _holdingService.UpsertHoldingAsync(tx.AccountId, symbol, -tx.Quantity, ct);
-                await _holdingService.UpsertHoldingAsync(tx.AccountId, cashSymbol, tx.Amount.Amount - cost, ct);
+                holding = await _holdingService.UpsertHoldingAsync(tx.AccountId, symbol.ToAsset(), -tx.Quantity, ct);
+                await _holdingService.UpsertHoldingAsync(tx.AccountId, cashSymbol.ToAsset(), tx.Amount.Amount - cost, ct);
                 break;
 
             case TransactionType.Dividend:
-                holding = await _holdingService.UpsertHoldingAsync(tx.AccountId, cashSymbol, tx.Amount.Amount - cost, ct);
+                holding = await _holdingService.UpsertHoldingAsync(tx.AccountId, cashSymbol.ToAsset(), tx.Amount.Amount - cost, ct);
                 break;
 
             default:

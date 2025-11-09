@@ -41,7 +41,6 @@ public class YahooFxProviderTests
     public async Task GetFxRateAsync_ReturnsFxRate_WhenCloseAvailable()
     {
         // Arrange
-        var ticker = "USDCAD=X";
         var date = new DateOnly(2025, 1, 1);
 
         var json = @"{

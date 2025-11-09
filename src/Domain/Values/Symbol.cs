@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations.Schema;
+using PM.Domain.Entities;
 using PM.Domain.Interfaces;
 
 namespace PM.Domain.Values;
@@ -35,6 +36,14 @@ public class Symbol : IAsset
     public Symbol(string code) : this(code, "CAD")
     {
     }
+
+    public Asset ToAsset() =>
+        new Asset
+        {
+            Code = Code,
+            Currency = Currency,
+            AssetClass = AssetClass
+        };
 
     private static AssetClass ResolveAssetClass(string code)
     {

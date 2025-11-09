@@ -9,6 +9,8 @@ public class Asset : IAsset
     public Currency Currency { get; set; } = Currency.CAD;
     public AssetClass AssetClass { get; set; }
 
+    public Symbol ToSymbol() =>
+        new Symbol(Code, Currency.Code);
 
     public override bool Equals(object? obj)
     {

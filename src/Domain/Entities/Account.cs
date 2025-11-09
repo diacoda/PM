@@ -1,6 +1,7 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using PM.Domain.Enums;
+using PM.Domain.Interfaces;
 using PM.Domain.Values;
 using PM.SharedKernel;
 
@@ -129,11 +130,11 @@ namespace PM.Domain.Entities
         /// <param name="newQuantity">The new quantity to set.</param>
         /// <returns>The updated holding.</returns>
         /// <exception cref="InvalidOperationException">Thrown if the holding is not found.</exception>
-        public Holding UpdateHoldingQuantity(Symbol symbol, decimal newQuantity)
+        public Holding UpdateHoldingQuantity(IAsset asset, decimal newQuantity)
         {
-            var holding = _holdings.FirstOrDefault(h => h.Asset.Equals(symbol));
+            var holding = _holdings.FirstOrDefault(h => h.Asset.Equals(asset));
             if (holding == null)
-                throw new InvalidOperationException($"Holding not found for symbol {symbol.Code}");
+                throw new InvalidOperationException($"Holding not found for asset {asset.Code}");
 
             holding.UpdateQuantity(newQuantity);
             return holding;
@@ -174,7 +175,7 @@ namespace PM.Domain.Entities
         public decimal GetCashBalance(Currency currency)
         {
             var symbol = new Symbol("CAD");
-            var holding = Holdings.FirstOrDefault(h => h.Asset == symbol);
+            var holding = Holdings.FirstOrDefault(h => h.Asset?.Equals(symbol) == true);
             return holding?.Quantity ?? 0;
         }
 
