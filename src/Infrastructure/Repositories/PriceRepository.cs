@@ -36,23 +36,23 @@ public class PriceRepository : IPriceRepository
     /// </summary>
     public async Task UpsertAsync(AssetPrice price, CancellationToken ct = default)
     {
-        // Look for existing row
         var existing = await _db.Prices
-            .AsTracking() // tracking needed to update
+            .AsTracking()
             .FirstOrDefaultAsync(p => p.Symbol.Equals(price.Symbol) && p.Date == price.Date, ct);
 
-        if (existing != null)
+        if (existing == null)
         {
-            // Update tracked entity with new values
-            _db.Entry(existing).CurrentValues.SetValues(price);
+            await _db.Prices.AddAsync(price, ct);
         }
         else
         {
-            await _db.Prices.AddAsync(price);
+            _db.Prices.Remove(existing);
+            await _db.Prices.AddAsync(price, ct);
         }
 
         await _db.SaveChangesAsync(ct);
     }
+
 
     /// <summary>
     /// Optional helper: get all prices for a symbol

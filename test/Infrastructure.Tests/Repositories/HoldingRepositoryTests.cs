@@ -9,7 +9,7 @@ using FluentAssertions;
 using PM.Utils.Tests;
 using PM.Domain.Enums;
 
-namespace PM.Infrastructure.Tests.Repositories
+namespace PM.Infrastructure.Repositories.Tests
 {
     public class HoldingRepositoryTests : IAsyncLifetime
     {
