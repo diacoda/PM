@@ -9,6 +9,7 @@ using PM.Application.Services;
 using PM.Domain.Entities;
 using PM.Domain.Values;
 using PM.DTO;
+using PM.SharedKernel;
 using PM.Utils.Tests;
 using Xunit;
 
@@ -176,5 +177,70 @@ namespace PM.Application.Services.Tests
 
             accounts.Should().BeEmpty();
         }
+
+        [Fact]
+        public async Task GetByIdWithIncludesAsync_Should_Return_DTO_With_Includes()
+        {
+            // Arrange
+            var portfolio = TestEntityFactory.CreatePortfolio("Owner");
+
+            var account = TestEntityFactory.CreateAccount("Acc1", Currency.CAD);
+            portfolio.AddAccount(account);
+
+            var includes = new IncludeOption[] { IncludeOption.Accounts };
+
+            _portfolioRepoMock
+                .Setup(r => r.GetByIdWithIncludesAsync(portfolio.Id, includes, _ct))
+                .ReturnsAsync(portfolio);
+
+            // Act
+            var dto = await _service.GetByIdWithIncludesAsync(portfolio.Id, includes, _ct);
+
+            // Assert
+            dto.Should().NotBeNull();
+            dto!.Id.Should().Be(portfolio.Id);
+            dto.Accounts.Should().HaveCount(1);
+            dto.Accounts.Single().Name.Should().Be("Acc1");
+        }
+
+        [Fact]
+        public async Task GetByIdWithIncludesAsync_Should_Return_Null_When_Portfolio_NotFound()
+        {
+            var includes = new IncludeOption[] { IncludeOption.Accounts };
+            _portfolioRepoMock.Setup(r => r.GetByIdWithIncludesAsync(99, includes, _ct))
+                              .ReturnsAsync((Portfolio?)null);
+
+            var dto = await _service.GetByIdWithIncludesAsync(99, includes, _ct);
+
+            dto.Should().BeNull();
+        }
+
+        [Fact]
+        public async Task ListWithIncludesAsync_Should_Return_All_Portfolios_With_Includes()
+        {
+            // Arrange
+            var p1 = TestEntityFactory.CreatePortfolio("Alice");
+            var acc1 = TestEntityFactory.CreateAccount("AccA", Currency.CAD);
+            p1.AddAccount(acc1);
+
+            var p2 = TestEntityFactory.CreatePortfolio("Bob");
+            var acc2 = TestEntityFactory.CreateAccount("AccB", Currency.USD);
+            p2.AddAccount(acc2);
+
+            var includes = new IncludeOption[] { IncludeOption.Accounts };
+
+            _portfolioRepoMock
+                .Setup(r => r.ListWithIncludesAsync(includes, _ct))
+                .ReturnsAsync(new List<Portfolio> { p1, p2 });
+
+            // Act
+            var list = await _service.ListWithIncludesAsync(includes, _ct);
+
+            // Assert
+            list.Should().HaveCount(2);
+            list.SelectMany(p => p.Accounts).Select(a => a.Name)
+                .Should().Contain(new[] { "AccA", "AccB" });
+        }
+
     }
 }

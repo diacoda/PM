@@ -106,12 +106,15 @@ namespace M.Application.Services.Tests
             // Assert
             result.Should().BeTrue();
 
+            // Ensure the repository received the correct tag
             capturedTag.Should().NotBeNull();
-            capturedTag!.Id.Should().Be(1);
+            capturedTag!.Id.Should().Be(tag.Id);
             capturedTag.Name.Should().Be("NewName");
 
+            // Ensure UpdateAsync was called exactly once
             _repoMock.Verify(r => r.UpdateAsync(It.IsAny<Tag>(), It.IsAny<CancellationToken>()), Times.Once);
         }
+
 
         [Fact]
         public async Task UpdateAsync_Should_Return_False_When_Tag_NotFound()
