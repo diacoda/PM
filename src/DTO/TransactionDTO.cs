@@ -55,4 +55,8 @@ public class TransactionDTO
     /// The identifier of the account to which this transaction belongs.
     /// </summary>
     public int AccountId { get; set; }
+
+    public int CashFlowId { get; set; }
+
+    public int[] HoldingIds { get; set; } = Array.Empty<int>();
 }

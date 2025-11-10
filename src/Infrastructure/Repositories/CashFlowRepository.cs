@@ -16,10 +16,15 @@ namespace PM.Infrastructure.Repositories
             _context = context;
         }
 
-        public async Task RecordCashFlowAsync(CashFlow flow, CancellationToken ct = default)
+        public async Task<CashFlow> RecordCashFlowAsync(CashFlow flow, CancellationToken ct = default)
         {
             await _context.CashFlows.AddAsync(flow);
-            await _context.SaveChangesAsync(ct);
+            int changed = await _context.SaveChangesAsync(ct);
+            if (changed == 0)
+            {
+                throw new Exception("Failed to record cash flow.");
+            }
+            return flow;
         }
 
         public async Task<IEnumerable<CashFlow>> GetCashFlowsAsync(int accountId, DateOnly? from = null, DateOnly? to = null, CancellationToken ct = default)

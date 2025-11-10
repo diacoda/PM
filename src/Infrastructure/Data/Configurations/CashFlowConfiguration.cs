@@ -15,6 +15,6 @@ public class CashFlowConfiguration : IEntityTypeConfiguration<CashFlow>
         builder.Property(c => c.Type).HasConversion<int>().IsRequired();
         builder.Property(c => c.Note).HasMaxLength(200);
 
-        builder.OwnsOne(c => c.Amount, mb => mb.ConfigureMoney());
+        builder.OwnsOne(c => c.Amount, mb => mb.ConfigureMoney("Amount_Amount", "Amount_Currency"));
     }
 }

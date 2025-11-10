@@ -64,6 +64,19 @@ namespace PM.Utils.Tests
             return holding;
         }
 
+        public static CashFlow CreateCashFlow(int accountId, Money amount, CashFlowType type, string note)
+        {
+            var flow = new CashFlow
+            {
+                AccountId = accountId,
+                Amount = amount,
+                Type = type,
+                Note = note
+            };
+            flow.SetIdForTest(_nextId++);
+            return flow;
+        }
+
         /// <summary>
         /// Creates an Account pre-populated with a Holding.
         /// </summary>

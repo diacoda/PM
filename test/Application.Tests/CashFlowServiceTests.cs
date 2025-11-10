@@ -36,14 +36,30 @@ namespace PM.Application.Services.Tests
             var type = CashFlowType.Deposit;
             var note = "Test Deposit";
 
-            _repoMock.Setup(r => r.RecordCashFlowAsync(It.IsAny<CashFlow>(), It.IsAny<CancellationToken>()))
-                     .Returns(Task.CompletedTask)
-                     .Verifiable();
+            var expectedFlow = new CashFlow
+            {
+                AccountId = accountId,
+                Date = date,
+                Amount = amount,
+                Type = type,
+                Note = note,
+                //Id = 123
+            };
+
+            _repoMock
+                .Setup(r => r.RecordCashFlowAsync(It.IsAny<CashFlow>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(expectedFlow)
+                .Verifiable();
 
             // Act
-            await _service.RecordCashFlowAsync(accountId, date, amount, type, note);
+            var result = await _service.RecordCashFlowAsync(accountId, date, amount, type, note);
 
             // Assert
+            result.Should().NotBeNull();
+            //result.Id.Should().Be(expectedFlow.Id);
+            result.Type.Should().Be(type);
+            result.Amount.Amount.Should().Be(amount.Amount);
+
             _repoMock.Verify(r => r.RecordCashFlowAsync(
                 It.Is<CashFlow>(cf =>
                     cf.AccountId == accountId &&
@@ -51,11 +67,11 @@ namespace PM.Application.Services.Tests
                     cf.Amount.Amount == amount.Amount &&
                     cf.Amount.Currency.Code == amount.Currency.Code &&
                     cf.Type == type &&
-                    cf.Note == note
-                ),
-                It.IsAny<CancellationToken>()
-            ), Times.Once);
+                    cf.Note == note),
+                It.IsAny<CancellationToken>()),
+                Times.Once);
         }
+
 
         [Fact]
         public async Task GetCashFlowsAsync_Should_Return_Repository_Data()

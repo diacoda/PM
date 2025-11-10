@@ -48,7 +48,7 @@ public class DailyValuationService : BackgroundService
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
         _logger.LogInformation("Daily Valuation Service started.");
-
+        return;
         while (!stoppingToken.IsCancellationRequested)
         {
             var today = DateTime.Today;

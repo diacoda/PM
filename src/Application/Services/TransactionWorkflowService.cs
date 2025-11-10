@@ -23,9 +23,10 @@ public class TransactionWorkflowService : ITransactionWorkflowService
         _holdingService = holdingService;
     }
 
-    public async Task<Transaction> ProcessTransactionAsync(Transaction tx, CancellationToken ct = default)
+    public async Task<TransactionDTO> ProcessTransactionAsync(Transaction tx, CancellationToken ct = default)
     {
         var savedTx = await _transactionService.CreateAsync(tx, ct);
+        var txDto = TransactionMapper.ToDTO(savedTx);
 
         if (tx.Type is TransactionType.Deposit or TransactionType.Withdrawal or TransactionType.Buy or TransactionType.Sell or TransactionType.Dividend)
         {
@@ -39,56 +40,111 @@ public class TransactionWorkflowService : ITransactionWorkflowService
                 _ => CashFlowType.Other
             };
 
-            await _cashFlowService.RecordCashFlowAsync(
+            CashFlow cashFlow = await _cashFlowService.RecordCashFlowAsync(
                 tx.AccountId,
                 tx.Date,
                 tx.Amount,
                 flowType,
                 "tx.Note",
                 ct);
+            txDto.CashFlowId = cashFlow.Id;
         }
 
-        Holding? holding = await ApplyToHoldingsAsync(tx, ct);
+        IReadOnlyList<Holding?> holdings = await ApplyToHoldingsAsync(tx, ct);
+        txDto.HoldingIds = holdings.Select(h => h.Id).ToArray();
 
-        return savedTx;
+        return txDto;
     }
 
-    private async Task<Holding?> ApplyToHoldingsAsync(Transaction tx, CancellationToken ct)
+    private async Task<IReadOnlyList<Holding>> ApplyToHoldingsAsync(Transaction tx, CancellationToken ct)
     {
         var symbol = tx.Symbol;
         var currency = tx.Amount.Currency;
         var cashSymbol = new Symbol(currency.Code);
         var cost = tx.Costs?.Amount ?? 0m;
 
-        Holding? holding = null;
+        var updatedHoldings = new List<Holding>();
+
         switch (tx.Type)
         {
             case TransactionType.Deposit:
-                holding = await _holdingService.UpsertHoldingAsync(tx.AccountId, cashSymbol.ToAsset(), tx.Amount.Amount, ct);
-                break;
+                {
+                    var cashHolding = await _holdingService.UpsertHoldingAsync(
+                        tx.AccountId,
+                        cashSymbol.ToAsset(),
+                        tx.Amount.Amount,
+                        ct);
+
+                    updatedHoldings.Add(cashHolding);
+                    break;
+                }
 
             case TransactionType.Withdrawal:
-                holding = await _holdingService.UpsertHoldingAsync(tx.AccountId, cashSymbol.ToAsset(), -tx.Amount.Amount, ct);
-                break;
+                {
+                    var cashHolding = await _holdingService.UpsertHoldingAsync(
+                        tx.AccountId,
+                        cashSymbol.ToAsset(),
+                        -tx.Amount.Amount,
+                        ct);
+
+                    updatedHoldings.Add(cashHolding);
+                    break;
+                }
 
             case TransactionType.Buy:
-                holding = await _holdingService.UpsertHoldingAsync(tx.AccountId, symbol.ToAsset(), tx.Quantity, ct);
-                await _holdingService.UpsertHoldingAsync(tx.AccountId, cashSymbol.ToAsset(), -(tx.Amount.Amount + cost), ct);
-                break;
+                {
+                    var securityHolding = await _holdingService.UpsertHoldingAsync(
+                        tx.AccountId,
+                        symbol.ToAsset(),
+                        tx.Quantity,
+                        ct);
+
+                    var cashHolding = await _holdingService.UpsertHoldingAsync(
+                        tx.AccountId,
+                        cashSymbol.ToAsset(),
+                        -(tx.Amount.Amount + cost),
+                        ct);
+
+                    updatedHoldings.AddRange(new[] { securityHolding, cashHolding });
+                    break;
+                }
 
             case TransactionType.Sell:
-                holding = await _holdingService.UpsertHoldingAsync(tx.AccountId, symbol.ToAsset(), -tx.Quantity, ct);
-                await _holdingService.UpsertHoldingAsync(tx.AccountId, cashSymbol.ToAsset(), tx.Amount.Amount - cost, ct);
-                break;
+                {
+                    var securityHolding = await _holdingService.UpsertHoldingAsync(
+                        tx.AccountId,
+                        symbol.ToAsset(),
+                        -tx.Quantity,
+                        ct);
+
+                    var cashHolding = await _holdingService.UpsertHoldingAsync(
+                        tx.AccountId,
+                        cashSymbol.ToAsset(),
+                        tx.Amount.Amount - cost,
+                        ct);
+
+                    updatedHoldings.AddRange(new[] { securityHolding, cashHolding });
+                    break;
+                }
 
             case TransactionType.Dividend:
-                holding = await _holdingService.UpsertHoldingAsync(tx.AccountId, cashSymbol.ToAsset(), tx.Amount.Amount - cost, ct);
-                break;
+                {
+                    var cashHolding = await _holdingService.UpsertHoldingAsync(
+                        tx.AccountId,
+                        cashSymbol.ToAsset(),
+                        tx.Amount.Amount - cost,
+                        ct);
+
+                    updatedHoldings.Add(cashHolding);
+                    break;
+                }
 
             default:
-                // Other types can be handled here if needed
+                // Optionally handle other transaction types (Interest, Split, Fee, etc.)
                 break;
         }
-        return holding;
+
+        return updatedHoldings;
     }
+
 }

@@ -15,7 +15,7 @@ namespace PM.Application.Services
             _repo = repo;
         }
 
-        public async Task RecordCashFlowAsync(int accountId, DateOnly date, Money amount, CashFlowType type, string? note = null, CancellationToken ct = default)
+        public async Task<CashFlow> RecordCashFlowAsync(int accountId, DateOnly date, Money amount, CashFlowType type, string? note = null, CancellationToken ct = default)
         {
             var flow = new CashFlow
             {
@@ -26,7 +26,7 @@ namespace PM.Application.Services
                 Note = note
             };
 
-            await _repo.RecordCashFlowAsync(flow, ct);
+            return await _repo.RecordCashFlowAsync(flow, ct);
         }
 
         public async Task<IEnumerable<CashFlow>> GetCashFlowsAsync(Account account, DateOnly? from = null, DateOnly? to = null, CancellationToken ct = default)
