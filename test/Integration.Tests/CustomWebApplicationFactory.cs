@@ -12,7 +12,6 @@ public class CustomWebApplicationFactory : WebApplicationFactory<Program>
 {
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
-        builder.UseEnvironment("IntegrationTests"); // << important
-
+        builder.UseEnvironment("IntegrationTests");
     }
 }
