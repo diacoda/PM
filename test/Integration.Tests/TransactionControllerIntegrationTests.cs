@@ -8,11 +8,11 @@ using Xunit;
 
 namespace PM.Integration.Tests;
 
-public class TransactionIntegrationTests : IClassFixture<CustomWebApplicationFactory>
+public class TransactionControllerIntegrationTests : IClassFixture<CustomWebApplicationFactory>
 {
     private readonly HttpClient _client;
 
-    public TransactionIntegrationTests(CustomWebApplicationFactory factory)
+    public TransactionControllerIntegrationTests(CustomWebApplicationFactory factory)
     {
         _client = factory.CreateClient();
     }
