@@ -121,5 +121,27 @@ namespace PM.Utils.Tests
             tx.SetIdForTest(_nextId++);
             return tx;
         }
+
+        public static Transaction CreateTransaction(
+            int accountId,
+            TransactionType type,
+            Symbol instrument,
+            decimal quantity,
+            Money amount,
+            Money costs)
+        {
+            var tx = new Transaction
+            {
+                AccountId = accountId,
+                Type = type,
+                Symbol = instrument,
+                Quantity = quantity,
+                Amount = amount,
+                Costs = costs,
+                Date = DateOnly.FromDateTime(DateTime.UtcNow)
+            };
+            tx.SetIdForTest(_nextId++);
+            return tx;
+        }
     }
 }

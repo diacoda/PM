@@ -6,5 +6,6 @@ public enum TransactionType
     Withdrawal,
     Buy,
     Sell,
-    Dividend
+    Dividend,
+    Other = 99,   // ✅ Add this catch-all
 }
