@@ -10,15 +10,15 @@ namespace PM.API.Controllers
     [ApiController]
     [Route("api/[controller]")]
     [Produces("application/json")]
-    public class CashFlowController : ControllerBase
+    public class CashFlowsController : ControllerBase
     {
         private readonly ICashFlowService _cashFlowService;
 
         /// <summary>
-        /// Initializes a new instance of <see cref="CashFlowController"/>.
+        /// Initializes a new instance of <see cref="CashFlowsController"/>.
         /// </summary>
         /// <param name="cashFlowService">Service for managing cash flows.</param>
-        public CashFlowController(ICashFlowService cashFlowService)
+        public CashFlowsController(ICashFlowService cashFlowService)
         {
             _cashFlowService = cashFlowService;
         }

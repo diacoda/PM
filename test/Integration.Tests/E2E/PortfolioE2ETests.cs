@@ -47,7 +47,10 @@ public class PortfolioE2ETests : E2EBaseTests
         fetchedTransaction!.Id.Should().Be(createdTransaction.Id);
         fetchedTransaction.Type.Should().Be(TransactionType.Buy.ToString());
 
-        // createdTransaction.CashFlowId
+        var response = await _client.DeleteAsync($"/api/cashflows/{createdTransaction.CashFlowId}");
+        response.EnsureSuccessStatusCode();
+        response.StatusCode.Should().Be(HttpStatusCode.NoContent, "Cash flow should be deleted successfully.");
+
         // createdTransaction.HoldingIds
 
         await CleanupPortfolioAsync(portfolio, account);

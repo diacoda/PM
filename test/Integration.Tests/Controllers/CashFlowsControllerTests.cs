@@ -13,12 +13,12 @@ namespace PM.Integration.Controllers.Tests;
 public class CashFlowControllerTests
 {
     private readonly Mock<ICashFlowService> _cashFlowServiceMock;
-    private readonly CashFlowController _controller;
+    private readonly CashFlowsController _controller;
 
     public CashFlowControllerTests()
     {
         _cashFlowServiceMock = new Mock<ICashFlowService>();
-        _controller = new CashFlowController(_cashFlowServiceMock.Object);
+        _controller = new CashFlowsController(_cashFlowServiceMock.Object);
     }
     [Fact]
     public async Task Delete_ReturnsNoContent_WhenDeleteSucceeds()
