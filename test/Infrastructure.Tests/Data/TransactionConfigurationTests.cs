@@ -62,7 +62,7 @@ namespace PM.Infrastructure.Data.Tests
             var transaction = new Transaction
             {
                 Date = new DateOnly(2025, 1, 1),
-                Type = Domain.Enums.TransactionType.Buy,
+                Type = TransactionType.Buy,
                 Symbol = symbol,
                 Quantity = 50,
                 Amount = amount,
@@ -76,7 +76,7 @@ namespace PM.Infrastructure.Data.Tests
             // Act: retrieve it back including Account and Portfolio
             var stored = await context.Transactions
                 .Include(t => t.Account)
-                .ThenInclude(a => a.Portfolio)
+                .ThenInclude(a => a!.Portfolio) // use null-forgiving operator here
                 .FirstOrDefaultAsync();
 
             // Assert: transaction top-level
@@ -104,9 +104,13 @@ namespace PM.Infrastructure.Data.Tests
 
             // Assert: account and portfolio
             stored.Account.Should().NotBeNull();
-            stored.Account.Id.Should().Be(account.Id);
-            stored.Account.Portfolio.Should().NotBeNull();
-            stored.Account.Portfolio.Owner.Should().Be(portfolio.Owner);
+            var accRef = stored.Account!; // safe local reference
+            accRef.Id.Should().Be(account.Id);
+
+            accRef.Portfolio.Should().NotBeNull();
+            var portRef = accRef.Portfolio!;
+            portRef.Owner.Should().Be(portfolio.Owner);
         }
+
     }
 }
