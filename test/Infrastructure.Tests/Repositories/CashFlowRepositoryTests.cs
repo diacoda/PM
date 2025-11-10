@@ -1,6 +1,7 @@
 using FluentAssertions;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
+using Moq;
 using PM.Domain.Entities;
 using PM.Domain.Enums;
 using PM.Domain.Values;
@@ -203,5 +204,87 @@ namespace PM.Infrastructure.Repositories.Tests
 
             net.Should().Be(new Money(20m, Currency.CAD));
         }
+
+        [Fact]
+        public async Task GetCashFlowByIdAsync_Should_Return_Correct_CashFlow()
+        {
+            await using var context = new CashFlowDbContext(_options);
+            var repo = new CashFlowRepository(context);
+
+            var flow = CreateCashFlow(1, new DateOnly(2025, 2, 1), 123m, Currency.CAD, CashFlowType.Deposit);
+            await context.CashFlows.AddAsync(flow);
+            await context.SaveChangesAsync();
+
+            var result = await repo.GetCashFlowByIdAsync(flow.Id);
+
+            result.Should().NotBeNull();
+            result!.Id.Should().Be(flow.Id);
+            result.AccountId.Should().Be(flow.AccountId);
+            result.Amount.Should().Be(flow.Amount);
+        }
+
+        [Fact]
+        public async Task GetCashFlowByIdAsync_Should_Return_Null_If_NotFound()
+        {
+            await using var context = new CashFlowDbContext(_options);
+            var repo = new CashFlowRepository(context);
+
+            var result = await repo.GetCashFlowByIdAsync(999);
+
+            result.Should().BeNull();
+        }
+
+        [Fact]
+        public async Task DeleteCashFlowAsync_Should_Remove_Record_From_Db()
+        {
+            await using var context = new CashFlowDbContext(_options);
+            var repo = new CashFlowRepository(context);
+
+            var flow = CreateCashFlow(1, new DateOnly(2025, 3, 1), 250m, Currency.CAD, CashFlowType.Deposit);
+            await context.CashFlows.AddAsync(flow);
+            await context.SaveChangesAsync();
+
+            // Act
+            await repo.DeleteCashFlowAsync(flow);
+
+            // Assert
+            var exists = await context.CashFlows.AnyAsync(f => f.Id == flow.Id);
+            exists.Should().BeFalse();
+        }
+
+        [Fact]
+        public async Task DeleteCashFlowAsync_Should_Throw_If_SaveChanges_Returns_Zero()
+        {
+            // Arrange
+            var mockSet = new Mock<DbSet<CashFlow>>();
+            var mockContext = new Mock<CashFlowDbContext>(_options);
+
+            mockContext
+                .Setup(c => c.Set<CashFlow>())
+                .Returns(mockSet.Object);
+
+            // Simulate SaveChangesAsync returning 0
+            mockContext
+                .Setup(c => c.SaveChangesAsync(It.IsAny<CancellationToken>()))
+                .ReturnsAsync(0);
+
+            var repo = new CashFlowRepository(mockContext.Object);
+
+            var flow = CreateCashFlow(1, new DateOnly(2025, 3, 1), 100m, Currency.CAD, CashFlowType.Deposit);
+
+            // Act
+            Func<Task> act = async () => await repo.DeleteCashFlowAsync(flow);
+
+            // Assert
+            await act.Should()
+                .ThrowAsync<Exception>()
+                .WithMessage("Failed to delete cash flow.");
+
+            // Ensure Remove was called
+            mockSet.Verify(s => s.Remove(It.Is<CashFlow>(f => f == flow)), Times.Once);
+            mockContext.Verify(c => c.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
+        }
+
+
     }
 }

@@ -157,5 +157,86 @@ namespace PM.Application.Services.Tests
             // Assert
             await act.Should().ThrowAsync<InvalidOperationException>().WithMessage("Repo error");
         }
+
+        [Fact]
+        public async Task GetCashFlowByIdAsync_Should_Return_CashFlow_From_Repository()
+        {
+            // Arrange
+            var flow = TestEntityFactory.CreateCashFlow(1, new Money(100m, Currency.CAD), CashFlowType.Deposit, "Note");
+
+            _repoMock
+                .Setup(r => r.GetCashFlowByIdAsync(flow.Id, It.IsAny<CancellationToken>()))
+                .ReturnsAsync(flow);
+
+            // Act
+            var result = await _service.GetCashFlowByIdAsync(flow.Id);
+
+            // Assert
+            result.Should().NotBeNull();
+            result!.Id.Should().Be(flow.Id);
+            result.Amount.Amount.Should().Be(flow.Amount.Amount);
+            result.Type.Should().Be(flow.Type);
+
+            _repoMock.Verify(r => r.GetCashFlowByIdAsync(flow.Id, It.IsAny<CancellationToken>()), Times.Once);
+        }
+
+        [Fact]
+        public async Task GetCashFlowByIdAsync_Should_Return_Null_If_NotFound()
+        {
+            // Arrange
+            var cashFlowId = 999;
+            _repoMock
+                .Setup(r => r.GetCashFlowByIdAsync(cashFlowId, It.IsAny<CancellationToken>()))
+                .ReturnsAsync((CashFlow?)null);
+
+            // Act
+            var result = await _service.GetCashFlowByIdAsync(cashFlowId);
+
+            // Assert
+            result.Should().BeNull();
+            _repoMock.Verify(r => r.GetCashFlowByIdAsync(cashFlowId, It.IsAny<CancellationToken>()), Times.Once);
+        }
+
+        [Fact]
+        public async Task DeleteCashFlowAsync_Should_Call_Repository_Delete_When_Found()
+        {
+            // Arrange
+            var flow = TestEntityFactory.CreateCashFlow(1, new Money(100m, Currency.CAD), CashFlowType.Deposit, "Note");
+
+            _repoMock
+                .Setup(r => r.GetCashFlowByIdAsync(flow.Id, It.IsAny<CancellationToken>()))
+                .ReturnsAsync(flow);
+
+            _repoMock
+                .Setup(r => r.DeleteCashFlowAsync(flow, It.IsAny<CancellationToken>()))
+                .Returns(Task.CompletedTask)
+                .Verifiable();
+
+            // Act
+            await _service.DeleteCashFlowAsync(flow.Id);
+
+            // Assert
+            _repoMock.Verify(r => r.GetCashFlowByIdAsync(flow.Id, It.IsAny<CancellationToken>()), Times.Once);
+            _repoMock.Verify(r => r.DeleteCashFlowAsync(flow, It.IsAny<CancellationToken>()), Times.Once);
+        }
+
+        [Fact]
+        public async Task DeleteCashFlowAsync_Should_Throw_When_CashFlow_NotFound()
+        {
+            // Arrange
+            var cashFlowId = 999;
+            _repoMock
+                .Setup(r => r.GetCashFlowByIdAsync(cashFlowId, It.IsAny<CancellationToken>()))
+                .ReturnsAsync((CashFlow?)null);
+
+            // Act
+            Func<Task> act = () => _service.DeleteCashFlowAsync(cashFlowId);
+
+            // Assert
+            await act.Should().ThrowAsync<Exception>().WithMessage("Cash flow not found.");
+            _repoMock.Verify(r => r.GetCashFlowByIdAsync(cashFlowId, It.IsAny<CancellationToken>()), Times.Once);
+            _repoMock.Verify(r => r.DeleteCashFlowAsync(It.IsAny<CashFlow>(), It.IsAny<CancellationToken>()), Times.Never);
+        }
+
     }
 }

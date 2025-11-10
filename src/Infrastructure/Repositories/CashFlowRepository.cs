@@ -27,6 +27,23 @@ namespace PM.Infrastructure.Repositories
             return flow;
         }
 
+        public async Task DeleteCashFlowAsync(CashFlow flow, CancellationToken ct = default)
+        {
+            _context.CashFlows.Remove(flow);
+            int deleted = await _context.SaveChangesAsync(ct);
+            if (deleted == 0)
+            {
+                throw new Exception("Failed to delete cash flow.");
+            }
+        }
+
+        public async Task<CashFlow?> GetCashFlowByIdAsync(int cashFlowId, CancellationToken ct = default)
+        {
+            return await _context.CashFlows
+                .AsNoTracking()
+                .FirstOrDefaultAsync(f => f.Id == cashFlowId, ct);
+        }
+
         public async Task<IEnumerable<CashFlow>> GetCashFlowsAsync(int accountId, DateOnly? from = null, DateOnly? to = null, CancellationToken ct = default)
         {
             var query = _context.CashFlows

@@ -29,6 +29,18 @@ namespace PM.Application.Services
             return await _repo.RecordCashFlowAsync(flow, ct);
         }
 
+        public async Task<CashFlow?> GetCashFlowByIdAsync(int cashFlowId, CancellationToken ct = default)
+            => await _repo.GetCashFlowByIdAsync(cashFlowId, ct);
+
+        public async Task DeleteCashFlowAsync(int cashFlowId, CancellationToken ct = default)
+        {
+            var flow = await _repo.GetCashFlowByIdAsync(cashFlowId, ct);
+            if (flow is null)
+                throw new Exception("Cash flow not found.");
+
+            await _repo.DeleteCashFlowAsync(flow, ct);
+        }
+
         public async Task<IEnumerable<CashFlow>> GetCashFlowsAsync(Account account, DateOnly? from = null, DateOnly? to = null, CancellationToken ct = default)
             => await _repo.GetCashFlowsAsync(account.Id, from, to, ct);
 

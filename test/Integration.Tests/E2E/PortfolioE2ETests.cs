@@ -48,6 +48,7 @@ public class PortfolioE2ETests : E2EBaseTests
         fetchedTransaction.Type.Should().Be(TransactionType.Buy.ToString());
 
         // createdTransaction.CashFlowId
+        // createdTransaction.HoldingIds
 
         await CleanupPortfolioAsync(portfolio, account);
     }
