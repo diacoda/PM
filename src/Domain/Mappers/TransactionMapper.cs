@@ -65,4 +65,19 @@ public static class TransactionMapper
         };
     }
 
+    public static CreateTransactionDTO ToCreateDTO(Transaction tx)
+    {
+        return new CreateTransactionDTO
+        {
+            Type = tx.Type.ToString(),
+            Symbol = tx.Symbol.Code,
+            Quantity = tx.Quantity,
+            Amount = tx.Amount.Amount,
+            AmountCurrency = tx.Amount.Currency.Code,
+            Costs = tx.Costs?.Amount,
+            CostsCurrency = tx.Costs?.Currency.Code,
+            Date = tx.Date
+        };
+    }
+
 }

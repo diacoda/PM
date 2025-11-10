@@ -22,6 +22,7 @@
     <ProjectReference Include="../../src/Application/Application.csproj" />
     <ProjectReference Include="../../src/DTO/DTO.csproj" />
     <ProjectReference Include="../../src/WebApi/WebApi.csproj" />
+    <ProjectReference Include="../Utils.Tests/Utils.Tests.csproj" />
   </ItemGroup>
 
   <ItemGroup>
