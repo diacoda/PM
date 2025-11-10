@@ -12,6 +12,10 @@ Db/
 db/
 db
 **/Db/
+Dbe2e/
+dbe2e/
+dbe2e
+**/Dbe2e/
 .DS_Store
 publish/
 publish

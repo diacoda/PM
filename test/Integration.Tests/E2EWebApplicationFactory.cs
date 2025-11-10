@@ -3,10 +3,10 @@ using Microsoft.AspNetCore.Mvc.Testing;
 
 namespace PM.Integration.Tests;
 
-public class IntegrationWebApplicationFactory : WebApplicationFactory<Program>
+public class E2EWebApplicationFactory : WebApplicationFactory<Program>
 {
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
-        builder.UseEnvironment("IntegrationTests");
+        builder.UseEnvironment("E2ETests");
     }
 }

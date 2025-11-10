@@ -22,9 +22,9 @@ public static class DatabaseExtensions
             return services.AddInMemorySqliteDatabases();
 
         // Regular file-based SQLite for Development/Production
-        var portfolioPath = DatabasePathResolver.ResolveAbsolutePath("portfolio", config);
-        var cashFlowPath = DatabasePathResolver.ResolveAbsolutePath("cashFlow", config);
-        var valuationPath = DatabasePathResolver.ResolveAbsolutePath("valuation", config);
+        var portfolioPath = DatabasePathResolver.ResolveAbsolutePath("portfolio", config, env);
+        var cashFlowPath = DatabasePathResolver.ResolveAbsolutePath("cashFlow", config, env);
+        var valuationPath = DatabasePathResolver.ResolveAbsolutePath("valuation", config, env);
 
         services.AddDbContext<PortfolioDbContext>(options =>
             options.UseSqlite(DatabasePathResolver.BuildSqliteConnectionString(portfolioPath)));

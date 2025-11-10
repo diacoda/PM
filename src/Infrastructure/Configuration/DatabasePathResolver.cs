@@ -1,4 +1,5 @@
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Hosting;
 
 namespace PM.Infrastructure.Configuration;
 
@@ -11,26 +12,24 @@ public static class DatabasePathResolver
     /// 2) Configuration key "Database:RelativePath:{dbType}" relative to the solution root
     /// 3) Throws if solution root cannot be found (avoids accidental bin/... DB files)
     /// </summary>
-    public static string ResolveAbsolutePath(string dbType, IConfiguration configuration)
+    public static string ResolveAbsolutePath(string dbType, IConfiguration configuration, IHostEnvironment? env = null)
     {
-        // 0) explicit env override (per-db)
         var perDbEnv = Environment.GetEnvironmentVariable($"DB_PATH_{dbType.ToUpperInvariant()}");
         if (!string.IsNullOrWhiteSpace(perDbEnv))
             return Path.GetFullPath(perDbEnv);
 
-        // 1) explicit general env override (single DB path)
-        var envOverride = Environment.GetEnvironmentVariable("DB_PATH");
-        if (!string.IsNullOrWhiteSpace(envOverride))
-            return Path.GetFullPath(envOverride);
+        string solutionRoot = TryFindSolutionRoot() ?? throw new InvalidOperationException("Could not locate solution root (.sln). Set DB_PATH_{DBTYPE} environment variable if running outside the repo.");
 
-        // 2) find solution root deterministically by trying multiple plausible start points
-        var solutionRoot = TryFindSolutionRoot() ?? throw new InvalidOperationException(
-            "Could not locate solution root (.sln). Set DB_PATH or DB_PATH_{DBTYPE} environment variable if running outside the repo.");
+        if (env != null && env.IsEnvironment("E2ETests"))
+        {
+            var relativee2e = configuration[$"Database:RelativePath:E2ETests:{dbType}"] ?? $"dbe2e/{dbType}.db";
+            var absolutee2e = Path.GetFullPath(Path.Combine(solutionRoot, relativee2e));
+            Directory.CreateDirectory(Path.GetDirectoryName(absolutee2e)!);
+            return absolutee2e;
+        }
 
-        // 3) read relative path for this dbType
         string relative = configuration[$"Database:RelativePath:{dbType}"] ?? $"db/{dbType}.db";
         var absolute = Path.GetFullPath(Path.Combine(solutionRoot, relative));
-
         Directory.CreateDirectory(Path.GetDirectoryName(absolute)!);
         return absolute;
     }
