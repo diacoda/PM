@@ -7,6 +7,7 @@ using Xunit;
 
 namespace PM.Integration.Tests;
 
+[Collection("IntegrationTests")]
 public class TagsControllerIntegrationTests : IClassFixture<CustomWebApplicationFactory>
 {
     private readonly HttpClient _client;
