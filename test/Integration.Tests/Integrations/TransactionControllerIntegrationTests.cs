@@ -5,15 +5,16 @@ using Microsoft.AspNetCore.Mvc.Testing;
 using PM.DTO;
 using PM.Domain.Enums;
 using Xunit;
+using PM.Integration.Tests;
 
-namespace PM.Integration.Tests;
+namespace PM.Integration.Integrations.Tests;
 
 [Collection("IntegrationTests")]
-public class TransactionControllerIntegrationTests : IClassFixture<CustomWebApplicationFactory>
+public class TransactionControllerIntegrationTests : IClassFixture<IntegrationWebApplicationFactory>
 {
     private readonly HttpClient _client;
 
-    public TransactionControllerIntegrationTests(CustomWebApplicationFactory factory)
+    public TransactionControllerIntegrationTests(IntegrationWebApplicationFactory factory)
     {
         _client = factory.CreateClient();
     }

@@ -3,16 +3,17 @@ using System.Net.Http.Json;
 using FluentAssertions;
 using Microsoft.AspNetCore.Mvc.Testing;
 using PM.DTO;
+using PM.Integration.Tests;
 using Xunit;
 
-namespace PM.Integration.Tests;
+namespace PM.Integration.Integrations.Tests;
 
 [Collection("IntegrationTests")]
-public class TagsControllerIntegrationTests : IClassFixture<CustomWebApplicationFactory>
+public class TagsControllerIntegrationTests : IClassFixture<IntegrationWebApplicationFactory>
 {
     private readonly HttpClient _client;
 
-    public TagsControllerIntegrationTests(CustomWebApplicationFactory factory)
+    public TagsControllerIntegrationTests(IntegrationWebApplicationFactory factory)
     {
         _client = factory.CreateClient();
     }

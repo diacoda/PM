@@ -3,15 +3,16 @@ using System.Net.Http.Json;
 using FluentAssertions;
 using Microsoft.AspNetCore.Mvc;
 using PM.Domain.Values;
+using PM.Integration.Tests;
 
-namespace PM.Integration.Tests;
+namespace PM.Integration.Integrations.Tests;
 
 [Collection("IntegrationTests")]
-public class FxRatesControllerIntegrationTests : IClassFixture<CustomWebApplicationFactory>
+public class FxRatesControllerIntegrationTests : IClassFixture<IntegrationWebApplicationFactory>
 {
     private readonly HttpClient _client;
 
-    public FxRatesControllerIntegrationTests(CustomWebApplicationFactory factory)
+    public FxRatesControllerIntegrationTests(IntegrationWebApplicationFactory factory)
     {
         _client = factory.CreateClient();
     }

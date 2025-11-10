@@ -8,7 +8,7 @@ using System.Linq;
 
 namespace PM.Integration.Tests;
 
-public class CustomWebApplicationFactory : WebApplicationFactory<Program>
+public class IntegrationWebApplicationFactory : WebApplicationFactory<Program>
 {
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
