@@ -129,6 +129,7 @@ public class TransactionWorkflowService : ITransactionWorkflowService
                 }
 
             case TransactionType.Dividend:
+            case TransactionType.Interest:
                 {
                     var cashHolding = await _holdingService.UpsertHoldingAsync(
                         tx.AccountId,
