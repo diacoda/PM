@@ -126,6 +126,7 @@ namespace PM.Infrastructure.Repositories.Tests
         [InlineData(CashFlowType.Withdrawal, -100)]
         [InlineData(CashFlowType.Fee, -100)]
         [InlineData(CashFlowType.Dividend, 100)]
+        [InlineData(CashFlowType.Interest, 100)]
         public async Task GetNetCashFlowAsync_Should_Respect_Type_Signs(
             CashFlowType type, decimal expected)
         {

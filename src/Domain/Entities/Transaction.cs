@@ -18,7 +18,7 @@ namespace PM.Domain.Entities
         public DateOnly Date { get; set; }
 
         /// <summary>
-        /// Gets or sets the type of the transaction (e.g., Buy, Sell, Dividend).
+        /// Gets or sets the type of the transaction (e.g., Buy, Sell, Dividend, Interest).
         /// </summary>
         public TransactionType Type { get; set; }
 

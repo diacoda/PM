@@ -37,6 +37,7 @@ public class TransactionWorkflowService : ITransactionWorkflowService
                 TransactionType.Buy => CashFlowType.Buy,
                 TransactionType.Sell => CashFlowType.Sell,
                 TransactionType.Dividend => CashFlowType.Dividend,
+                TransactionType.Interest => CashFlowType.Interest,
                 _ => CashFlowType.Other
             };
 
