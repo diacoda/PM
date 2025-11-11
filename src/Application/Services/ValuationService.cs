@@ -50,9 +50,9 @@ namespace PM.Application.Services
             var cash = new Money(cashAmt, reportingCurrency);
             var secs = new Money(total.Amount - cashAmt, reportingCurrency);
 
-            decimal divNet = 0m;
+            decimal netIncome = 0m;
             foreach (var account in portfolio.Accounts)
-                divNet += SumAccountNetDividendsForDay(account, date, reportingCurrency);
+                netIncome += SumAccountNetIncomeForDay(account, date, reportingCurrency);
 
             return new ValuationSnapshot
             {
@@ -62,7 +62,7 @@ namespace PM.Application.Services
                 PortfolioId = portfolio.Id,
                 SecuritiesValue = secs,
                 CashValue = cash,
-                IncomeForDay = divNet == 0m ? null : new Money(divNet, reportingCurrency)
+                IncomeForDay = netIncome == 0m ? null : new Money(netIncome, reportingCurrency)
             };
         }
 
@@ -87,7 +87,7 @@ namespace PM.Application.Services
             var cash = new Money(cashAmt, reportingCurrency);
             var secs = new Money(total.Amount - cashAmt, reportingCurrency);
 
-            var divNet = SumAccountNetDividendsForDay(account, date, reportingCurrency);
+            var netIncome = SumAccountNetIncomeForDay(account, date, reportingCurrency);
 
             return new ValuationSnapshot
             {
@@ -97,7 +97,7 @@ namespace PM.Application.Services
                 AccountId = account.Id,
                 SecuritiesValue = secs,
                 CashValue = cash,
-                IncomeForDay = divNet == 0m ? null : new Money(divNet, reportingCurrency)
+                IncomeForDay = netIncome == 0m ? null : new Money(netIncome, reportingCurrency)
             };
         }
 
@@ -239,16 +239,17 @@ namespace PM.Application.Services
             return cash;
         }
 
-        private decimal SumAccountNetDividendsForDay(Account account, DateOnly date, Currency reportingCurrency)
+        private decimal SumAccountNetIncomeForDay(Account account, DateOnly date, Currency reportingCurrency)
         {
             var net = account.Transactions
-                .Where(t => t.Type == TransactionType.Dividend && t.Date == date)
+                .Where(t => t.Type.IsIncome() && t.Date == date)
                 .Where(t => t.Amount.Currency == reportingCurrency)
                 .Sum(t => (t.Amount.Amount - (t.Costs?.Amount ?? 0m)));
             return net;
         }
 
-        //read
+        // ---------------- READ ----------------
+
         public async Task<ValuationSnapshot?> GetLatestAsync(
             EntityKind kind,
             int entityId,

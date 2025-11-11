@@ -52,7 +52,7 @@ public class TransactionWorkflowService : ITransactionWorkflowService
         }
 
         IReadOnlyList<Holding?> holdings = await ApplyToHoldingsAsync(tx, ct);
-        txDto.HoldingIds = holdings.Select(h => h.Id).ToArray();
+        txDto.HoldingIds = holdings.Select(h => h!.Id).ToArray();
 
         return txDto;
     }

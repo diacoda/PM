@@ -11,7 +11,7 @@ using PM.Utils.Tests;
 using PM.DTO;
 using Xunit;
 
-namespace M.Application.Services.Tests
+namespace PM.Application.Services.Tests
 {
     public class TagServiceTests
     {
