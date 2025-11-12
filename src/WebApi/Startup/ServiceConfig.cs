@@ -37,6 +37,7 @@ namespace PM.API.Startup
             services.AddScoped<IFxRateService, FxRateService>();
             services.AddScoped<ITransactionWorkflowService, TransactionWorkflowService>();
             services.AddScoped<ITagService, TagService>();
+            services.AddScoped<IReportingService, ReportingService>();
 
             return services;
         }
