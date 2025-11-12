@@ -168,7 +168,6 @@ namespace PM.Application.Services.Tests
 
             Assert.Equal(3, costs.Count); // Buy, Sell, Dividend, Interest
             var buy = costs.FirstOrDefault(c => c.Type == TransactionType.Buy);
-            Assert.NotNull(buy);
             Assert.Equal(10m, buy.TotalCosts);
         }
 

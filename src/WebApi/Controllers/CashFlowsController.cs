@@ -23,9 +23,7 @@ namespace PM.API.Controllers
             _cashFlowService = cashFlowService;
         }
 
-        /// <summary> /// <summary>
-        /// Deletes a cash flow by ID.
-        /// </summary>
+        /// <summary>Deletes a cash flow by ID.</summary>
         /// <param name="id">The ID of the cash flow to delete.</param>
         /// <param name="ct">Cancellation token.</param>
         /// <returns>Returns 204 No Content if deleted, or 404 if the cash flow does not exist.</returns>
