@@ -6,17 +6,23 @@ namespace PM.API.HostedServices;
 public class PriceJobOptions
 {
     /// <summary>
-    /// Time zone identifier (e.g., "America/Toronto").
+    /// The time of day to attempt fetching daily prices (wall-clock local time).
+    /// Example: 18:30:00 (6:30pm)
     /// </summary>
-    public string TimeZone { get; set; } = "Local";
+    public TimeSpan RunTime { get; set; } = TimeSpan.FromHours(18.5);
 
     /// <summary>
-    /// Time of day to start fetching prices (usually after market close).
+    /// How many minutes between retries during the same market day if not all prices are available.
     /// </summary>
-    public TimeSpan RunTime { get; set; } = new TimeSpan(18, 0, 0);
+    public int RetryIntervalMinutes { get; set; } = 10;
 
     /// <summary>
-    /// How often to retry fetching prices (in minutes) when data is not yet available.
+    /// Safety buffer in minutes after RunTime to allow exchange prints to settle, e.g. 5-30 minutes.
     /// </summary>
-    public int RetryIntervalMinutes { get; set; } = 30;
+    public int CloseBufferMinutes { get; set; } = 10;
+
+    /// <summary>
+    /// Path for storing last-run state file (optional).
+    /// </summary>
+    public string StateFilePath { get; set; } = "last_run.json";
 }

@@ -1,186 +1,152 @@
+// DailyPriceService.cs
 using Microsoft.Extensions.Options;
-using PM.Application.Commands;
 using PM.Application.Interfaces;
-using System.Text.Json;
+using PM.Application.Mappers;
+using PM.Domain.Events;
+using PM.SharedKernel;
+using System;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace PM.API.HostedServices;
 
-/// <summary>
-/// Background service responsible for fetching daily market prices
-/// once markets are closed. Retries same-day until success, then waits
-/// until the next market open day.
-/// </summary>
 public class DailyPriceService : BackgroundService
 {
-    private readonly IServiceProvider _services;
     private readonly ILogger<DailyPriceService> _logger;
     private readonly PriceJobOptions _options;
+    private readonly IDailyPriceAggregator _aggregator;
     private readonly IMarketCalendar _calendar;
+    private readonly IDomainEventPublisher _publisher;
+    private readonly StatePersistence _statePersistence;
 
-    private const string StateFilePath = "last_run.json";
-
-    /// <summary>
-    /// Daily price service constructor
-    /// </summary>
-    /// <param name="services"></param>
-    /// <param name="logger"></param>
-    /// <param name="options"></param>
-    /// <param name="calendar"></param>
     public DailyPriceService(
-        IServiceProvider services,
         ILogger<DailyPriceService> logger,
         IOptions<PriceJobOptions> options,
-        IMarketCalendar calendar)
+        IDailyPriceAggregator aggregator,
+        IMarketCalendar calendar,
+        IDomainEventPublisher publisher)
     {
-        _services = services;
         _logger = logger;
         _options = options.Value;
+        _aggregator = aggregator;
         _calendar = calendar;
+        _publisher = publisher;
+        _statePersistence = new StatePersistence(_options.StateFilePath);
     }
 
-    /// <inheritdoc />
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        _logger.LogInformation("📈 DailyPriceJob started. RunTime: {runTime}", _options.RunTime);
+        _logger.LogInformation("📈 DailyPriceService started. RunTime: {RunTime}", _options.RunTime);
 
         while (!stoppingToken.IsCancellationRequested)
         {
             try
             {
                 var today = DateOnly.FromDateTime(DateTime.Today);
-                var lastRun = LoadLastRun();
+                var lastRun = _statePersistence.LoadLastSuccessfulRun();
 
-                // Skip if already successfully fetched today
                 if (lastRun == today)
                 {
-                    _logger.LogInformation("Prices already fetched today ({Date}), waiting for next market day.", today);
+                    _logger.LogInformation("Prices already fetched today ({Date}). Waiting until next market day.", today);
                     await DelayUntilNextMarketDay(stoppingToken);
                     continue;
                 }
 
+                // If markets closed today -> skip until next market day
                 if (!_calendar.IsMarketOpen(today))
                 {
-                    _logger.LogInformation("Market closed today ({Date}), waiting for next market day.", today);
+                    _logger.LogInformation("Market closed on {Date}. Waiting until next market day.", today);
                     await DelayUntilNextMarketDay(stoppingToken);
                     continue;
                 }
 
-                if (!_calendar.IsAfterMarketClose("TSX"))
+                // Wait until configured runtime + buffer (as "technically safe" time).
+                var safeRunDateTime = DateTime.Today.Add(_options.RunTime).AddMinutes(_options.CloseBufferMinutes);
+                var now = DateTime.Now;
+                if (now < safeRunDateTime)
                 {
-                    var nextRunTime = DateTime.Today.Add(_options.RunTime);
-                    var wait = nextRunTime - DateTime.Now;
-                    if (wait > TimeSpan.Zero)
+                    var wait = safeRunDateTime - now;
+                    _logger.LogInformation("Waiting {WaitMinutes} minutes until safe run time ({SafeTime:t}).", wait.TotalMinutes, safeRunDateTime);
+                    await Task.Delay(wait, stoppingToken);
+                }
+
+                // Attempt fetches repeatedly on the same trading day until success or until day ends.
+                var dayEnd = DateTime.Today.AddDays(1); // midnight local
+                bool success = false;
+
+                while (!stoppingToken.IsCancellationRequested && DateTime.Now < dayEnd)
+                {
+                    var startedAt = DateTime.UtcNow;
+                    _logger.LogInformation("Attempting fetch for {Date} at {Now}", today, DateTime.Now);
+                    var result = await _aggregator.RunOnceAsync(today, allowMarketClosed: false, ct: stoppingToken);
+
+                    // Determine success by absence of errors and at least one fetched price
+                    var allSucceeded = !result.Errors.Any() && result.Fetched.Any();
+
+                    // Publish domain event with full details
+                    var evt = new DailyPricesFetchedEvent(
+                        effectiveDate: today,
+                        runTimestamp: startedAt,
+                        allSucceeded: allSucceeded,
+                        fetchedCount: result.Fetched.Count,
+                        skippedCount: result.Skipped.Count,
+                        errorCount: result.Errors.Count,
+                        details: SymbolFetchDetailMapper.ToDomainList(result.Details),
+                        notes: allSucceeded ? "Success" : "Partial/Retry"
+                    );
+
+                    // publish without waiting for handlers (but await the Publish call)
+                    await _publisher.PublishAsync(evt, stoppingToken);
+
+                    if (allSucceeded)
                     {
-                        _logger.LogInformation("Waiting until market close ({NextRunTime:t}) to fetch prices...", nextRunTime);
-                        await Task.Delay(wait, stoppingToken);
+                        _statePersistence.SaveLastSuccessfulRun(today);
+                        _logger.LogInformation("✅ Successfully fetched prices for {Date}", today);
+                        success = true;
+                        break;
                     }
-                }
 
-                bool success = await TryFetchPrices(today, stoppingToken);
+                    // Not all available yet -> retry after configured interval
+                    _logger.LogWarning("⚠️ Not all prices ready for {Date}, retrying in {Minutes} minutes. Fetched:{Fetched}, Errors:{Errors}",
+                        today, _options.RetryIntervalMinutes, result.Fetched.Count, result.Errors.Count);
 
-                if (success)
-                {
-                    SaveLastRun(today);
-                    _logger.LogInformation("✅ Successfully fetched prices for {Date}", today);
-                    await DelayUntilNextMarketDay(stoppingToken);
-                }
-                else
-                {
-                    _logger.LogWarning("⚠️ Prices not ready yet for {Date}, retrying in {RetryMinutes} minutes.",
-                        today, _options.RetryIntervalMinutes);
                     await Task.Delay(TimeSpan.FromMinutes(_options.RetryIntervalMinutes), stoppingToken);
+
+                    // If markets close earlier than midnight, you could bail earlier by checking calendar.IsAfterMarketClose for all exchanges here.
+                    // For simplicity, we continue until midnight local time.
                 }
+
+                // Either succeeded or out of time for today -> wait until next market day
+                await DelayUntilNextMarketDay(stoppingToken);
             }
             catch (TaskCanceledException)
             {
-                // Graceful shutdown
-                break;
+                break; // graceful
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Unhandled exception in DailyPriceJob loop.");
+                _logger.LogError(ex, "Unhandled exception in DailyPriceService loop.");
+                // Backoff
                 await Task.Delay(TimeSpan.FromMinutes(5), stoppingToken);
             }
         }
 
-        _logger.LogInformation("🛑 DailyPriceJob stopping.");
+        _logger.LogInformation("🛑 DailyPriceService stopping.");
     }
 
-    /// <summary>
-    /// Executes the FetchDailyPricesCommand for the given date.
-    /// </summary>
-    private async Task<bool> TryFetchPrices(DateOnly date, CancellationToken token)
-    {
-        try
-        {
-            using var scope = _services.CreateScope();
-            var fetcher = scope.ServiceProvider.GetRequiredService<FetchDailyPricesCommand>();
-
-            var result = await fetcher.ExecuteAsync(date, allowMarketClosed: false);
-
-            _logger.LogInformation("Fetch completed: {Fetched} fetched, {Skipped} skipped, {Errors} errors",
-                result.Fetched.Count, result.Skipped.Count, result.Errors.Count);
-
-            if (result.Errors.Any())
-            {
-                foreach (var err in result.Errors)
-                    _logger.LogWarning("Fetch error: {Error}", err);
-            }
-
-            return result.Fetched.Count > 0 && !result.Errors.Any();
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error during FetchDailyPricesCommand execution.");
-            return false;
-        }
-    }
-
-    /// <summary>
-    /// Waits until the next market open day after today.
-    /// </summary>
     private async Task DelayUntilNextMarketDay(CancellationToken token)
     {
-        var next = DateOnly.FromDateTime(DateTime.Today.AddDays(1));
-        while (!_calendar.IsMarketOpen(next))
-            next = next.AddDays(1);
+        var candidate = DateOnly.FromDateTime(DateTime.Today.AddDays(1));
+        while (!_calendar.IsMarketOpen(candidate))
+            candidate = candidate.AddDays(1);
 
         var runTime = TimeOnly.FromTimeSpan(_options.RunTime);
-        var nextRunTime = next.ToDateTime(runTime);
-        var delay = nextRunTime - DateTime.Now;
+        var nextRun = candidate.ToDateTime(runTime);
+        var delay = nextRun - DateTime.Now;
 
-        _logger.LogInformation("⏳ Next run scheduled for {NextRunDateTime:g} ({Days} days from now)",
-            nextRunTime, delay.TotalDays);
+        _logger.LogInformation("⏳ Next run scheduled for {NextRun:g} ({Days} days from now)", nextRun, delay.TotalDays);
 
         if (delay > TimeSpan.Zero)
             await Task.Delay(delay, token);
-    }
-
-    /// <summary>
-    /// Saves the last successful run date to a local JSON file.
-    /// </summary>
-    private void SaveLastRun(DateOnly date)
-    {
-        var json = JsonSerializer.Serialize(date);
-        File.WriteAllText(StateFilePath, json);
-    }
-
-    /// <summary>
-    /// Loads the last successful run date from local JSON file.
-    /// </summary>
-    private DateOnly? LoadLastRun()
-    {
-        if (!File.Exists(StateFilePath))
-            return null;
-
-        try
-        {
-            var json = File.ReadAllText(StateFilePath);
-            return JsonSerializer.Deserialize<DateOnly>(json);
-        }
-        catch
-        {
-            return null;
-        }
     }
 }

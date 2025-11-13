@@ -5,6 +5,15 @@ namespace PM.Application.Interfaces;
 public interface IFxRateService
 {
     /// <summary>
+    /// Get from DB or fetch from provider the rate 
+    /// </summary>
+    /// <param name="fromCurrencyCode"></param>
+    /// <param name="toCurrencyCode"></param>
+    /// <param name="date"></param>
+    /// <param name="ct"></param>
+    /// <returns></returns>
+    Task<FxRate?> GetOrFetchRateAsync(string fromCurrencyCode, string toCurrencyCode, DateOnly date, CancellationToken ct = default);
+    /// <summary>
     /// Insert or update an FX rate for a currency pair and date.
     /// </summary>
     Task<FxRate> UpdateRateAsync(string fromCurrencyCode, string toCurrencyCode, decimal rate, DateOnly date, CancellationToken ct = default);
