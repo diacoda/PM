@@ -33,6 +33,7 @@ namespace PM.API.Startup
         {
             services.AddScoped<IDomainEventDispatcher, DomainEventDispatcher>();
             services.AddScoped<SendNotificationOnTransactionAdded>(); // handler
+            services.AddScoped<DailyPricesFetchedEventHandler>();
 
             services.AddSingleton<IDomainEventPublisher>(sp =>
             {
@@ -40,6 +41,7 @@ namespace PM.API.Startup
                     sp.GetRequiredService<IServiceScopeFactory>());
 
                 publisher.Subscribe<TransactionAddedEvent, SendNotificationOnTransactionAdded>();
+                publisher.Subscribe<DailyPricesFetchedEvent, DailyPricesFetchedEventHandler>();
 
                 return publisher;
             });
