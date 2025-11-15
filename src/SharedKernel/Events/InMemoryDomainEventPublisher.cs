@@ -1,3 +1,4 @@
+using System.Reflection.Metadata;
 using Microsoft.Extensions.DependencyInjection;
 namespace PM.SharedKernel.Events;
 
@@ -40,16 +41,14 @@ public class InMemoryDomainEventPublisher : IDomainEventPublisher
 
         foreach (var factory in factories)
         {
-            IDomainEventHandler<TEvent> handler = null;
             try
             {
-                handler = (IDomainEventHandler<TEvent>)factory(sp);
+                var handler = (IDomainEventHandler<TEvent>)factory(sp);
                 await handler.Handle(domainEvent, ct);
             }
             catch (Exception ex)
             {
-                // log but continue
-                Console.WriteLine($"Handler {handler?.GetType().Name} failed: {ex}");
+                Console.WriteLine($"Handler of type {factory.Method.DeclaringType?.Name ?? "unknown"} failed: {ex}");
             }
         }
     }

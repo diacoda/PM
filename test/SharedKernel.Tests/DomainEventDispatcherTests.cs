@@ -23,9 +23,8 @@ public class DomainEventDispatcherTests
         await dispatcher.DispatchEntityEventsAsync(entity);
 
         // Assert
-
-        publisher.Verify(p => p.PublishAsync(It.Is<IDomainEvent>(e => e == evt1), It.IsAny<CancellationToken>()), Times.Once);
-        publisher.Verify(p => p.PublishAsync(It.Is<IDomainEvent>(e => e == evt2), It.IsAny<CancellationToken>()), Times.Once);
+        publisher.Verify(p => p.PublishAsync(It.Is<IDomainEvent>(e => (TestEvent)e == evt1), It.IsAny<CancellationToken>()), Times.Once);
+        publisher.Verify(p => p.PublishAsync(It.Is<IDomainEvent>(e => (TestEvent)e == evt2), It.IsAny<CancellationToken>()), Times.Once);
 
         Assert.Empty(entity.DomainEvents);
     }
