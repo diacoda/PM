@@ -5,7 +5,7 @@ using PM.Domain.Events;
 using PM.Domain.Mappers;
 using PM.Domain.Values;
 using PM.DTO;
-using PM.SharedKernel;
+using PM.SharedKernel.Events;
 
 namespace PM.Application.Services;
 

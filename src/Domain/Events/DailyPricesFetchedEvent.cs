@@ -1,11 +1,8 @@
-// Events/DailyPricesFetchedEvent.cs
-using System;
-using System.Collections.Generic;
-using PM.Domain.Enums;
 using PM.Domain.Values;
+using PM.SharedKernel.Events;
 namespace PM.Domain.Events;
 
-public class DailyPricesFetchedEvent
+public class DailyPricesFetchedEvent : IDomainEvent
 {
     public DateOnly EffectiveDate { get; }
     public DateTime RunTimestamp { get; }

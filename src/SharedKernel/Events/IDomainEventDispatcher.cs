@@ -1,4 +1,4 @@
-namespace PM.SharedKernel;
+namespace PM.SharedKernel.Events;
 
 public interface IDomainEventDispatcher
 {

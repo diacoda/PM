@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using PM.SharedKernel.Events;
 
 namespace PM.SharedKernel
 {

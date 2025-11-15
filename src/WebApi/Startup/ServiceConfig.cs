@@ -3,7 +3,7 @@ using PM.Application.Commands;
 using PM.Application.Interfaces;
 using PM.Application.Services;
 using PM.Domain.Events;
-using PM.SharedKernel;
+using PM.SharedKernel.Events;
 
 namespace PM.API.Startup
 {
@@ -32,7 +32,7 @@ namespace PM.API.Startup
         public static IServiceCollection AddApplicationServices(this IServiceCollection services)
         {
             services.AddScoped<IDomainEventDispatcher, DomainEventDispatcher>();
-            services.AddScoped<SendNotificationOnTransactionAdded>(); // handler
+            services.AddScoped<SendNotificationOnTransactionAdded>();
             services.AddScoped<DailyPricesFetchedEventHandler>();
 
             services.AddSingleton<IDomainEventPublisher>(sp =>
@@ -40,8 +40,9 @@ namespace PM.API.Startup
                 var publisher = new InMemoryDomainEventPublisher(
                     sp.GetRequiredService<IServiceScopeFactory>());
 
-                publisher.Subscribe<TransactionAddedEvent, SendNotificationOnTransactionAdded>();
-                publisher.Subscribe<DailyPricesFetchedEvent, DailyPricesFetchedEventHandler>();
+                // Manual subscription
+                publisher.Register<TransactionAddedEvent, SendNotificationOnTransactionAdded>();
+                publisher.Register<DailyPricesFetchedEvent, DailyPricesFetchedEventHandler>();
 
                 return publisher;
             });

@@ -3,6 +3,7 @@ using PM.Application.Interfaces;
 using PM.Application.Mappers;
 using PM.Domain.Events;
 using PM.SharedKernel;
+using PM.SharedKernel.Events;
 using System;
 using System.Threading;
 using System.Threading.Tasks;

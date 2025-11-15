@@ -8,6 +8,7 @@ using PM.Domain.Entities;
 using PM.Domain.Enums;
 using PM.Domain.Values;
 using PM.SharedKernel;
+using PM.SharedKernel.Events;
 using PM.Utils.Tests;
 using Xunit;
 

@@ -1,4 +1,4 @@
-using PM.SharedKernel;
+using PM.SharedKernel.Events;
 
 namespace PM.Domain.Events;
 
