@@ -1,40 +1,63 @@
+using Microsoft.Extensions.DependencyInjection;
+
 namespace PM.SharedKernel;
 
 public class InMemoryDomainEventPublisher : IDomainEventPublisher
 {
-    private readonly Dictionary<Type, List<Func<object, CancellationToken, Task>>> _handlers
-        = new();
+    private readonly IServiceScopeFactory _scopeFactory;
+    private readonly Dictionary<Type, List<Type>> _handlerTypes = new();
 
-    public void Subscribe<TEvent>(Func<TEvent, CancellationToken, Task> handler) where TEvent : class
+    public InMemoryDomainEventPublisher(IServiceScopeFactory scopeFactory)
     {
-        var t = typeof(TEvent);
-        if (!_handlers.TryGetValue(t, out var list))
-        {
-            list = new List<Func<object, CancellationToken, Task>>();
-            _handlers[t] = list;
-        }
-
-        list.Add((o, ct) => handler((TEvent)o, ct));
+        _scopeFactory = scopeFactory;
     }
 
-    public async Task PublishAsync<TEvent>(TEvent @event, CancellationToken ct = default) where TEvent : class
+    public void Subscribe<TEvent, THandler>()
+        where TEvent : class
+        where THandler : IDomainEventHandler<TEvent>
     {
         var t = typeof(TEvent);
-        if (!_handlers.TryGetValue(t, out var list)) return;
-        // fire handlers concurrently but don't block entire method from observing exceptions
-        var tasks = list.Select(h => SafeInvoke(h, @event, ct)).ToArray();
+
+        if (!_handlerTypes.TryGetValue(t, out var list))
+        {
+            list = new List<Type>();
+            _handlerTypes[t] = list;
+        }
+
+        list.Add(typeof(THandler));
+    }
+
+    public async Task PublishAsync<TEvent>(TEvent @event, CancellationToken ct = default)
+        where TEvent : class
+    {
+        var t = typeof(TEvent);
+
+        if (!_handlerTypes.TryGetValue(t, out var handlers))
+            return;
+
+        var tasks = handlers.Select(async handlerType =>
+        {
+            using var scope = _scopeFactory.CreateScope();
+
+            var handler = (IDomainEventHandler<TEvent>)scope
+                .ServiceProvider
+                .GetRequiredService(handlerType);
+
+            await SafeInvoke(() => handler.Handle(@event, ct));
+        });
+
         await Task.WhenAll(tasks);
     }
 
-    private static async Task SafeInvoke(Func<object, CancellationToken, Task> handler, object evt, CancellationToken ct)
+    private static async Task SafeInvoke(Func<Task> handler)
     {
         try
         {
-            await handler(evt, ct).ConfigureAwait(false);
+            await handler().ConfigureAwait(false);
         }
         catch (Exception ex)
         {
-            Console.WriteLine(ex.Message);
+            Console.WriteLine(ex);
         }
     }
 }

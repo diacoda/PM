@@ -1,7 +1,9 @@
 using PM.SharedKernel;
 using PM.Domain.Events;
+namespace PM.Application.Commands;
 
-public class SendNotificationOnTransactionAdded : IDomainEventHandler<TransactionAddedEvent>
+public class SendNotificationOnTransactionAdded
+    : IDomainEventHandler<TransactionAddedEvent>
 {
     public Task Handle(TransactionAddedEvent evt, CancellationToken ct)
     {

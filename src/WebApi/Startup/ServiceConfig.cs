@@ -1,4 +1,5 @@
 using Microsoft.Extensions.DependencyInjection;
+using PM.Application.Commands;
 using PM.Application.Interfaces;
 using PM.Application.Services;
 using PM.Domain.Events;
@@ -31,22 +32,18 @@ namespace PM.API.Startup
         public static IServiceCollection AddApplicationServices(this IServiceCollection services)
         {
             services.AddScoped<IDomainEventDispatcher, DomainEventDispatcher>();
-            services.AddScoped<SendNotificationOnTransactionAdded>();
+            services.AddScoped<SendNotificationOnTransactionAdded>(); // handler
+
             services.AddSingleton<IDomainEventPublisher>(sp =>
             {
-                var pub = new InMemoryDomainEventPublisher();
+                var publisher = new InMemoryDomainEventPublisher(
+                    sp.GetRequiredService<IServiceScopeFactory>());
 
-                // register handlers here
-                pub.Subscribe<TransactionAddedEvent>(async (evt, ct) =>
-                {
-                    using var scope = sp.CreateScope();
-                    var scopedProvider = scope.ServiceProvider;
-                    var handler = scopedProvider.GetRequiredService<SendNotificationOnTransactionAdded>();
-                    await handler.Handle(evt, ct);
-                });
+                publisher.Subscribe<TransactionAddedEvent, SendNotificationOnTransactionAdded>();
 
-                return pub;
+                return publisher;
             });
+
             services.AddScoped<IAccountService, AccountService>();
             services.AddScoped<IHoldingService, HoldingService>();
             services.AddScoped<ITransactionService, TransactionService>();

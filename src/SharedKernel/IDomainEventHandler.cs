@@ -1,6 +1,6 @@
 namespace PM.SharedKernel;
 
-public interface IDomainEventHandler<in T> where T : IDomainEvent
+public interface IDomainEventHandler<TEvent>
 {
-    Task Handle(T domainEvent, CancellationToken cancellationToken);
+    Task Handle(TEvent @event, CancellationToken ct);
 }
