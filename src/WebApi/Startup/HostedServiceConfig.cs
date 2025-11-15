@@ -32,6 +32,7 @@ namespace PM.API.Startup
         /// </example>
         public static IServiceCollection AddHostedJobs(this IServiceCollection services, IConfiguration config)
         {
+            
             // Bind market holidays from configuration and register a singleton calendar
             var holidays = config.GetSection("MarketHolidays").Get<MarketHolidaysConfig>() ?? new MarketHolidaysConfig();
             services.AddSingleton<IMarketCalendar>(new MarketCalendar(holidays));

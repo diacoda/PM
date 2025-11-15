@@ -12,7 +12,7 @@ public class DomainEventDispatcher : IDomainEventDispatcher
     public async Task DispatchEntityEventsAsync(Entity entity, CancellationToken ct = default)
     {
         foreach (var evt in entity.DomainEvents)
-            await _publisher.PublishAsync(evt, ct);
+            await _publisher.PublishAsync((dynamic)evt, ct);
 
         entity.ClearDomainEvents();
     }

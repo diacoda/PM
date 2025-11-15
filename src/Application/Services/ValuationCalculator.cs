@@ -4,6 +4,7 @@ using PM.Domain.Values;
 using PM.SharedKernel;
 
 namespace PM.Application.Services;
+
 public class ValuationCalculator : IValuationCalculator
 {
     private readonly IPortfolioRepository _portfolioRepository;
@@ -15,9 +16,24 @@ public class ValuationCalculator : IValuationCalculator
         _valuationService = valuationService;
     }
 
-    public async Task CalculateAccountValuationAsync(DateOnly date, int portfolioId, int accountId, IEnumerable<ValuationPeriod> periods, CancellationToken ct = default)
+    public async Task CalculateAccountValuationAsync(DateOnly date, int portfolioId, int accountId, string reportingCurrency, IEnumerable<ValuationPeriod> periods, CancellationToken ct = default)
     {
-        
+        Currency reportCurrency = new Currency(reportingCurrency);
+        var accountValuation = await _valuationService.GenerateAccountValuationSnapshot(
+            portfolioId, accountId, date, reportCurrency, ct);
+
+        foreach (var period in periods)
+        {
+            await _valuationService.StoreAccountValuation(portfolioId, accountId, accountValuation, date, period, ct);
+        }
+
+        var accountAssetClassValuation = await _valuationService.GenerateAccountAssetClassValuationSnapshot(
+            portfolioId, accountId, date, reportCurrency, ct);
+
+        foreach (var period in periods)
+        {
+            await _valuationService.StoreAccountAssetClassValuation(portfolioId, accountId, accountAssetClassValuation, date, period, ct);
+        }
     }
 
     public async Task CalculateValuationsAsync(DateOnly date, IEnumerable<ValuationPeriod> periods, CancellationToken ct = default)
