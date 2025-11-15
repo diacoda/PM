@@ -15,6 +15,11 @@ public class ValuationCalculator : IValuationCalculator
         _valuationService = valuationService;
     }
 
+    public async Task CalculateAccountValuationAsync(DateOnly date, int portfolioId, int accountId, IEnumerable<ValuationPeriod> periods, CancellationToken ct = default)
+    {
+        
+    }
+
     public async Task CalculateValuationsAsync(DateOnly date, IEnumerable<ValuationPeriod> periods, CancellationToken ct = default)
     {
         var portfolios = await _portfolioRepository.ListWithIncludesAsync(

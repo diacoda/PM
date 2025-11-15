@@ -4,5 +4,5 @@ namespace PM.Application.Interfaces;
 
 public interface ITransactionWorkflowService
 {
-    Task<TransactionDTO> ProcessTransactionAsync(Transaction tx, CancellationToken ct = default);
+    Task<TransactionDTO> ProcessTransactionAsync(int portfolioId, Transaction tx, CancellationToken ct = default);
 }

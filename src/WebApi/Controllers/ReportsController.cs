@@ -55,11 +55,11 @@ public sealed class ReportingController : ControllerBase
     [ProducesResponseType(typeof(List<AssetClassAmountDTO>), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> AggregateByAssetClassForAccount(
-    [FromRoute] int portfolioId,
-    [FromRoute] int accountId,
-    [FromQuery][Required] DateOnly date,
-    [FromQuery][Required] string currency,
-    CancellationToken ct)
+        [FromRoute] int portfolioId,
+        [FromRoute] int accountId,
+        [FromQuery][Required] DateOnly date,
+        [FromQuery][Required] string currency,
+        CancellationToken ct)
     {
         var accountDto = await _accounts.GetAccountWithIncludesAsync(portfolioId, accountId, NeedsHoldings, ct);
         if (accountDto is null) return NotFound();
@@ -82,11 +82,11 @@ public sealed class ReportingController : ControllerBase
     [ProducesResponseType(typeof(List<AssetClassPercentageDTO>), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> AssetClassPercentagesForAccount(
-    [FromRoute] int portfolioId,
-    [FromRoute] int accountId,
-    [FromQuery][Required] DateOnly date,
-    [FromQuery][Required] string currency,
-    CancellationToken ct)
+        [FromRoute] int portfolioId,
+        [FromRoute] int accountId,
+        [FromQuery][Required] DateOnly date,
+        [FromQuery][Required] string currency,
+        CancellationToken ct)
     {
         var accountDto = await _accounts.GetAccountWithIncludesAsync(portfolioId, accountId, NeedsHoldings, ct);
         if (accountDto is null) return NotFound();
@@ -109,11 +109,11 @@ public sealed class ReportingController : ControllerBase
     [ProducesResponseType(typeof(List<TradingCostsByCurrencyDTO>), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> TradingCostsByCurrencyForAccount(
-    [FromRoute] int portfolioId,
-    [FromRoute] int accountId,
-    [FromQuery][Required] DateOnly from,
-    [FromQuery][Required] DateOnly to,
-    CancellationToken ct)
+        [FromRoute] int portfolioId,
+        [FromRoute] int accountId,
+        [FromQuery][Required] DateOnly from,
+        [FromQuery][Required] DateOnly to,
+        CancellationToken ct)
     {
         if (from > to) return ValidationProblem("'from' must be <= 'to'.");
 
@@ -134,11 +134,11 @@ public sealed class ReportingController : ControllerBase
     [ProducesResponseType(typeof(List<TransactionCostSummaryDTO>), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> TransactionCostSummariesForAccount(
-    [FromRoute] int portfolioId,
-    [FromRoute] int accountId,
-    [FromQuery][Required] DateOnly from,
-    [FromQuery][Required] DateOnly to,
-    CancellationToken ct)
+        [FromRoute] int portfolioId,
+        [FromRoute] int accountId,
+        [FromQuery][Required] DateOnly from,
+        [FromQuery][Required] DateOnly to,
+        CancellationToken ct)
     {
         if (from > to) return ValidationProblem("'from' must be <= 'to'.");
 
@@ -157,11 +157,11 @@ public sealed class ReportingController : ControllerBase
     [ProducesResponseType(typeof(List<TradingCostsByCurrencyDTO>), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> TransactionCostsBySecurityForAccount(
-    [FromRoute] int portfolioId,
-    [FromRoute] int accountId,
-    [FromQuery][Required] DateOnly from,
-    [FromQuery][Required] DateOnly to,
-    CancellationToken ct)
+        [FromRoute] int portfolioId,
+        [FromRoute] int accountId,
+        [FromQuery][Required] DateOnly from,
+        [FromQuery][Required] DateOnly to,
+        CancellationToken ct)
     {
         if (from > to) return ValidationProblem("'from' must be <= 'to'.");
 
@@ -190,10 +190,10 @@ public sealed class ReportingController : ControllerBase
     [ProducesResponseType(typeof(List<AssetClassAmountDTO>), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> AggregateByAssetClassForPortfolio(
-    [FromRoute] int portfolioId,
-    [FromQuery][Required] DateOnly date,
-    [FromQuery][Required] string currency,
-    CancellationToken ct)
+        [FromRoute] int portfolioId,
+        [FromQuery][Required] DateOnly date,
+        [FromQuery][Required] string currency,
+        CancellationToken ct)
     {
         var portfolioDto = await _portfolios.GetByIdWithIncludesAsync(portfolioId, NeedsAcctHoldings, ct);
         if (portfolioDto is null) return NotFound();
@@ -216,10 +216,10 @@ public sealed class ReportingController : ControllerBase
     [ProducesResponseType(typeof(List<AssetClassPercentageDTO>), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> AssetClassPercentagesForPortfolio(
-    [FromRoute] int portfolioId,
-    [FromQuery][Required] DateOnly date,
-    [FromQuery][Required] string currency,
-    CancellationToken ct)
+        [FromRoute] int portfolioId,
+        [FromQuery][Required] DateOnly date,
+        [FromQuery][Required] string currency,
+        CancellationToken ct)
     {
         var portfolioDto = await _portfolios.GetByIdWithIncludesAsync(portfolioId, NeedsAcctHoldings, ct);
         if (portfolioDto is null) return NotFound();
@@ -242,10 +242,10 @@ public sealed class ReportingController : ControllerBase
     [ProducesResponseType(typeof(List<TradingCostsByCurrencyDTO>), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> TradingCostsByCurrencyForPortfolio(
-    [FromRoute] int portfolioId,
-    [FromQuery][Required] DateOnly from,
-    [FromQuery][Required] DateOnly to,
-    CancellationToken ct)
+        [FromRoute] int portfolioId,
+        [FromQuery][Required] DateOnly from,
+        [FromQuery][Required] DateOnly to,
+        CancellationToken ct)
     {
         if (from > to) return ValidationProblem("'from' must be <= 'to'.");
 
@@ -266,10 +266,10 @@ public sealed class ReportingController : ControllerBase
     [ProducesResponseType(typeof(List<TransactionCostSummaryDTO>), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> TransactionCostSummariesForPortfolio(
-    [FromRoute] int portfolioId,
-    [FromQuery][Required] DateOnly from,
-    [FromQuery][Required] DateOnly to,
-    CancellationToken ct)
+        [FromRoute] int portfolioId,
+        [FromQuery][Required] DateOnly from,
+        [FromQuery][Required] DateOnly to,
+        CancellationToken ct)
     {
         if (from > to) return ValidationProblem("'from' must be <= 'to'.");
 
@@ -288,10 +288,10 @@ public sealed class ReportingController : ControllerBase
     [ProducesResponseType(typeof(List<TradingCostsByCurrencyDTO>), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> TransactionCostsBySecurityForPortfolio(
-    [FromRoute] int portfolioId,
-    [FromQuery][Required] DateOnly from,
-    [FromQuery][Required] DateOnly to,
-    CancellationToken ct)
+        [FromRoute] int portfolioId,
+        [FromQuery][Required] DateOnly from,
+        [FromQuery][Required] DateOnly to,
+        CancellationToken ct)
     {
         if (from > to) return ValidationProblem("'from' must be <= 'to'.");
 

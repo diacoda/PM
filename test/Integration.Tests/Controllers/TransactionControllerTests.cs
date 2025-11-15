@@ -73,7 +73,7 @@ namespace PM.Integration.Controllers.Tests
             txDto.Type = "Deposit";
 
             _workflowMock
-                .Setup(w => w.ProcessTransactionAsync(It.IsAny<Transaction>(), It.IsAny<CancellationToken>()))
+                .Setup(w => w.ProcessTransactionAsync(account.PortfolioId, It.IsAny<Transaction>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(txDto);
 
             var result = await _controller.Deposit(account.PortfolioId, account.Id, CreateCashFlowDto(), CancellationToken.None);
@@ -107,7 +107,7 @@ namespace PM.Integration.Controllers.Tests
             txDto.Type = "Withdrawal";
 
             _workflowMock
-                .Setup(w => w.ProcessTransactionAsync(It.IsAny<Transaction>(), It.IsAny<CancellationToken>()))
+                .Setup(w => w.ProcessTransactionAsync(account.PortfolioId, It.IsAny<Transaction>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(txDto);
 
             var result = await _controller.Withdraw(account.PortfolioId, account.Id, CreateCashFlowDto(500m), CancellationToken.None);
@@ -141,7 +141,7 @@ namespace PM.Integration.Controllers.Tests
             txDto.Type = "Buy";
 
             _workflowMock
-                .Setup(w => w.ProcessTransactionAsync(It.IsAny<Transaction>(), It.IsAny<CancellationToken>()))
+                .Setup(w => w.ProcessTransactionAsync(account.PortfolioId, It.IsAny<Transaction>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(txDto);
 
             var createDto = TransactionMapper.ToCreateDTO(tx);
@@ -245,13 +245,13 @@ namespace PM.Integration.Controllers.Tests
             var txDto = TransactionMapper.ToDTO(tx);
 
             _workflowMock
-                .Setup(w => w.ProcessTransactionAsync(It.IsAny<Transaction>(), It.IsAny<CancellationToken>()))
+                .Setup(w => w.ProcessTransactionAsync(account.PortfolioId, It.IsAny<Transaction>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(txDto);
 
             await _controller.Deposit(account.PortfolioId, account.Id, CreateCashFlowDto(), CancellationToken.None);
 
             _workflowMock.Verify(w =>
-                w.ProcessTransactionAsync(
+                w.ProcessTransactionAsync(account.PortfolioId,
                     It.Is<Transaction>(t => t.AccountId == account.Id && t.Type == TransactionType.Deposit),
                     It.IsAny<CancellationToken>()),
                 Times.Once);

@@ -7,6 +7,7 @@ using PM.Application.Services;
 using PM.Domain.Entities;
 using PM.Domain.Enums;
 using PM.Domain.Values;
+using PM.SharedKernel;
 using PM.Utils.Tests;
 using Xunit;
 
@@ -17,6 +18,7 @@ namespace PM.Application.Services.Tests
         private readonly Mock<ITransactionService> _transactionServiceMock;
         private readonly Mock<ICashFlowService> _cashFlowServiceMock;
         private readonly Mock<IHoldingService> _holdingServiceMock;
+        private readonly Mock<IDomainEventDispatcher> _dispatcherServiceMock;
 
         private readonly TransactionWorkflowService _sut;
 
@@ -26,11 +28,13 @@ namespace PM.Application.Services.Tests
             _transactionServiceMock = new Mock<ITransactionService>(MockBehavior.Strict);
             _cashFlowServiceMock = new Mock<ICashFlowService>(MockBehavior.Strict);
             _holdingServiceMock = new Mock<IHoldingService>(MockBehavior.Strict);
+            _dispatcherServiceMock = new Mock<IDomainEventDispatcher>(MockBehavior.Strict);
 
             _sut = new TransactionWorkflowService(
                 _transactionServiceMock.Object,
                 _cashFlowServiceMock.Object,
-                _holdingServiceMock.Object);
+                _holdingServiceMock.Object,
+                _dispatcherServiceMock.Object);
         }
 
         private static Transaction CreateBaseTx(TransactionType type)
@@ -63,9 +67,9 @@ namespace PM.Application.Services.Tests
         [InlineData(TransactionType.Sell, CashFlowType.Sell, 990)]      // amount - cost
         [InlineData(TransactionType.Dividend, CashFlowType.Dividend, 990)]
         public async Task ProcessTransactionAsync_Should_Record_Correct_CashFlow_And_Update_Holdings(
-    TransactionType txType,
-    CashFlowType expectedFlow,
-    decimal expectedCashDelta)
+            TransactionType txType,
+            CashFlowType expectedFlow,
+            decimal expectedCashDelta)
         {
             // Arrange
             var tx = CreateBaseTx(txType);
@@ -73,6 +77,12 @@ namespace PM.Application.Services.Tests
             _transactionServiceMock
                 .Setup(s => s.CreateAsync(It.Is<Transaction>(t => t == tx), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(tx);
+
+            _dispatcherServiceMock
+                .Setup(d => d.DispatchEntityEventsAsync(
+                    It.IsAny<Entity>(),
+                    It.IsAny<CancellationToken>()))
+                .Returns(Task.CompletedTask);
 
             var expectedCashFlow = TestEntityFactory.CreateCashFlow(
                 tx.AccountId,
@@ -103,7 +113,7 @@ namespace PM.Application.Services.Tests
                 });
 
             // Act
-            var result = await _sut.ProcessTransactionAsync(tx);
+            var result = await _sut.ProcessTransactionAsync(1, tx);
 
             // Assert
             result.Should().NotBeNull();
@@ -163,8 +173,12 @@ namespace PM.Application.Services.Tests
                 .Setup(s => s.CreateAsync(It.IsAny<Transaction>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(tx);
 
+            _dispatcherServiceMock
+                .Setup(d => d.DispatchEntityEventsAsync(It.IsAny<Entity>(), It.IsAny<CancellationToken>()))
+                .Returns(Task.CompletedTask);
+
             // Act
-            var result = await _sut.ProcessTransactionAsync(tx);
+            var result = await _sut.ProcessTransactionAsync(1, tx);
 
             // Assert: verify we got a DTO mapped correctly
             result.Should().NotBeNull();

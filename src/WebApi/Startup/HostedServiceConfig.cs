@@ -35,7 +35,7 @@ namespace PM.API.Startup
             // Bind market holidays from configuration and register a singleton calendar
             var holidays = config.GetSection("MarketHolidays").Get<MarketHolidaysConfig>() ?? new MarketHolidaysConfig();
             services.AddSingleton<IMarketCalendar>(new MarketCalendar(holidays));
-
+            services.AddScoped<IDailyPriceAggregator, DailyPriceAggregator>();
             // Register the hosted background job for daily price updates
             services.AddHostedService<DailyPriceService>();
 

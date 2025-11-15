@@ -59,7 +59,7 @@ namespace PM.API.Controllers
                 return BadRequest(new ProblemDetails { Title = "Invalid portfolio/account" });
 
             var tx = TransactionMapper.ToEntity(accountId, TransactionType.Deposit, dto);
-            var result = await _workflow.ProcessTransactionAsync(tx, ct);
+            var result = await _workflow.ProcessTransactionAsync(portfolioId, tx, ct);
             return Ok(result);
         }
 
@@ -87,7 +87,7 @@ namespace PM.API.Controllers
                 return BadRequest(new ProblemDetails { Title = "Invalid portfolio/account" });
 
             var tx = TransactionMapper.ToEntity(accountId, TransactionType.Withdrawal, dto);
-            var result = await _workflow.ProcessTransactionAsync(tx, ct);
+            var result = await _workflow.ProcessTransactionAsync(portfolioId, tx, ct);
             return Ok(result);
         }
 
@@ -115,7 +115,7 @@ namespace PM.API.Controllers
                 return BadRequest(new ProblemDetails { Title = "Invalid portfolio/account" });
 
             var tx = TransactionMapper.ToEntity(accountId, dto);
-            var result = await _workflow.ProcessTransactionAsync(tx, ct);
+            var result = await _workflow.ProcessTransactionAsync(portfolioId, tx, ct);
             return Ok(result);
         }
 

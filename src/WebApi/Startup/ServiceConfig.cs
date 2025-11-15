@@ -1,6 +1,7 @@
 using Microsoft.Extensions.DependencyInjection;
 using PM.Application.Interfaces;
 using PM.Application.Services;
+using PM.SharedKernel;
 
 namespace PM.API.Startup
 {
@@ -26,6 +27,8 @@ namespace PM.API.Startup
         /// </example>
         public static IServiceCollection AddApplicationServices(this IServiceCollection services)
         {
+            services.AddScoped<IDomainEventDispatcher, DomainEventDispatcher>();
+            services.AddScoped<IDomainEventPublisher, InMemoryDomainEventPublisher>();
             services.AddScoped<IAccountService, AccountService>();
             services.AddScoped<IHoldingService, HoldingService>();
             services.AddScoped<ITransactionService, TransactionService>();
