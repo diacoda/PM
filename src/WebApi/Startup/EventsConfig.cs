@@ -1,4 +1,4 @@
-using PM.Application.Commands;
+using PM.Application.Events;
 using PM.Domain.Events;
 using PM.Infrastructure.EventBus;
 using PM.Infrastructure.EventBus.Registration;

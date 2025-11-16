@@ -6,4 +6,6 @@ public interface IMarketCalendar
     public bool IsAfterMarketClose(string market);
     public bool IsToday(DateOnly date);
     DateTimeOffset GetCloseTime(DateOnly date, string exchangeId);
+    DateOnly GetNextMarketDay(DateOnly fromDate, string market = "TSX");
+    DateTime GetNextMarketRunDateTime(TimeSpan scheduledRunTime, string market = "TSX");
 }
