@@ -1,9 +1,6 @@
-﻿// from https://github.com/maranmaran/InMemChannelEventBus
-// explained at: https://medium.com/@sociable_flamingo_goose_694/lightweight-net-channel-pub-sub-implementation-aed696337cc9
+﻿using PM.SharedKernel.Events;
 
-using PM.InMemoryEventBus.Contracts;
-
-namespace PM.InMemoryEventBus.Implementation;
+namespace PM.Infrastructure.EventBus.Implementation;
 
 internal sealed class EventContextAccessor<T> : IEventContextAccessor<T>
 {

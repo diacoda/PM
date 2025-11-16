@@ -1,10 +1,7 @@
-﻿// from https://github.com/maranmaran/InMemChannelEventBus
-// explained at: https://medium.com/@sociable_flamingo_goose_694/lightweight-net-channel-pub-sub-implementation-aed696337cc9
+﻿using System.Threading.Channels;
+using PM.SharedKernel.Events;
 
-using System.Threading.Channels;
-using PM.InMemoryEventBus.Contracts;
-
-namespace PM.InMemoryEventBus.Implementation;
+namespace PM.Infrastructure.EventBus.Implementation;
 
 internal sealed class InMemoryEventBusProducer<T> : IProducer<T>
 {

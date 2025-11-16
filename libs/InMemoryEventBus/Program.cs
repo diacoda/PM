@@ -1,10 +1,9 @@
-// from https://github.com/maranmaran/InMemChannelEventBus
-// explained at: https://medium.com/@sociable_flamingo_goose_694/lightweight-net-channel-pub-sub-implementation-aed696337cc9
-using PM.InMemoryEventBus;
-using PM.InMemoryEventBus.Contracts;
-using PM.InMemoryEventBus.Registration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Console;
+using PM.Infrastructure.EventBus.Registration;
+using PM.InMemoryEventBus;
+using PM.SharedKernel.Events;
 
 var services = new ServiceCollection();
 services.AddLogging(b => b.AddSimpleConsole());

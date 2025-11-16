@@ -5,7 +5,6 @@ using PM.Domain.Events;
 using PM.Domain.Mappers;
 using PM.Domain.Values;
 using PM.DTO;
-using PM.InMemoryEventBus;
 using PM.SharedKernel.Events;
 
 namespace PM.Application.Services;
@@ -15,28 +14,23 @@ public class TransactionWorkflowService : ITransactionWorkflowService
     private readonly ITransactionService _transactionService;
     private readonly ICashFlowService _cashFlowService;
     private readonly IHoldingService _holdingService;
-    private readonly PM.SharedKernel.Events.IDomainEventDispatcher _dispatcher;
-    private readonly PM.InMemoryEventBus.IEventDispatcher _eventDispatcher;
+    private readonly IProducer<TransactionAddedEvent> _txAddedProducer;
 
     public TransactionWorkflowService(
         ITransactionService transactionService,
         ICashFlowService cashFlowService,
         IHoldingService holdingService,
-        PM.SharedKernel.Events.IDomainEventDispatcher dispatcher,
-        PM.InMemoryEventBus.IEventDispatcher eventDispatcher)
+        IProducer<TransactionAddedEvent> txAddedProducer)
     {
         _transactionService = transactionService;
         _cashFlowService = cashFlowService;
         _holdingService = holdingService;
-        _dispatcher = dispatcher;
-        _eventDispatcher = eventDispatcher;
+        _txAddedProducer = txAddedProducer;
     }
 
     public async Task<TransactionDTO> ProcessTransactionAsync(int portfolioId, Transaction tx, CancellationToken ct = default)
     {
         var savedTx = await _transactionService.CreateAsync(tx, ct);
-        savedTx.Raise(new TransactionAddedEvent(portfolioId, savedTx.AccountId, savedTx.Id, savedTx.Date));
-
         var txDto = TransactionMapper.ToDTO(savedTx);
 
         if (tx.Type is TransactionType.Deposit or TransactionType.Withdrawal or TransactionType.Buy or TransactionType.Sell or TransactionType.Dividend)
@@ -65,10 +59,12 @@ public class TransactionWorkflowService : ITransactionWorkflowService
         IReadOnlyList<Holding?> holdings = await ApplyToHoldingsAsync(tx, ct);
         txDto.HoldingIds = holdings.Select(h => h!.Id).ToArray();
 
-        await _dispatcher.DispatchEntityEventsAsync(savedTx);
-
-        savedTx.Raise(new TransactionAddedEvent(portfolioId, savedTx.AccountId, savedTx.Id, savedTx.Date));
-        await _eventDispatcher.DispatchEntityEventsAsync(savedTx, ct);
+        // Build the domain event
+        var txAddedEvent = new TransactionAddedEvent(portfolioId, savedTx.AccountId, savedTx.Id, savedTx.Date);
+        // Wrap in Event<T> with metadata
+        var evt = new Event<TransactionAddedEvent>(txAddedEvent, new EventMetadata(Guid.NewGuid().ToString()));
+        // Publish via channel-based producer
+        await _txAddedProducer.Publish(evt, ct);
 
         return txDto;
     }

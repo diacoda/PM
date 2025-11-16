@@ -38,8 +38,8 @@ public class DailyPriceService : BackgroundService
     private readonly PriceJobOptions _options;
     private readonly IServiceScopeFactory _scopeFactory;
     private readonly IMarketCalendar _calendar;
-    private readonly IDomainEventPublisher _publisher;
     private readonly StatePersistence _statePersistence;
+    private readonly IProducer<DailyPricesFetchedEvent> _priceFetchedProducer;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="DailyPriceService"/> class.
@@ -48,19 +48,19 @@ public class DailyPriceService : BackgroundService
     /// <param name="options">Application options containing runtime settings (schedule, retry intervals, state file paths).</param>
     /// <param name="scopeFactory">.</param>
     /// <param name="calendar">Market calendar service for determining trading days and open/close status.</param>
-    /// <param name="publisher">Domain event publisher for broadcasting price fetch results.</param>
+    /// <param name="priceFetchedProducer">Domain event publisher for broadcasting price fetch results.</param>
     public DailyPriceService(
         ILogger<DailyPriceService> logger,
         IOptions<PriceJobOptions> options,
         IServiceScopeFactory scopeFactory,
         IMarketCalendar calendar,
-        IDomainEventPublisher publisher)
+        IProducer<DailyPricesFetchedEvent> priceFetchedProducer)
     {
         _logger = logger;
         _options = options.Value;
         _scopeFactory = scopeFactory;
         _calendar = calendar;
-        _publisher = publisher;
+        _priceFetchedProducer = priceFetchedProducer;
         _statePersistence = new StatePersistence(_options.StateFilePath);
     }
 
@@ -150,7 +150,7 @@ public class DailyPriceService : BackgroundService
                     var allSucceeded = !result.Errors.Any() && result.Fetched.Any();
 
                     // Build and publish event
-                    var evt = new DailyPricesFetchedEvent(
+                    var dailyPricesFetchedEvent = new DailyPricesFetchedEvent(
                         effectiveDate: today,
                         runTimestamp: startedAt,
                         allSucceeded: allSucceeded,
@@ -161,7 +161,8 @@ public class DailyPriceService : BackgroundService
                         notes: allSucceeded ? "Success" : "Partial/Retry"
                     );
 
-                    await _publisher.PublishAsync(evt, stoppingToken);
+                    var evt = new Event<DailyPricesFetchedEvent>(dailyPricesFetchedEvent, new EventMetadata(Guid.NewGuid().ToString()));
+                    await _priceFetchedProducer.Publish(evt, stoppingToken);
 
                     if (allSucceeded)
                     {

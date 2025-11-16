@@ -1,14 +1,11 @@
-﻿// from https://github.com/maranmaran/InMemChannelEventBus
-// explained at: https://medium.com/@sociable_flamingo_goose_694/lightweight-net-channel-pub-sub-implementation-aed696337cc9
-
-using System.Threading.Channels;
-using PM.InMemoryEventBus.Contracts;
+﻿using System.Threading.Channels;
+using PM.SharedKernel.Events;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
 #pragma warning disable CS4014
 
-namespace PM.InMemoryEventBus.Implementation;
+namespace PM.Infrastructure.EventBus.Implementation;
 
 internal sealed class InMemoryEventBusConsumer<T> : IConsumer<T>
 {

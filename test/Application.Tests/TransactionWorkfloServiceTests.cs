@@ -1,3 +1,6 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using FluentAssertions;
@@ -6,9 +9,9 @@ using PM.Application.Interfaces;
 using PM.Application.Services;
 using PM.Domain.Entities;
 using PM.Domain.Enums;
+using PM.Domain.Events;
 using PM.Domain.Values;
-using PM.InMemoryEventBus;
-using PM.SharedKernel;
+using PM.DTO;
 using PM.SharedKernel.Events;
 using PM.Utils.Tests;
 using Xunit;
@@ -20,27 +23,22 @@ namespace PM.Application.Services.Tests
         private readonly Mock<ITransactionService> _transactionServiceMock;
         private readonly Mock<ICashFlowService> _cashFlowServiceMock;
         private readonly Mock<IHoldingService> _holdingServiceMock;
-        private readonly Mock<PM.SharedKernel.Events.IDomainEventDispatcher> _dispatcherServiceMock;
-        private readonly Mock<PM.InMemoryEventBus.IEventDispatcher> _eventDispatcherServiceMock;
-
+        private readonly Mock<IProducer<TransactionAddedEvent>> _txAddedProducerMock;
         private readonly TransactionWorkflowService _sut;
 
         public TransactionWorkflowServiceTests()
         {
-            // Strict mocks ensure we only allow expected calls.
             _transactionServiceMock = new Mock<ITransactionService>(MockBehavior.Strict);
             _cashFlowServiceMock = new Mock<ICashFlowService>(MockBehavior.Strict);
             _holdingServiceMock = new Mock<IHoldingService>(MockBehavior.Strict);
-            _dispatcherServiceMock = new Mock<PM.SharedKernel.Events.IDomainEventDispatcher>(MockBehavior.Strict);
-            _eventDispatcherServiceMock = new Mock<PM.InMemoryEventBus.IEventDispatcher>(MockBehavior.Strict);
+            _txAddedProducerMock = new Mock<IProducer<TransactionAddedEvent>>(MockBehavior.Strict);
 
             _sut = new TransactionWorkflowService(
                 _transactionServiceMock.Object,
                 _cashFlowServiceMock.Object,
                 _holdingServiceMock.Object,
-                _dispatcherServiceMock.Object,
-                _eventDispatcherServiceMock.Object
-                );
+                _txAddedProducerMock.Object
+            );
         }
 
         private static Transaction CreateBaseTx(TransactionType type)
@@ -72,7 +70,7 @@ namespace PM.Application.Services.Tests
         [InlineData(TransactionType.Buy, CashFlowType.Buy, -1010)]      // amount + cost
         [InlineData(TransactionType.Sell, CashFlowType.Sell, 990)]      // amount - cost
         [InlineData(TransactionType.Dividend, CashFlowType.Dividend, 990)]
-        public async Task ProcessTransactionAsync_Should_Record_Correct_CashFlow_And_Update_Holdings(
+        public async Task ProcessTransactionAsync_Should_Record_CashFlow_Update_Holdings_And_PublishEvent(
             TransactionType txType,
             CashFlowType expectedFlow,
             decimal expectedCashDelta)
@@ -81,20 +79,8 @@ namespace PM.Application.Services.Tests
             var tx = CreateBaseTx(txType);
 
             _transactionServiceMock
-                .Setup(s => s.CreateAsync(It.Is<Transaction>(t => t == tx), It.IsAny<CancellationToken>()))
+                .Setup(s => s.CreateAsync(tx, It.IsAny<CancellationToken>()))
                 .ReturnsAsync(tx);
-
-            _dispatcherServiceMock
-                .Setup(d => d.DispatchEntityEventsAsync(
-                    It.IsAny<Entity>(),
-                    It.IsAny<CancellationToken>()))
-                .Returns(Task.CompletedTask);
-
-            _eventDispatcherServiceMock
-                .Setup(d => d.DispatchEntityEventsAsync(
-                    It.IsAny<Entity>(),
-                    It.IsAny<CancellationToken>()))
-                .Returns(Task.CompletedTask);
 
             var expectedCashFlow = TestEntityFactory.CreateCashFlow(
                 tx.AccountId,
@@ -124,31 +110,28 @@ namespace PM.Application.Services.Tests
                     return holding;
                 });
 
+            _txAddedProducerMock
+                .Setup(p => p.Publish(It.IsAny<Event<TransactionAddedEvent>>(), It.IsAny<CancellationToken>()))
+                .Returns(ValueTask.CompletedTask)
+                .Verifiable();
+
             // Act
             var result = await _sut.ProcessTransactionAsync(1, tx);
 
-            // Assert
+            // Assert DTO correctness
             result.Should().NotBeNull();
             result.CashFlowId.Should().Be(expectedCashFlow.Id);
             result.HoldingIds.Should().NotBeEmpty();
 
-            // Verify: transaction persisted once
-            _transactionServiceMock.Verify(
-                s => s.CreateAsync(tx, It.IsAny<CancellationToken>()),
+            // Verify transaction persisted once
+            _transactionServiceMock.Verify(s => s.CreateAsync(tx, It.IsAny<CancellationToken>()), Times.Once);
+
+            // Verify correct cash flow
+            _cashFlowServiceMock.Verify(cf => cf.RecordCashFlowAsync(
+                tx.AccountId, tx.Date, tx.Amount, expectedFlow, "tx.Note", It.IsAny<CancellationToken>()),
                 Times.Once);
 
-            // Verify: correct cash flow recorded
-            _cashFlowServiceMock.Verify(cf =>
-                cf.RecordCashFlowAsync(
-                    tx.AccountId,
-                    tx.Date,
-                    tx.Amount,
-                    expectedFlow,
-                    "tx.Note",
-                    It.IsAny<CancellationToken>()),
-                Times.Once);
-
-            // Verify: holdings updated correctly
+            // Verify holdings
             switch (txType)
             {
                 case TransactionType.Deposit:
@@ -156,53 +139,41 @@ namespace PM.Application.Services.Tests
                 case TransactionType.Dividend:
                     VerifyHolding(tx.AccountId, "CAD", expectedCashDelta);
                     break;
-
                 case TransactionType.Buy:
                     VerifyHolding(tx.AccountId, "VFV.TO", tx.Quantity);
                     VerifyHolding(tx.AccountId, "CAD", expectedCashDelta);
                     break;
-
                 case TransactionType.Sell:
                     VerifyHolding(tx.AccountId, "VFV.TO", -tx.Quantity);
                     VerifyHolding(tx.AccountId, "CAD", expectedCashDelta);
                     break;
             }
 
-            _eventDispatcherServiceMock.Verify(
-                d => d.DispatchEntityEventsAsync(It.IsAny<Entity>(), It.IsAny<CancellationToken>()),
-                Times.Once
-            );
+            // Verify event published
+            _txAddedProducerMock.Verify(p => p.Publish(It.IsAny<Event<TransactionAddedEvent>>(), It.IsAny<CancellationToken>()), Times.Once);
 
-            // Verify no unexpected interactions
-            _holdingServiceMock.VerifyNoOtherCalls();
-            _cashFlowServiceMock.VerifyNoOtherCalls();
+            // Verify no other interactions
             _transactionServiceMock.VerifyNoOtherCalls();
-            _eventDispatcherServiceMock.VerifyNoOtherCalls();
+            _cashFlowServiceMock.VerifyNoOtherCalls();
+            _holdingServiceMock.VerifyNoOtherCalls();
+            _txAddedProducerMock.VerifyNoOtherCalls();
         }
 
         [Fact]
         public async Task ProcessTransactionAsync_Should_Handle_Unsupported_Type_Gracefully()
         {
             // Arrange
-            var tx = CreateBaseTx((TransactionType)999); // unsupported type
-            tx.Date = new DateOnly(2025, 11, 10);        // make deterministic
+            var tx = CreateBaseTx((TransactionType)999); // unsupported
+            tx.Date = new DateOnly(2025, 11, 10);
 
             _transactionServiceMock
                 .Setup(s => s.CreateAsync(It.IsAny<Transaction>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(tx);
 
-            _dispatcherServiceMock
-                .Setup(d => d.DispatchEntityEventsAsync(It.IsAny<Entity>(), It.IsAny<CancellationToken>()))
-                .Returns(Task.CompletedTask);
-
-            _eventDispatcherServiceMock
-                .Setup(d => d.DispatchEntityEventsAsync(It.IsAny<Entity>(), It.IsAny<CancellationToken>()))
-                .Returns(Task.CompletedTask);
-
             // Act
             var result = await _sut.ProcessTransactionAsync(1, tx);
 
-            // Assert: verify we got a DTO mapped correctly
+            // Assert DTO correctness
             result.Should().NotBeNull();
             result.AccountId.Should().Be(tx.AccountId);
             result.Type.Should().Be("999");
@@ -215,14 +186,8 @@ namespace PM.Application.Services.Tests
             result.Date.Should().Be(tx.Date);
 
             // Unsupported type should not record cash flow or update holdings
-            _cashFlowServiceMock.Verify(cf =>
-                cf.RecordCashFlowAsync(
-                    It.IsAny<int>(),
-                    It.IsAny<DateOnly>(),
-                    It.IsAny<Money>(),
-                    It.IsAny<CashFlowType>(),
-                    It.IsAny<string>(),
-                    It.IsAny<CancellationToken>()),
+            _cashFlowServiceMock.Verify(cf => cf.RecordCashFlowAsync(
+                It.IsAny<int>(), It.IsAny<DateOnly>(), It.IsAny<Money>(), It.IsAny<CashFlowType>(), It.IsAny<string>(), It.IsAny<CancellationToken>()),
                 Times.Never);
 
             _holdingServiceMock.VerifyNoOtherCalls();

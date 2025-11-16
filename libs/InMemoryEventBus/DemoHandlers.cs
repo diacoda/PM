@@ -1,7 +1,6 @@
-﻿// from https://github.com/maranmaran/InMemChannelEventBus
-// explained at: https://medium.com/@sociable_flamingo_goose_694/lightweight-net-channel-pub-sub-implementation-aed696337cc9
-using PM.InMemoryEventBus.Contracts;
+﻿
 using Microsoft.Extensions.Logging;
+using PM.SharedKernel.Events;
 
 namespace PM.InMemoryEventBus;
 

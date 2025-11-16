@@ -1,10 +1,9 @@
-using Microsoft.Extensions.DependencyInjection;
 using PM.Application.Commands;
 using PM.Application.Interfaces;
 using PM.Application.Services;
 using PM.Domain.Events;
-using PM.InMemoryEventBus;
-using PM.SharedKernel.Events;
+using PM.Infrastructure.EventBus;
+using PM.Infrastructure.EventBus.Registration;
 
 namespace PM.API.Startup
 {
@@ -32,53 +31,10 @@ namespace PM.API.Startup
         /// 
         public static IServiceCollection AddApplicationServices(this IServiceCollection services)
         {
-            /*
-            services.AddScoped<PM.InMemoryEventBus.IEventDispatcher, EventDispatcher>();
-            services.AddScoped<TransactionAddedHandler>();
-            services.AddScoped<Event<TransactionAddedHandler>>();
-            services.AddSingleton<IEventBus>(sp =>
-            {
-                var bus = new PM.InMemoryEventBus.InMemoryEventBus(sp.GetRequiredService<IServiceScopeFactory>());
-                bus.Subscribe<TransactionAddedEvent>(sp => sp.GetRequiredService<TransactionAddedHandler>());
-                return bus;
-            });
-            */
-
-            services.AddScoped<PM.InMemoryEventBus.IEventDispatcher, EventDispatcher>();
-            services.AddScoped<TransactionAddedHandler>();
-            services.AddSingleton<IEventBus>(sp =>
-            {
-                var bus = new PM.InMemoryEventBus.InMemoryEventBus(sp.GetRequiredService<IServiceScopeFactory>());
-
-                // Subscribe with wrapper to handle Event<T> with metadata
-                bus.Subscribe<Event<TransactionAddedEvent>>(sp =>
-                    new EventHandlerWrapper<TransactionAddedEvent>(
-                        sp.GetRequiredService<TransactionAddedHandler>()
-                    )
-                );
-                return bus;
-            });
-
-            services.AddScoped<EventDispatcher>();
-
-            services.AddScoped<PM.SharedKernel.Events.IDomainEventDispatcher, DomainEventDispatcher>();
-            services.AddScoped<SendNotificationOnTransactionAdded>();
-            services.AddScoped<DailyPricesFetchedEventHandler>();
-
-            services.AddSingleton<IDomainEventPublisher>(sp =>
-            {
-                var publisher = new InMemoryDomainEventPublisher(
-                    sp.GetRequiredService<IServiceScopeFactory>());
-
-                // Manual subscription
-                publisher.Register<TransactionAddedEvent, SendNotificationOnTransactionAdded>();
-                publisher.Register<DailyPricesFetchedEvent, DailyPricesFetchedEventHandler>();
-
-                return publisher;
-            });
-
-
-
+            services.AddHostedService<EventBusHostedService>();
+            services.AddInMemoryEvent<TransactionAddedEvent, TransactionAddedChannelHandler>();
+            services.AddInMemoryEvent<TransactionAddedEvent, SendNotificationOnTransactionAdded>();
+            services.AddInMemoryEvent<DailyPricesFetchedEvent, DailyPricesFetchedEventHandler>();
 
             services.AddScoped<IAccountService, AccountService>();
             services.AddScoped<IHoldingService, HoldingService>();

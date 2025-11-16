@@ -3,11 +3,12 @@ using PM.Domain.Events;
 
 namespace PM.Application.Commands;
 
-public class SendNotificationOnTransactionAdded : IEventHandler<TransactionAddedEvent>
+// Implements IEventHandler<TransactionAddedEvent> directly
+public class TransactionAddedChannelHandler : IEventHandler<TransactionAddedEvent>
 {
     private readonly IEventContextAccessor<TransactionAddedEvent> _ctx;
 
-    public SendNotificationOnTransactionAdded(IEventContextAccessor<TransactionAddedEvent> ctx)
+    public TransactionAddedChannelHandler(IEventContextAccessor<TransactionAddedEvent> ctx)
         => _ctx = ctx;
 
     public ValueTask Handle(TransactionAddedEvent evt, CancellationToken ct = default)
