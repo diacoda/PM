@@ -67,7 +67,7 @@ public class MarketCalendar : IMarketCalendar
     /// Used to decide whether to check real-time "after market close" rules.
     /// </summary>
     public bool IsToday(DateOnly date) =>
-        date == DateOnly.FromDateTime(DateTime.Today);
+        date == DateOnly.FromDateTime(_clock.Now);
 
     /// <summary>
     /// Checks whether the market is considered "open" on the given date.

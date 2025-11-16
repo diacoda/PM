@@ -83,7 +83,11 @@ public class MarketCalendarTests
         var result = sut.GetCloseTime(date, "TSX");
 
         result.Year.Should().Be(2025);
+        result.Month.Should().Be(1);
+        result.Day.Should().Be(15);
+        result.Minute.Should().Be(0);
         result.Hour.Should().Be(16);
+        result.Second.Should().Be(0);
         result.Offset.Should().NotBe(TimeSpan.Zero); // EST/EDT offset expected
     }
 
@@ -127,8 +131,12 @@ public class MarketCalendarTests
     {
         var sut = Create();
 
-        sut.IsMarketOpen(new DateOnly(2025, 1, 1), "TSX") // New Year
+        sut.IsMarketOpen(new DateOnly(2026, 1, 1), "TSX") // New Year
             .Should().BeFalse();
+
+        sut.IsMarketOpen(new DateOnly(2026, 1, 1), "NYSE") // New Year
+            .Should().BeFalse();
+
     }
 
     [Fact]
