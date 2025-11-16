@@ -31,11 +31,6 @@ namespace PM.API.Startup
         /// 
         public static IServiceCollection AddApplicationServices(this IServiceCollection services)
         {
-            services.AddHostedService<EventBusHostedService>();
-            services.AddInMemoryEvent<TransactionAddedEvent, TransactionAddedChannelHandler>();
-            services.AddInMemoryEvent<TransactionAddedEvent, SendNotificationOnTransactionAdded>();
-            services.AddInMemoryEvent<DailyPricesFetchedEvent, DailyPricesFetchedEventHandler>();
-
             services.AddScoped<IAccountService, AccountService>();
             services.AddScoped<IHoldingService, HoldingService>();
             services.AddScoped<ITransactionService, TransactionService>();

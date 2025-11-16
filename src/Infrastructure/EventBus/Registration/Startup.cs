@@ -42,6 +42,7 @@ public static class Setup
         return services;
     }
 
+    /*
     public static async Task<IServiceProvider> StartConsumers(this IServiceProvider services)
     {
         var consumers = services.GetServices<IConsumer>();
@@ -53,7 +54,7 @@ public static class Setup
 
         return services;
     }
-
+    
     public static async Task<IServiceProvider> StartConsumers(this IServiceProvider services, CancellationToken parentToken)
     {
         var consumers = services.GetServices<IConsumer>();
@@ -76,4 +77,5 @@ public static class Setup
 
         return services;
     }
+    */
 }

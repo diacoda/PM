@@ -16,6 +16,7 @@ builder.Services
     .AddSymbolConfigs(builder.Configuration)
     .AddProviders()
     .AddRepositories()
+    .AddEventBusConfig()
     .AddApplicationServices()
     .AddHostedJobs(builder.Configuration)
     .AddSwaggerDocs();

@@ -10,10 +10,10 @@ public class SendNotificationOnTransactionAdded : IEventHandler<TransactionAdded
     public SendNotificationOnTransactionAdded(IEventContextAccessor<TransactionAddedEvent> ctx)
         => _ctx = ctx;
 
-    public ValueTask Handle(TransactionAddedEvent evt, CancellationToken ct = default)
+    public ValueTask Handle(TransactionAddedEvent? evt, CancellationToken ct = default)
     {
         var correlationId = _ctx.Event?.Metadata?.CorrelationId ?? Guid.NewGuid().ToString();
-        Console.WriteLine($"[HANDLER] Transaction {evt.TransactionId} added. CorrelationId={correlationId}");
+        Console.WriteLine($"[HANDLER] Transaction {evt?.TransactionId} added. CorrelationId={correlationId}");
         return ValueTask.CompletedTask;
     }
 }

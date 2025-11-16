@@ -83,7 +83,7 @@ public class DailyPriceService : BackgroundService
     /// <param name="stoppingToken">Token used to cancel background work when the host shuts down.</param>
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        _logger.LogInformation("📈 DailyPriceService started. RunTime: {RunTime}", _options.RunTime);
+        _logger.LogInformation("DailyPriceService started. RunTime: {RunTime}", _options.RunTime);
 
         using var scope = _scopeFactory.CreateScope();
         var aggregator = scope.ServiceProvider.GetRequiredService<IDailyPriceAggregator>();
@@ -200,7 +200,7 @@ public class DailyPriceService : BackgroundService
             }
         }
 
-        _logger.LogInformation("🛑 DailyPriceService stopping.");
+        _logger.LogInformation("DailyPriceService stopping.");
     }
 
     /// <summary>

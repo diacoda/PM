@@ -10,7 +10,7 @@ public class DailyPricesFetchedEventHandler : IEventHandler<DailyPricesFetchedEv
     public DailyPricesFetchedEventHandler(IEventContextAccessor<DailyPricesFetchedEvent> ctx)
         => _ctx = ctx;
 
-    public ValueTask Handle(DailyPricesFetchedEvent evt, CancellationToken ct = default)
+    public ValueTask Handle(DailyPricesFetchedEvent? evt, CancellationToken ct = default)
     {
         var correlationId = _ctx.Event?.Metadata?.CorrelationId ?? Guid.NewGuid().ToString();
 
