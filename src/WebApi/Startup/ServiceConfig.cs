@@ -3,6 +3,7 @@ using PM.Application.Commands;
 using PM.Application.Interfaces;
 using PM.Application.Services;
 using PM.Domain.Events;
+using PM.InMemoryEventBus;
 using PM.SharedKernel.Events;
 
 namespace PM.API.Startup
@@ -31,7 +32,18 @@ namespace PM.API.Startup
         /// 
         public static IServiceCollection AddApplicationServices(this IServiceCollection services)
         {
-            services.AddScoped<IDomainEventDispatcher, DomainEventDispatcher>();
+            services.AddScoped<PM.InMemoryEventBus.IDomainEventDispatcher, EventDispatcher>();
+            services.AddScoped<TransactionAddedHandler>();
+            services.AddSingleton<IEventBus>(sp =>
+            {
+                var bus = new PM.InMemoryEventBus.InMemoryEventBus(sp.GetRequiredService<IServiceScopeFactory>());
+                bus.Subscribe<TransactionAddedEvent>(sp => sp.GetRequiredService<TransactionAddedHandler>());
+                return bus;
+            });
+
+
+
+            services.AddScoped<PM.SharedKernel.Events.IDomainEventDispatcher, DomainEventDispatcher>();
             services.AddScoped<SendNotificationOnTransactionAdded>();
             services.AddScoped<DailyPricesFetchedEventHandler>();
 

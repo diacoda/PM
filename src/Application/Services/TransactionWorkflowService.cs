@@ -5,6 +5,7 @@ using PM.Domain.Events;
 using PM.Domain.Mappers;
 using PM.Domain.Values;
 using PM.DTO;
+using PM.InMemoryEventBus;
 using PM.SharedKernel.Events;
 
 namespace PM.Application.Services;
@@ -14,19 +15,21 @@ public class TransactionWorkflowService : ITransactionWorkflowService
     private readonly ITransactionService _transactionService;
     private readonly ICashFlowService _cashFlowService;
     private readonly IHoldingService _holdingService;
-    private readonly IDomainEventDispatcher _dispatcher;
-
+    private readonly PM.SharedKernel.Events.IDomainEventDispatcher _dispatcher;
+    private readonly PM.InMemoryEventBus.IDomainEventDispatcher _eventDispatcher;
 
     public TransactionWorkflowService(
         ITransactionService transactionService,
         ICashFlowService cashFlowService,
         IHoldingService holdingService,
-        IDomainEventDispatcher dispatcher)
+        PM.SharedKernel.Events.IDomainEventDispatcher dispatcher,
+        PM.InMemoryEventBus.IDomainEventDispatcher eventDispatcher)
     {
         _transactionService = transactionService;
         _cashFlowService = cashFlowService;
         _holdingService = holdingService;
         _dispatcher = dispatcher;
+        _eventDispatcher = eventDispatcher;
     }
 
     public async Task<TransactionDTO> ProcessTransactionAsync(int portfolioId, Transaction tx, CancellationToken ct = default)
@@ -63,6 +66,10 @@ public class TransactionWorkflowService : ITransactionWorkflowService
         txDto.HoldingIds = holdings.Select(h => h!.Id).ToArray();
 
         await _dispatcher.DispatchEntityEventsAsync(savedTx);
+
+        savedTx.Raise(new TransactionAddedEvent(portfolioId, savedTx.AccountId, savedTx.Id, savedTx.Date));
+        await _eventDispatcher.DispatchEntityEventsAsync(savedTx, ct);
+
         return txDto;
     }
 

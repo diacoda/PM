@@ -7,6 +7,7 @@ using PM.Application.Services;
 using PM.Domain.Entities;
 using PM.Domain.Enums;
 using PM.Domain.Values;
+using PM.InMemoryEventBus;
 using PM.SharedKernel;
 using PM.SharedKernel.Events;
 using PM.Utils.Tests;
@@ -19,7 +20,8 @@ namespace PM.Application.Services.Tests
         private readonly Mock<ITransactionService> _transactionServiceMock;
         private readonly Mock<ICashFlowService> _cashFlowServiceMock;
         private readonly Mock<IHoldingService> _holdingServiceMock;
-        private readonly Mock<IDomainEventDispatcher> _dispatcherServiceMock;
+        private readonly Mock<PM.SharedKernel.Events.IDomainEventDispatcher> _dispatcherServiceMock;
+        private readonly Mock<PM.InMemoryEventBus.IDomainEventDispatcher> _eventDispatcherServiceMock;
 
         private readonly TransactionWorkflowService _sut;
 
@@ -29,13 +31,16 @@ namespace PM.Application.Services.Tests
             _transactionServiceMock = new Mock<ITransactionService>(MockBehavior.Strict);
             _cashFlowServiceMock = new Mock<ICashFlowService>(MockBehavior.Strict);
             _holdingServiceMock = new Mock<IHoldingService>(MockBehavior.Strict);
-            _dispatcherServiceMock = new Mock<IDomainEventDispatcher>(MockBehavior.Strict);
+            _dispatcherServiceMock = new Mock<PM.SharedKernel.Events.IDomainEventDispatcher>(MockBehavior.Strict);
+            _eventDispatcherServiceMock = new Mock<PM.InMemoryEventBus.IDomainEventDispatcher>(MockBehavior.Strict);
 
             _sut = new TransactionWorkflowService(
                 _transactionServiceMock.Object,
                 _cashFlowServiceMock.Object,
                 _holdingServiceMock.Object,
-                _dispatcherServiceMock.Object);
+                _dispatcherServiceMock.Object,
+                _eventDispatcherServiceMock.Object
+                );
         }
 
         private static Transaction CreateBaseTx(TransactionType type)
@@ -80,6 +85,12 @@ namespace PM.Application.Services.Tests
                 .ReturnsAsync(tx);
 
             _dispatcherServiceMock
+                .Setup(d => d.DispatchEntityEventsAsync(
+                    It.IsAny<Entity>(),
+                    It.IsAny<CancellationToken>()))
+                .Returns(Task.CompletedTask);
+
+            _eventDispatcherServiceMock
                 .Setup(d => d.DispatchEntityEventsAsync(
                     It.IsAny<Entity>(),
                     It.IsAny<CancellationToken>()))
@@ -157,10 +168,16 @@ namespace PM.Application.Services.Tests
                     break;
             }
 
+            _eventDispatcherServiceMock.Verify(
+                d => d.DispatchEntityEventsAsync(It.IsAny<Entity>(), It.IsAny<CancellationToken>()),
+                Times.Once
+            );
+
             // Verify no unexpected interactions
             _holdingServiceMock.VerifyNoOtherCalls();
             _cashFlowServiceMock.VerifyNoOtherCalls();
             _transactionServiceMock.VerifyNoOtherCalls();
+            _eventDispatcherServiceMock.VerifyNoOtherCalls();
         }
 
         [Fact]
@@ -175,6 +192,10 @@ namespace PM.Application.Services.Tests
                 .ReturnsAsync(tx);
 
             _dispatcherServiceMock
+                .Setup(d => d.DispatchEntityEventsAsync(It.IsAny<Entity>(), It.IsAny<CancellationToken>()))
+                .Returns(Task.CompletedTask);
+
+            _eventDispatcherServiceMock
                 .Setup(d => d.DispatchEntityEventsAsync(It.IsAny<Entity>(), It.IsAny<CancellationToken>()))
                 .Returns(Task.CompletedTask);
 
