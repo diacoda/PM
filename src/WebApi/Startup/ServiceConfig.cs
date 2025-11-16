@@ -32,16 +32,34 @@ namespace PM.API.Startup
         /// 
         public static IServiceCollection AddApplicationServices(this IServiceCollection services)
         {
-            services.AddScoped<PM.InMemoryEventBus.IDomainEventDispatcher, EventDispatcher>();
+            /*
+            services.AddScoped<PM.InMemoryEventBus.IEventDispatcher, EventDispatcher>();
             services.AddScoped<TransactionAddedHandler>();
+            services.AddScoped<Event<TransactionAddedHandler>>();
             services.AddSingleton<IEventBus>(sp =>
             {
                 var bus = new PM.InMemoryEventBus.InMemoryEventBus(sp.GetRequiredService<IServiceScopeFactory>());
                 bus.Subscribe<TransactionAddedEvent>(sp => sp.GetRequiredService<TransactionAddedHandler>());
                 return bus;
             });
+            */
 
+            services.AddScoped<PM.InMemoryEventBus.IEventDispatcher, EventDispatcher>();
+            services.AddScoped<TransactionAddedHandler>();
+            services.AddSingleton<IEventBus>(sp =>
+            {
+                var bus = new PM.InMemoryEventBus.InMemoryEventBus(sp.GetRequiredService<IServiceScopeFactory>());
 
+                // Subscribe with wrapper to handle Event<T> with metadata
+                bus.Subscribe<Event<TransactionAddedEvent>>(sp =>
+                    new EventHandlerWrapper<TransactionAddedEvent>(
+                        sp.GetRequiredService<TransactionAddedHandler>()
+                    )
+                );
+                return bus;
+            });
+
+            services.AddScoped<EventDispatcher>();
 
             services.AddScoped<PM.SharedKernel.Events.IDomainEventDispatcher, DomainEventDispatcher>();
             services.AddScoped<SendNotificationOnTransactionAdded>();
@@ -58,6 +76,9 @@ namespace PM.API.Startup
 
                 return publisher;
             });
+
+
+
 
             services.AddScoped<IAccountService, AccountService>();
             services.AddScoped<IHoldingService, HoldingService>();

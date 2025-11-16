@@ -21,7 +21,7 @@ namespace PM.Application.Services.Tests
         private readonly Mock<ICashFlowService> _cashFlowServiceMock;
         private readonly Mock<IHoldingService> _holdingServiceMock;
         private readonly Mock<PM.SharedKernel.Events.IDomainEventDispatcher> _dispatcherServiceMock;
-        private readonly Mock<PM.InMemoryEventBus.IDomainEventDispatcher> _eventDispatcherServiceMock;
+        private readonly Mock<PM.InMemoryEventBus.IEventDispatcher> _eventDispatcherServiceMock;
 
         private readonly TransactionWorkflowService _sut;
 
@@ -32,7 +32,7 @@ namespace PM.Application.Services.Tests
             _cashFlowServiceMock = new Mock<ICashFlowService>(MockBehavior.Strict);
             _holdingServiceMock = new Mock<IHoldingService>(MockBehavior.Strict);
             _dispatcherServiceMock = new Mock<PM.SharedKernel.Events.IDomainEventDispatcher>(MockBehavior.Strict);
-            _eventDispatcherServiceMock = new Mock<PM.InMemoryEventBus.IDomainEventDispatcher>(MockBehavior.Strict);
+            _eventDispatcherServiceMock = new Mock<PM.InMemoryEventBus.IEventDispatcher>(MockBehavior.Strict);
 
             _sut = new TransactionWorkflowService(
                 _transactionServiceMock.Object,

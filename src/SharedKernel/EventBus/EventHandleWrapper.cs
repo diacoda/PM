@@ -8,6 +8,7 @@ public class EventHandlerWrapper<T> : IEventHandler<Event<T>>
 
     public ValueTask Handle(Event<T> evt, CancellationToken ct = default)
     {
-        return _inner.Handle(evt.Data!, ct); // unwrap Event<T> to pass to your real handler
+        Console.WriteLine(evt.Metadata?.CorrelationId);
+        return _inner.Handle(evt.Data, ct); // unwrap Event<T>
     }
 }

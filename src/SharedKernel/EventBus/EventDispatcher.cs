@@ -2,7 +2,7 @@ using PM.SharedKernel;
 
 namespace PM.InMemoryEventBus;
 
-public class EventDispatcher : IDomainEventDispatcher
+public class EventDispatcher : IEventDispatcher
 {
     private readonly IEventBus _bus;
     public EventDispatcher(IEventBus bus) => _bus = bus;
@@ -14,22 +14,9 @@ public class EventDispatcher : IDomainEventDispatcher
 
         foreach (var domainEvent in events)
         {
-            await DispatchAsync(domainEvent, ct);
+            var evtType = typeof(Event<>).MakeGenericType(domainEvent.GetType());
+            var evtInstance = Activator.CreateInstance(evtType, domainEvent, new EventMetadata(Guid.NewGuid().ToString()));
+            await _bus.PublishAsync((dynamic)evtInstance, ct); // type-safe dynamic dispatch
         }
-    }
-
-    private async Task DispatchAsync<T>(T domainEvent, CancellationToken ct = default)
-    {
-        if (domainEvent is null) return;
-        await _bus.PublishAsync((dynamic)domainEvent, ct);
-        /*
-
-                if (domainEvent is null) return;
-
-            var metadata = new EventMetadata(Guid.NewGuid().ToString()); // correlation ID
-            var evt = new Event<T>(domainEvent, metadata);
-
-            await _bus.PublishAsync(evt, ct);
-            */
     }
 }

@@ -16,14 +16,14 @@ public class TransactionWorkflowService : ITransactionWorkflowService
     private readonly ICashFlowService _cashFlowService;
     private readonly IHoldingService _holdingService;
     private readonly PM.SharedKernel.Events.IDomainEventDispatcher _dispatcher;
-    private readonly PM.InMemoryEventBus.IDomainEventDispatcher _eventDispatcher;
+    private readonly PM.InMemoryEventBus.IEventDispatcher _eventDispatcher;
 
     public TransactionWorkflowService(
         ITransactionService transactionService,
         ICashFlowService cashFlowService,
         IHoldingService holdingService,
         PM.SharedKernel.Events.IDomainEventDispatcher dispatcher,
-        PM.InMemoryEventBus.IDomainEventDispatcher eventDispatcher)
+        PM.InMemoryEventBus.IEventDispatcher eventDispatcher)
     {
         _transactionService = transactionService;
         _cashFlowService = cashFlowService;
