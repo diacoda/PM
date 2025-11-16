@@ -1,17 +1,10 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 using FluentAssertions;
 using Moq;
 using PM.Application.Interfaces;
-using PM.Application.Services;
 using PM.Domain.Entities;
 using PM.Domain.Enums;
 using PM.Domain.Events;
 using PM.Domain.Values;
-using PM.DTO;
 using PM.SharedKernel.Events;
 using PM.Utils.Tests;
 using Xunit;
@@ -163,17 +156,42 @@ namespace PM.Application.Services.Tests
         public async Task ProcessTransactionAsync_Should_Handle_Unsupported_Type_Gracefully()
         {
             // Arrange
-            var tx = CreateBaseTx((TransactionType)999); // unsupported
+            var unsupportedType = (TransactionType)999;
+            var tx = CreateBaseTx(unsupportedType);
             tx.Date = new DateOnly(2025, 11, 10);
 
             _transactionServiceMock
                 .Setup(s => s.CreateAsync(It.IsAny<Transaction>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync(tx);
+                .ReturnsAsync(tx)
+                .Verifiable();
+
+            // Always publish the event, even if unsupported type
+            _txAddedProducerMock
+                .Setup(p => p.Publish(It.IsAny<Event<TransactionAddedEvent>>(), It.IsAny<CancellationToken>()))
+                .Returns(ValueTask.CompletedTask)
+                .Verifiable();
+
+            // No CashFlow should occur
+            _cashFlowServiceMock
+                .Setup(cf => cf.RecordCashFlowAsync(
+                    It.IsAny<int>(),
+                    It.IsAny<DateOnly>(),
+                    It.IsAny<Money>(),
+                    It.IsAny<CashFlowType>(),
+                    It.IsAny<string>(),
+                    It.IsAny<CancellationToken>()))
+                .Throws(new Exception("Should not be called"));
+
+            // No Holdings should occur
+            _holdingServiceMock
+                .Setup(h => h.UpsertHoldingAsync(
+                    It.IsAny<int>(), It.IsAny<Asset>(), It.IsAny<decimal>(), It.IsAny<CancellationToken>()))
+                .Throws(new Exception("Should not be called"));
 
             // Act
             var result = await _sut.ProcessTransactionAsync(1, tx);
 
-            // Assert DTO correctness
+            // Assert DTO fields
             result.Should().NotBeNull();
             result.AccountId.Should().Be(tx.AccountId);
             result.Type.Should().Be("999");
@@ -185,12 +203,28 @@ namespace PM.Application.Services.Tests
             result.CostsCurrency.Should().Be("CAD");
             result.Date.Should().Be(tx.Date);
 
-            // Unsupported type should not record cash flow or update holdings
-            _cashFlowServiceMock.Verify(cf => cf.RecordCashFlowAsync(
-                It.IsAny<int>(), It.IsAny<DateOnly>(), It.IsAny<Money>(), It.IsAny<CashFlowType>(), It.IsAny<string>(), It.IsAny<CancellationToken>()),
+            // No cash flow, no holdings
+            _cashFlowServiceMock.Verify(cf =>
+                cf.RecordCashFlowAsync(
+                    It.IsAny<int>(),
+                    It.IsAny<DateOnly>(),
+                    It.IsAny<Money>(),
+                    It.IsAny<CashFlowType>(),
+                    It.IsAny<string>(),
+                    It.IsAny<CancellationToken>()),
                 Times.Never);
 
-            _holdingServiceMock.VerifyNoOtherCalls();
+            _holdingServiceMock.Verify(h =>
+                h.UpsertHoldingAsync(
+                    It.IsAny<int>(), It.IsAny<Asset>(), It.IsAny<decimal>(), It.IsAny<CancellationToken>()),
+                Times.Never);
+
+            // Transaction saved + event published
+            _transactionServiceMock.Verify(s => s.CreateAsync(It.IsAny<Transaction>(), It.IsAny<CancellationToken>()), Times.Once);
+            _txAddedProducerMock.Verify(p => p.Publish(It.IsAny<Event<TransactionAddedEvent>>(), It.IsAny<CancellationToken>()), Times.Once);
+
+            _transactionServiceMock.VerifyNoOtherCalls();
+            _txAddedProducerMock.VerifyNoOtherCalls();
         }
     }
 }
