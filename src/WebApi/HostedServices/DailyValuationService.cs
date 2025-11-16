@@ -3,85 +3,128 @@ using PM.Application.Interfaces;
 namespace PM.API.HostedServices;
 
 /// <summary>
-/// A background service that automatically performs daily portfolio valuations.
+/// Background service that runs daily portfolio valuations.  
+/// Executes once per day at a configured time (default 2 AM).
 /// </summary>
-/// <remarks>
-/// This hosted service runs once per day (at approximately 2 AM) and triggers
-/// valuation calculations for all applicable portfolios, based on the current market date
-/// and business calendar provided by <see cref="IMarketCalendar"/>.
-/// </remarks>
 public class DailyValuationService : BackgroundService
 {
     private readonly ILogger<DailyValuationService> _logger;
-    private readonly IMarketCalendar _marketCalendar;
+    private readonly IMarketCalendar _calendar;
     private readonly IServiceScopeFactory _scopeFactory;
+    private readonly TimeSpan _runTime = new(2, 0, 0); // 2 AM
+    private readonly bool _requireMarketOpen = true; // configurable: run even when market closed
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="DailyValuationService"/> class.
+    /// Constructor
     /// </summary>
-    /// <param name="logger">The logger instance used for diagnostic messages.</param>
-    /// <param name="marketCalendar">The market calendar used to determine open trading days.</param>
-    /// <param name="scopeFactory">
-    /// The service scope factory used to create a scoped service provider
-    /// for resolving valuation services.
-    /// </param>
+    /// <param name="logger"></param>
+    /// <param name="calendar"></param>
+    /// <param name="scopeFactory"></param>
     public DailyValuationService(
         ILogger<DailyValuationService> logger,
-        IMarketCalendar marketCalendar,
+        IMarketCalendar calendar,
         IServiceScopeFactory scopeFactory)
     {
         _logger = logger;
-        _marketCalendar = marketCalendar;
+        _calendar = calendar;
         _scopeFactory = scopeFactory;
     }
 
     /// <summary>
-    /// Executes the background valuation process.
+    /// Daily valuation functions
     /// </summary>
-    /// <param name="stoppingToken">A token used to signal service cancellation.</param>
-    /// <returns>A task representing the asynchronous operation.</returns>
-    /// <remarks>
-    /// The service checks whether the market is open (or proceeds regardless if configured)
-    /// and performs daily valuations for all relevant periods using injected valuation services.
-    /// The process repeats every 24 hours, starting approximately at 2 AM system time.
-    /// </remarks>
+    /// <param name="stoppingToken"></param>
+    /// <returns></returns>
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        _logger.LogInformation("Daily Valuation Service started.");
-        return;
+        _logger.LogInformation(
+            "DailyValuationService started. Run time = {Time}, RequireMarketOpen={Require}",
+            _runTime,
+            _requireMarketOpen);
+
         while (!stoppingToken.IsCancellationRequested)
         {
-            var today = DateTime.Today;
-            var dateOnly = DateOnly.FromDateTime(today);
-
-            if (_marketCalendar.IsMarketOpen(dateOnly) || true)
+            try
             {
-                using var scope = _scopeFactory.CreateScope();
-                var valuationScheduler = scope.ServiceProvider.GetRequiredService<IValuationScheduler>();
-                var valuationCalculator = scope.ServiceProvider.GetRequiredService<IValuationCalculator>();
-
-                var periodsToRun = valuationScheduler.GetValuationsForToday(today);
-
-                _logger.LogInformation(
-                    "Calculating valuations for {Date} for periods: {Periods}",
-                    dateOnly,
-                    string.Join(", ", periodsToRun));
-
-                try
-                {
-                    await valuationCalculator.CalculateValuationsAsync(dateOnly, periodsToRun, stoppingToken);
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogError(ex, "Error calculating valuations for {Date}", today);
-                }
+                await RunValuationsIfDue(stoppingToken);
+            }
+            catch (TaskCanceledException)
+            {
+                break; // graceful shutdown
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Unexpected exception in DailyValuationService.");
             }
 
-            var nextRunTime = DateTime.Today.AddDays(1).AddHours(2);
-            var delay = nextRunTime - DateTime.Now;
-
-            if (delay.TotalMilliseconds > 0)
-                await Task.Delay(delay, stoppingToken);
+            await DelayUntilNextValuationDay(stoppingToken);
         }
+
+        _logger.LogInformation("DailyValuationService stopping.");
+    }
+
+    /// <summary>
+    /// Executes valuations for today's valuation date.
+    /// </summary>
+    private async Task RunValuationsIfDue(CancellationToken token)
+    {
+        var today = DateOnly.FromDateTime(DateTime.Today);
+
+        var targetDate =
+            _calendar.GetNextValuationDate(today, _requireMarketOpen);
+
+        if (targetDate != today)
+        {
+            _logger.LogInformation(
+                "Today ({Today}) is not valuation day. Next valuation date: {Target}",
+                today, targetDate);
+            return;
+        }
+
+        using var scope = _scopeFactory.CreateScope();
+        var scheduler = scope.ServiceProvider.GetRequiredService<IValuationScheduler>();
+        var calculator = scope.ServiceProvider.GetRequiredService<IValuationCalculator>();
+
+        var periods = scheduler.GetValuationsForToday(DateTime.Today);
+
+        _logger.LogInformation(
+            "Starting valuations for {Date}. Periods: {Periods}",
+            targetDate,
+            string.Join(", ", periods));
+
+        try
+        {
+            await calculator.CalculateValuationsAsync(targetDate, periods, token);
+
+            _logger.LogInformation(
+                "Completed valuations for {Date}.",
+                targetDate);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex,
+                "Error calculating valuations for {Date}.",
+                targetDate);
+        }
+    }
+
+    /// <summary>
+    /// Uses IMarketCalendar to determine the next valuation run datetime.
+    /// </summary>
+    private async Task DelayUntilNextValuationDay(CancellationToken token)
+    {
+        var nextRun = _calendar.GetNextValuationRunDateTime(_runTime, _requireMarketOpen);
+
+        var delay = nextRun - DateTime.Now;
+
+        if (delay < TimeSpan.Zero)
+            delay = TimeSpan.Zero;
+
+        _logger.LogInformation(
+            "Next valuation run scheduled for {NextRun} (in {Hours} hours).",
+            nextRun,
+            delay.TotalHours);
+
+        await Task.Delay(delay, token);
     }
 }

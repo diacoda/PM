@@ -8,4 +8,6 @@ public interface IMarketCalendar
     DateTimeOffset GetCloseTime(DateOnly date, string exchangeId);
     DateOnly GetNextMarketDay(DateOnly fromDate, string market = "TSX");
     DateTime GetNextMarketRunDateTime(TimeSpan scheduledRunTime, string market = "TSX");
+    DateOnly GetNextValuationDate(DateOnly today, bool requireMarketOpen);
+    DateTime GetNextValuationRunDateTime(TimeSpan runTime, bool requireMarketOpen);
 }

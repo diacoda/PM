@@ -76,4 +76,29 @@ public class MarketCalendar : IMarketCalendar
 
         return nextDay.ToDateTime(runTime);
     }
+
+    public DateOnly GetNextValuationDate(DateOnly today, bool requireMarketOpen)
+    {
+        var candidate = today;
+
+        while (true)
+        {
+            if (!requireMarketOpen)
+                return candidate;
+
+            if (IsMarketOpen(candidate))
+                return candidate;
+
+            candidate = candidate.AddDays(1);
+        }
+    }
+
+    public DateTime GetNextValuationRunDateTime(TimeSpan runTime, bool requireMarketOpen)
+    {
+        var today = DateOnly.FromDateTime(DateTime.Today);
+        var date = GetNextValuationDate(today, requireMarketOpen);
+
+        return date.ToDateTime(TimeOnly.FromTimeSpan(runTime));
+    }
+
 }
