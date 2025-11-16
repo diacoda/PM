@@ -8,12 +8,12 @@ builder.Host.UseSerilogLogging(builder.Configuration);
 
 builder.Services
     .AddAppConfiguration(builder.Configuration)
+    .AddSymbolConfigs(builder.Configuration)
     .AddMemoryCache()
     .AddHttpClient()
     .AddDatabase(builder.Configuration, builder.Environment)
     .AddTelemetry(builder.Configuration, builder.Environment)
     .AddHealthChecksWithDependencies(builder.Configuration)
-    .AddSymbolConfigs(builder.Configuration)
     .AddProviders()
     .AddRepositories()
     .AddEventBusConfig()

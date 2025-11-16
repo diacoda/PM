@@ -30,6 +30,8 @@ namespace PM.API.Startup
                 .ToList();
 
             services.AddSingleton(symbols); // List<Symbol> as singleton for DI
+            services.AddSingleton<IEnumerable<Symbol>>(symbols); // IEnumerable<Symbol>
+
             return services;
         }
     }

@@ -16,7 +16,6 @@ public class FetchController : ControllerBase
     private readonly FetchDailyPricesCommand _fetcher;
     private readonly IMarketCalendar _calendar;
 
-
     /// <summary>
     /// Initializes a new instance of <see cref="PricesController"/>.
     /// </summary>
