@@ -54,6 +54,7 @@ public class Symbol : IAsset
     }
     private static readonly Dictionary<string, AssetClass> _assetClasses = new()
     {
+        { "MFCSP500", AssetClass.USEquity },
         { "VFV.TO", AssetClass.USEquity },
         { "HXQ.TO", AssetClass.USEquity },
         { "VCE.TO", AssetClass.CanadianEquity },
@@ -70,6 +71,7 @@ public class Symbol : IAsset
         { "CAD", AssetClass.Cash},
         { "USD", AssetClass.Cash},
         { "TRI", AssetClass.USEquity},
+        { "PREF.TO", AssetClass.CanadianEquity}
     };
 
     private static string ResolveExchange(string code)
@@ -86,6 +88,7 @@ public class Symbol : IAsset
 
     private static readonly Dictionary<string, string> _exchanges = new()
     {
+        { "MFCSP500", "TSX" },
         { "VFV.TO", "TSX" },
         { "HXQ.TO", "TSX" },
         { "VCE.TO", "TSX" },
@@ -101,7 +104,8 @@ public class Symbol : IAsset
         { "ZGLH.TO", "TSX" },
         { "CAD", "TSX"},
         { "USD", "TSX"},
-        { "TRI", "NYSE"}
+        { "TRI", "NYSE"},
+        { "PREF.TO", "TSX"}
     };
 
 

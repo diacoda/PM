@@ -1,4 +1,4 @@
-namespace PM.API.Configuration
+namespace PM.Infrastructure.Configuration
 {
     /// <summary>
     /// Configuration settings for a financial instrument symbol.

@@ -1,6 +1,4 @@
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
-using PM.API.Configuration;
+using PM.Infrastructure.Configuration;
 using PM.API.HostedServices;
 
 namespace PM.API.Startup

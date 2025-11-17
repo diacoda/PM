@@ -1,4 +1,4 @@
-namespace PM.API.Configuration
+namespace PM.Infrastructure.Configuration
 {
     /// <summary>
     /// Represents the configured file system paths for the application's SQLite databases.

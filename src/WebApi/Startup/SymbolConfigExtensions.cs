@@ -1,6 +1,5 @@
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
 using PM.Domain.Values;
+using PM.Infrastructure.Configuration;
 
 namespace PM.API.Startup
 {

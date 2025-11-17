@@ -1,4 +1,4 @@
-namespace PM.API.Configuration
+namespace PM.Infrastructure.Configuration
 {
     /// <summary>
     /// Represents a configuration section that maps market identifiers 
