@@ -29,7 +29,7 @@ public class PricingService : IPricingService
         decimal priceAmount;
         FxRate? fx = null;
 
-        // 🪙 1️⃣ Handle cash positions (CAD or USD)
+        // Handle cash positions (CAD or USD)
         if (symbolCode is "CAD" or "USD")
         {
             // 1 CAD = 1 CAD, but USD may need FX conversion
@@ -46,7 +46,7 @@ public class PricingService : IPricingService
         }
         else
         {
-            // 🧾 2️⃣ Handle non-cash instruments (equities, ETFs, etc.)
+            // Handle non-cash instruments (equities, ETFs, etc.)
             var price = await _priceService.GetOrFetchInstrumentPriceAsync(symbolCode, date, ct);
             if (price is null)
                 return new Money(0, reportingCurrency);
@@ -63,7 +63,7 @@ public class PricingService : IPricingService
             }
         }
 
-        // 💰 3️⃣ Calculate total value in reporting currency
+        // Calculate total value in reporting currency
         decimal value = holding.Quantity * priceAmount;
 
         if (fx is not null)

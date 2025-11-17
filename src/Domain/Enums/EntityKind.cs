@@ -4,5 +4,7 @@ public enum EntityKind
 {
     Account,
     Portfolio,
-    Benchmark
+    Benchmark,
+    Owner,
+    Estate
 }

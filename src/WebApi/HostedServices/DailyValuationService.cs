@@ -85,7 +85,7 @@ public class DailyValuationService : BackgroundService
         var scheduler = scope.ServiceProvider.GetRequiredService<IValuationScheduler>();
         var calculator = scope.ServiceProvider.GetRequiredService<IValuationCalculator>();
 
-        var periods = scheduler.GetValuationsForToday(DateTime.Today);
+        var periods = scheduler.GetValuationsForToday(targetDate);
 
         _logger.LogInformation(
             "Starting valuations for {Date}. Periods: {Periods}",

@@ -16,10 +16,9 @@ public class ValuationScheduler : IValuationScheduler
     /// Determines which valuation periods should run today.
     /// Always includes Daily, adds Weekly/Monthly/Quarterly/Yearly if today is a checkpoint.
     /// </summary>
-    public IEnumerable<ValuationPeriod> GetValuationsForToday(DateTime date)
+    public IEnumerable<ValuationPeriod> GetValuationsForToday(DateOnly dateOnly)
     {
         var periods = new List<ValuationPeriod> { ValuationPeriod.Daily };
-        var dateOnly = DateOnly.FromDateTime(date);
 
         // Weekly: run if today is last market day of the week
         if (IsEndOfWeek(dateOnly))

@@ -41,7 +41,6 @@ public class ValuationCalculator : IValuationCalculator
         var portfolios = await _portfolioRepository.ListWithIncludesAsync(
             new[] { IncludeOption.Accounts, IncludeOption.Holdings }, ct);
 
-        //var dateOnly = DateOnly.FromDateTime(date);
         var reportingCurrency = Currency.CAD;
         foreach (var portfolio in portfolios)
         {

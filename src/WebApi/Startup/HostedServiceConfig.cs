@@ -43,7 +43,7 @@ namespace PM.API.Startup
             services.AddScoped<FetchDailyPricesCommand>();
 
             services.AddScoped<IValuationScheduler, ValuationScheduler>();
-            services.AddHostedService<DailyValuationService>();
+            //services.AddHostedService<DailyValuationService>();
 
             return services;
         }
