@@ -22,7 +22,7 @@ dotnet ef database update --context PortfolioDbContext --project Infrastructure/
 
 # ValuationDbContext
 
-dotnet ef migrations add FxRates \
+dotnet ef migrations add Valuations \
  --project Infrastructure/Infrastructure.csproj \
  --startup-project WebApi/WebApi.csproj \
  --context ValuationDbContext

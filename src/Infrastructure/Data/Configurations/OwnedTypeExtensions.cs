@@ -24,4 +24,7 @@ public static class OwnedTypeExtensions
                .HasConversion(currencyConverter)
                .IsRequired();
     }
+
+
+    
 }

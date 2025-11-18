@@ -8,52 +8,17 @@ using PM.Infrastructure.Data;
 
 #nullable disable
 
-namespace Infrastructure.Migrations.ValuationDb
+namespace Infrastructure.Migrations
 {
     [DbContext(typeof(ValuationDbContext))]
-    [Migration("20251104043354_FxRates")]
-    partial class FxRates
+    [Migration("20251118020656_Valuations")]
+    partial class Valuations
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
-            modelBuilder.HasAnnotation("ProductVersion", "9.0.10");
-
-            modelBuilder.Entity("PM.Domain.Entities.ValuationSnapshot", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("TEXT");
-
-                    b.Property<int?>("AccountId")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<int?>("AssetClass")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<DateTime>("Date")
-                        .HasColumnType("TEXT");
-
-                    b.Property<decimal?>("Percentage")
-                        .HasPrecision(5, 2)
-                        .HasColumnType("TEXT");
-
-                    b.Property<int>("Period")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<int?>("PortfolioId")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<string>("ReportingCurrency")
-                        .IsRequired()
-                        .HasMaxLength(3)
-                        .HasColumnType("TEXT");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("ValuationSnapshots");
-                });
+            modelBuilder.HasAnnotation("ProductVersion", "10.0.0");
 
             modelBuilder.Entity("PM.Domain.Values.AssetPrice", b =>
                 {
@@ -65,10 +30,6 @@ namespace Infrastructure.Migrations.ValuationDb
                         .HasColumnType("TEXT");
 
                     b.Property<DateTimeOffset>("CreatedAtUtc")
-                        .HasColumnType("TEXT");
-
-                    b.Property<decimal>("Price")
-                        .HasPrecision(18, 6)
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Source")
@@ -104,25 +65,106 @@ namespace Infrastructure.Migrations.ValuationDb
                     b.ToTable("FxRates");
                 });
 
-            modelBuilder.Entity("PM.Domain.Entities.ValuationSnapshot", b =>
+            modelBuilder.Entity("PM.Domain.Values.ValuationSnapshot", b =>
                 {
-                    b.OwnsOne("PM.Domain.Values.Money", "CashValue", b1 =>
+                    b.Property<string>("Id")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int?>("AccountId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int?>("AssetClass")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateOnly>("Date")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("Kind")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Owner")
+                        .HasMaxLength(200)
+                        .HasColumnType("TEXT");
+
+                    b.Property<decimal?>("Percentage")
+                        .HasPrecision(9, 6)
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("Period")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int?>("PortfolioId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("ReportingCurrency")
+                        .IsRequired()
+                        .HasMaxLength(3)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Type")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("ValuationRecords", (string)null);
+                });
+
+            modelBuilder.Entity("PM.Domain.Values.AssetPrice", b =>
+                {
+                    b.OwnsOne("PM.Domain.Values.Money", "Price", b1 =>
                         {
-                            b1.Property<Guid>("ValuationSnapshotId")
+                            b1.Property<string>("AssetPriceSymbol")
+                                .HasColumnType("TEXT");
+
+                            b1.Property<DateOnly>("AssetPriceDate")
                                 .HasColumnType("TEXT");
 
                             b1.Property<decimal>("Amount")
                                 .HasPrecision(18, 4)
-                                .HasColumnType("TEXT");
+                                .HasColumnType("TEXT")
+                                .HasColumnName("Price");
 
                             b1.Property<string>("Currency")
                                 .IsRequired()
                                 .HasMaxLength(3)
+                                .HasColumnType("TEXT")
+                                .HasColumnName("Currency");
+
+                            b1.HasKey("AssetPriceSymbol", "AssetPriceDate");
+
+                            b1.ToTable("Prices");
+
+                            b1.WithOwner()
+                                .HasForeignKey("AssetPriceSymbol", "AssetPriceDate");
+                        });
+
+                    b.Navigation("Price")
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("PM.Domain.Values.ValuationSnapshot", b =>
+                {
+                    b.OwnsOne("PM.Domain.Values.Money", "CashValue", b1 =>
+                        {
+                            b1.Property<string>("ValuationSnapshotId")
                                 .HasColumnType("TEXT");
+
+                            b1.Property<decimal>("Amount")
+                                .HasPrecision(18, 4)
+                                .HasColumnType("TEXT")
+                                .HasColumnName("CashValue_Amount");
+
+                            b1.Property<string>("Currency")
+                                .IsRequired()
+                                .HasMaxLength(3)
+                                .HasColumnType("TEXT")
+                                .HasColumnName("CashValue_Currency");
 
                             b1.HasKey("ValuationSnapshotId");
 
-                            b1.ToTable("ValuationSnapshots");
+                            b1.ToTable("ValuationRecords");
 
                             b1.WithOwner()
                                 .HasForeignKey("ValuationSnapshotId");
@@ -130,21 +172,23 @@ namespace Infrastructure.Migrations.ValuationDb
 
                     b.OwnsOne("PM.Domain.Values.Money", "IncomeForDay", b1 =>
                         {
-                            b1.Property<Guid>("ValuationSnapshotId")
+                            b1.Property<string>("ValuationSnapshotId")
                                 .HasColumnType("TEXT");
 
                             b1.Property<decimal>("Amount")
                                 .HasPrecision(18, 4)
-                                .HasColumnType("TEXT");
+                                .HasColumnType("TEXT")
+                                .HasColumnName("IncomeForDay_Amount");
 
                             b1.Property<string>("Currency")
                                 .IsRequired()
                                 .HasMaxLength(3)
-                                .HasColumnType("TEXT");
+                                .HasColumnType("TEXT")
+                                .HasColumnName("IncomeForDay_Currency");
 
                             b1.HasKey("ValuationSnapshotId");
 
-                            b1.ToTable("ValuationSnapshots");
+                            b1.ToTable("ValuationRecords");
 
                             b1.WithOwner()
                                 .HasForeignKey("ValuationSnapshotId");
@@ -152,21 +196,23 @@ namespace Infrastructure.Migrations.ValuationDb
 
                     b.OwnsOne("PM.Domain.Values.Money", "SecuritiesValue", b1 =>
                         {
-                            b1.Property<Guid>("ValuationSnapshotId")
+                            b1.Property<string>("ValuationSnapshotId")
                                 .HasColumnType("TEXT");
 
                             b1.Property<decimal>("Amount")
                                 .HasPrecision(18, 4)
-                                .HasColumnType("TEXT");
+                                .HasColumnType("TEXT")
+                                .HasColumnName("SecuritiesValue_Amount");
 
                             b1.Property<string>("Currency")
                                 .IsRequired()
                                 .HasMaxLength(3)
-                                .HasColumnType("TEXT");
+                                .HasColumnType("TEXT")
+                                .HasColumnName("SecuritiesValue_Currency");
 
                             b1.HasKey("ValuationSnapshotId");
 
-                            b1.ToTable("ValuationSnapshots");
+                            b1.ToTable("ValuationRecords");
 
                             b1.WithOwner()
                                 .HasForeignKey("ValuationSnapshotId");
@@ -174,21 +220,23 @@ namespace Infrastructure.Migrations.ValuationDb
 
                     b.OwnsOne("PM.Domain.Values.Money", "Value", b1 =>
                         {
-                            b1.Property<Guid>("ValuationSnapshotId")
+                            b1.Property<string>("ValuationSnapshotId")
                                 .HasColumnType("TEXT");
 
                             b1.Property<decimal>("Amount")
                                 .HasPrecision(18, 4)
-                                .HasColumnType("TEXT");
+                                .HasColumnType("TEXT")
+                                .HasColumnName("Value_Amount");
 
                             b1.Property<string>("Currency")
                                 .IsRequired()
                                 .HasMaxLength(3)
-                                .HasColumnType("TEXT");
+                                .HasColumnType("TEXT")
+                                .HasColumnName("Value_Currency");
 
                             b1.HasKey("ValuationSnapshotId");
 
-                            b1.ToTable("ValuationSnapshots");
+                            b1.ToTable("ValuationRecords");
 
                             b1.WithOwner()
                                 .HasForeignKey("ValuationSnapshotId");

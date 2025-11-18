@@ -50,6 +50,8 @@ public class DailyPriceService : BackgroundService
     /// </summary>
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
+        return;
+
         _logger.LogInformation(
             "DailyPriceService started. Safe run time: {RunTime}",
             _options.RunTime);

@@ -14,18 +14,26 @@ namespace PM.API.Controllers
     [Route("api/[controller]")]
     public class ValuationsController : ControllerBase
     {
+        private readonly IValuationScheduler _valuationScheduler;
+        private readonly IValuationCalculator _valuationCalculator;
         private readonly IValuationService _valuationService;
         private readonly IPortfolioService _portfolioService;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ValuationsController"/> class.
         /// </summary>
+        /// <param name="valuationScheduler">Service.</param>
+        /// <param name="valuationCalculator">Service.</param>
         /// <param name="valuationService">Service for calculating and storing valuations.</param>
         /// <param name="portfolioService">Service for accessing portfolios.</param>
         public ValuationsController(
+            IValuationScheduler valuationScheduler,
+            IValuationCalculator valuationCalculator,
             IValuationService valuationService,
             IPortfolioService portfolioService)
         {
+            _valuationScheduler = valuationScheduler;
+            _valuationCalculator = valuationCalculator;
             _valuationService = valuationService;
             _portfolioService = portfolioService;
         }
@@ -132,6 +140,22 @@ namespace PM.API.Controllers
         {
             var records = await _valuationService.GetAsOfDateAsync(kind, date, new Currency(currency), period, ct);
             return Ok(records.Select(r => r.ToDTO()));
+        }
+
+        /// <summary>
+        /// Calculate
+        /// </summary>
+        /// <param name="request"></param>
+        /// <param name="ct"></param>
+        /// <returns></returns>
+        [HttpPost]
+        public async Task<IActionResult> Calculate(ValuationRequestDTO? request, CancellationToken ct = default)
+        {
+            if (request is null) return BadRequest();
+
+            var periods = _valuationScheduler.GetValuationsForToday(request.Date);
+            await _valuationCalculator.CalculateValuationsAsync(request.Date, periods);
+            return Ok();
         }
 
     }

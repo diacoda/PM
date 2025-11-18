@@ -3,10 +3,10 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
-namespace Infrastructure.Migrations.ValuationDb
+namespace Infrastructure.Migrations
 {
     /// <inheritdoc />
-    public partial class FxRates : Migration
+    public partial class Valuations : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -31,7 +31,8 @@ namespace Infrastructure.Migrations.ValuationDb
                 {
                     Symbol = table.Column<string>(type: "TEXT", maxLength: 24, nullable: false),
                     Date = table.Column<DateOnly>(type: "TEXT", nullable: false),
-                    Price = table.Column<decimal>(type: "TEXT", precision: 18, scale: 6, nullable: false),
+                    Price = table.Column<decimal>(type: "TEXT", precision: 18, scale: 4, nullable: false),
+                    Currency = table.Column<string>(type: "TEXT", maxLength: 3, nullable: false),
                     Source = table.Column<string>(type: "TEXT", nullable: false),
                     CreatedAtUtc = table.Column<DateTimeOffset>(type: "TEXT", nullable: false)
                 },
@@ -41,19 +42,22 @@ namespace Infrastructure.Migrations.ValuationDb
                 });
 
             migrationBuilder.CreateTable(
-                name: "ValuationSnapshots",
+                name: "ValuationRecords",
                 columns: table => new
                 {
-                    Id = table.Column<Guid>(type: "TEXT", nullable: false),
-                    Date = table.Column<DateTime>(type: "TEXT", nullable: false),
+                    Id = table.Column<string>(type: "TEXT", nullable: false),
+                    Kind = table.Column<int>(type: "INTEGER", nullable: false),
+                    Date = table.Column<DateOnly>(type: "TEXT", nullable: false),
                     Period = table.Column<int>(type: "INTEGER", nullable: false),
                     ReportingCurrency = table.Column<string>(type: "TEXT", maxLength: 3, nullable: false),
                     Value_Amount = table.Column<decimal>(type: "TEXT", precision: 18, scale: 4, nullable: false),
                     Value_Currency = table.Column<string>(type: "TEXT", maxLength: 3, nullable: false),
                     AccountId = table.Column<int>(type: "INTEGER", nullable: true),
                     PortfolioId = table.Column<int>(type: "INTEGER", nullable: true),
+                    Owner = table.Column<string>(type: "TEXT", maxLength: 200, nullable: true),
+                    Type = table.Column<string>(type: "TEXT", maxLength: 50, nullable: false),
                     AssetClass = table.Column<int>(type: "INTEGER", nullable: true),
-                    Percentage = table.Column<decimal>(type: "TEXT", precision: 5, scale: 2, nullable: true),
+                    Percentage = table.Column<decimal>(type: "TEXT", precision: 9, scale: 6, nullable: true),
                     SecuritiesValue_Amount = table.Column<decimal>(type: "TEXT", precision: 18, scale: 4, nullable: true),
                     SecuritiesValue_Currency = table.Column<string>(type: "TEXT", maxLength: 3, nullable: true),
                     CashValue_Amount = table.Column<decimal>(type: "TEXT", precision: 18, scale: 4, nullable: true),
@@ -63,7 +67,7 @@ namespace Infrastructure.Migrations.ValuationDb
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_ValuationSnapshots", x => x.Id);
+                    table.PrimaryKey("PK_ValuationRecords", x => x.Id);
                 });
 
             migrationBuilder.CreateIndex(
@@ -82,7 +86,7 @@ namespace Infrastructure.Migrations.ValuationDb
                 name: "Prices");
 
             migrationBuilder.DropTable(
-                name: "ValuationSnapshots");
+                name: "ValuationRecords");
         }
     }
 }

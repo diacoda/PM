@@ -7,13 +7,18 @@ namespace PM.Application.Interfaces;
 public interface IValuationService
 {
     // Snapshot generators
-    Task<ValuationSnapshot> GeneratePortfolioValuationSnapshot(int portfolioId, DateOnly date, Currency reportingCurrency, CancellationToken ct = default);
+    Task<Valuation> GeneratePortfolioValuationSnapshot(int portfolioId, DateOnly date, Currency reportingCurrency, CancellationToken ct = default);
     Task<ValuationSnapshot> GenerateAccountValuationSnapshot(int portfolioId, int accountId, DateOnly date, Currency reportingCurrency, CancellationToken ct = default);
     Task<IEnumerable<ValuationSnapshot>> GeneratePortfolioAssetClassValuationSnapshot(int portfolioId, DateOnly date, Currency reportingCurrency, CancellationToken ct = default);
     Task<IEnumerable<ValuationSnapshot>> GenerateAccountAssetClassValuationSnapshot(int portfolioId, int accountId, DateOnly date, Currency reportingCurrency, CancellationToken ct = default);
 
     // Storage methods
-    Task StorePortfolioValuation(int portfolioId, ValuationSnapshot valuation, DateOnly date, ValuationPeriod period, CancellationToken ct = default);
+    Task StoreEstateValuation(ValuationSnapshot valuation, DateOnly date, ValuationPeriod period, CancellationToken ct = default);
+    Task StoreEstateAssetClassValuation(IEnumerable<ValuationSnapshot> valuation, DateOnly date, ValuationPeriod period, CancellationToken ct = default);
+    Task StoreOwnerValuation(string owner, ValuationSnapshot valuation, DateOnly date, ValuationPeriod period, CancellationToken ct = default);
+    Task StoreOwnerAssetClassValuation(string owner, IEnumerable<ValuationSnapshot> valuation, DateOnly date, ValuationPeriod period, CancellationToken ct = default);
+
+    Task StorePortfolioValuation(int portfolioId, Valuation valuation, DateOnly date, ValuationPeriod period, CancellationToken ct = default);
     Task StoreAccountValuation(int portfolioId, int accountId, ValuationSnapshot valuation, DateOnly date, ValuationPeriod period, CancellationToken ct = default);
     Task StorePortfolioAssetClassValuation(int portfolioId, IEnumerable<ValuationSnapshot> valuations, DateOnly date, ValuationPeriod period, CancellationToken ct = default);
     Task StoreAccountAssetClassValuation(int portfolioId, int accountId, IEnumerable<ValuationSnapshot> valuations, DateOnly date, ValuationPeriod period, CancellationToken ct = default);

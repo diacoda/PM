@@ -13,7 +13,9 @@ public class ValuationSnapshot
     /// <summary>
     /// Gets or sets the unique identifier of the valuation record.
     /// </summary>
-    public Guid Id { get; set; } = Guid.NewGuid();
+    public string Id { get; set; } = String.Empty;
+
+    public EntityKind Kind { get; set; }
 
     /// <summary>
     /// Gets or sets the date for which this valuation applies.
@@ -45,6 +47,8 @@ public class ValuationSnapshot
     /// </summary>
     public int? PortfolioId { get; set; }
 
+    public string? Owner { get; set; }
+    public string Type { get; set; } = String.Empty;
     /// <summary>
     /// Gets or sets the optional asset class for which this valuation record is a slice.
     /// </summary>
