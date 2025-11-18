@@ -9,5 +9,6 @@ public enum AssetClass
     Commodity,
     Crypto,
     Cash,
-    Other
+    Other,
+    None
 }

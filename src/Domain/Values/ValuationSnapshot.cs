@@ -8,7 +8,7 @@ using PM.SharedKernel;
 /// Represents a snapshot of the valuation of a portfolio or account at a specific date and period.
 /// Can include total value, cash, securities, and income components.
 /// </summary>
-public class ValuationSnapshot
+public record ValuationSnapshot
 {
     /// <summary>
     /// Gets or sets the unique identifier of the valuation record.
@@ -33,11 +33,6 @@ public class ValuationSnapshot
     public Currency ReportingCurrency { get; set; } = Currency.CAD;
 
     /// <summary>
-    /// Gets or sets the total value of the portfolio/account in the reporting currency.
-    /// </summary>
-    public Money Value { get; set; } = new Money(0.0m, Currency.CAD);
-
-    /// <summary>
     /// Gets or sets the optional account ID this valuation is associated with.
     /// </summary>
     public int? AccountId { get; set; }
@@ -48,7 +43,7 @@ public class ValuationSnapshot
     public int? PortfolioId { get; set; }
 
     public string? Owner { get; set; }
-    public string Type { get; set; } = String.Empty;
+    public ValuationType Type { get; set; }
     /// <summary>
     /// Gets or sets the optional asset class for which this valuation record is a slice.
     /// </summary>
@@ -60,6 +55,10 @@ public class ValuationSnapshot
     /// </summary>
     public decimal? Percentage { get; set; }
 
+    /// <summary>
+    /// Gets or sets the total value of the portfolio/account in the reporting currency.
+    /// </summary>
+    public Money Value { get; set; } = new Money(0.0m, Currency.CAD);
     /// <summary>
     /// Gets or sets the value of securities (excluding cash) in the reporting currency.
     /// </summary>

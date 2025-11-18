@@ -18,6 +18,10 @@ public class ValuationRepository : IValuationRepository
 
     public async Task SaveAsync(ValuationSnapshot record, CancellationToken ct = default)
     {
+        foreach (var entry in _context.ChangeTracker.Entries())
+        {
+            entry.State = EntityState.Detached;
+        }
         await _context.ValuationSnapshots.AddAsync(record, ct);
         await _context.SaveChangesAsync(ct);
     }

@@ -59,7 +59,7 @@ namespace PM.API.Controllers
             if (portfolio is null)
                 return BadRequest(new ProblemDetails { Title = "Invalid portfolio" });
 
-            await _valuationService.GeneratePortfolioValuationSnapshot(
+            await _valuationService.GeneratePortfolioValuation(
                 portfolioId,
                 dto.Date,
                 new Currency(dto.Currency),

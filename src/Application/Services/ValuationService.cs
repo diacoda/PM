@@ -27,7 +27,7 @@ namespace PM.Application.Services
 
         // ---------------- SNAPSHOT GENERATION ----------------
 
-        public async Task<Valuation> GeneratePortfolioValuationSnapshot(
+        public async Task<Valuation> GeneratePortfolioValuation(
             int portfolioId,
             DateOnly date,
             Currency reportingCurrency,
@@ -54,10 +54,10 @@ namespace PM.Application.Services
             foreach (var account in portfolio.Accounts)
                 netIncome += SumAccountNetIncomeForDay(account, date, reportingCurrency);
 
-            return new Valuation(total, secs, cash, netIncome == 0m ? null : new Money(netIncome, reportingCurrency), reportingCurrency);
+            return new Valuation(total, secs, cash, netIncome == 0m ? null : new Money(netIncome, reportingCurrency), reportingCurrency, AssetClass.None, 0m);
         }
 
-        public async Task<ValuationSnapshot> GenerateAccountValuationSnapshot(
+        public async Task<Valuation> GenerateAccountValuation(
             int portfolioId,
             int accountId,
             DateOnly date,
@@ -79,21 +79,11 @@ namespace PM.Application.Services
             var secs = new Money(total.Amount - cashAmt, reportingCurrency);
 
             var netIncome = SumAccountNetIncomeForDay(account, date, reportingCurrency);
-
-            return new ValuationSnapshot
-            {
-                Kind = EntityKind.Account,
-                Date = date,
-                ReportingCurrency = reportingCurrency,
-                Value = total,
-                AccountId = account.Id,
-                SecuritiesValue = secs,
-                CashValue = cash,
-                IncomeForDay = netIncome == 0m ? null : new Money(netIncome, reportingCurrency)
-            };
+            
+            return new Valuation(total, secs, cash, netIncome == 0m ? null : new Money(netIncome, reportingCurrency), reportingCurrency, AssetClass.None, 0m);
         }
 
-        public async Task<IEnumerable<ValuationSnapshot>> GeneratePortfolioAssetClassValuationSnapshot(
+        public async Task<IEnumerable<Valuation>> GeneratePortfolioAssetClassValuation(
             int portfolioId,
             DateOnly date,
             Currency reportingCurrency,
@@ -109,22 +99,23 @@ namespace PM.Application.Services
 
             var totalMoney = await _pricingService.CalculatePortfolioValueAsync(portfolio, date, reportingCurrency, ct);
             var total = totalMoney.Amount;
-            if (total <= 0m) return Enumerable.Empty<ValuationSnapshot>();
+            if (total <= 0m) return Enumerable.Empty<Valuation>();
 
             var byClass = await AggregateByAssetClassAsync(portfolio, date, reportingCurrency, ct);
-            return byClass.Select(kvp => new ValuationSnapshot
-            {
-                Kind = EntityKind.Portfolio,
-                Date = date,
-                ReportingCurrency = reportingCurrency,
-                Value = kvp.Value,
-                PortfolioId = portfolio.Id,
-                AssetClass = kvp.Key,
-                Percentage = kvp.Value.Amount / total
-            }).ToList();
+            return byClass
+                .Select(kvp => new Valuation(
+                    kvp.Value,
+                    new Money(0m, reportingCurrency),
+                    new Money(0m, reportingCurrency),
+                    new Money(0m, reportingCurrency),
+                    reportingCurrency,
+                    kvp.Key,
+                    kvp.Value.Amount / total
+                ))
+                .ToList();
         }
 
-        public async Task<IEnumerable<ValuationSnapshot>> GenerateAccountAssetClassValuationSnapshot(
+        public async Task<IEnumerable<Valuation>> GenerateAccountAssetClassValuation(
             int portfolioId,
             int accountId,
             DateOnly date,
@@ -141,67 +132,106 @@ namespace PM.Application.Services
 
             var totalMoney = await _pricingService.CalculateAccountValueAsync(account, date, reportingCurrency, ct);
             var total = totalMoney.Amount;
-            if (total <= 0m) return Enumerable.Empty<ValuationSnapshot>();
+            if (total <= 0m) return Enumerable.Empty<Valuation>();
 
             var byClass = await AggregateByAssetClassAsync(account, date, reportingCurrency, ct);
-            return byClass.Select(kvp => new ValuationSnapshot
-            {
-                Kind = EntityKind.Account,
-                Date = date,
-                ReportingCurrency = reportingCurrency,
-                Value = kvp.Value,
-                AccountId = account.Id,
-                AssetClass = kvp.Key,
-                Percentage = kvp.Value.Amount / total
-            }).ToList();
+            return byClass.Select(kvp => new Valuation(
+                kvp.Value,
+                new Money(0m, reportingCurrency),
+                new Money(0m, reportingCurrency),
+                new Money(0m, reportingCurrency),
+                reportingCurrency,
+                kvp.Key,
+                kvp.Value.Amount / total))
+            .ToList();
         }
 
         // ---------------- STORAGE ----------------
-        public async Task StoreEstateValuation(ValuationSnapshot valuation, DateOnly date, ValuationPeriod period, CancellationToken ct = default)
+        public async Task StoreEstateValuation(Valuation valuation, DateOnly date, ValuationPeriod period, CancellationToken ct = default)
         {
-            valuation.Id = $"{EntityKind.Estate.ToString()}:estate:{period.ToString()}:{date.ToString()}:Standard";
-            valuation.Kind = EntityKind.Estate;
-            valuation.Period = period;
-            valuation.Date = date;
-            valuation.Type = "Standard";
-            await _valuationRepository.SaveAsync(valuation, ct);
+            var record = new ValuationSnapshot
+            {
+                Id = $"{EntityKind.Estate.ToString()}:estate:{period.ToString()}:{date.ToString()}:{ValuationType.Standard.ToString()}:{AssetClass.None.ToString()}",
+                Kind = EntityKind.Estate,
+                Date = date,
+                Period = period,
+                Type = ValuationType.Standard,
+                ReportingCurrency = valuation.ReportingCurrency,
+                AssetClass = AssetClass.None,
+
+                Value = valuation.TotalValue,
+                SecuritiesValue = valuation.SecuritiesValue,
+                CashValue = valuation.CashValue,
+                IncomeForDay = valuation.IncomeForDay
+            };
+            await _valuationRepository.SaveAsync(record, ct);
         }
 
-        public async Task StoreEstateAssetClassValuation(IEnumerable<ValuationSnapshot> valuations, DateOnly date, ValuationPeriod period, CancellationToken ct = default)
+        public async Task StoreEstateAssetClassValuation(IEnumerable<Valuation> valuations, DateOnly date, ValuationPeriod period, CancellationToken ct = default)
         {
             foreach (var valuation in valuations)
             {
-                valuation.Id = $"{EntityKind.Estate.ToString()}:estate:{period.ToString()}:{date.ToString()}:AssetClass";
-                valuation.Kind = EntityKind.Estate;
-                valuation.Period = period;
-                valuation.Date = date;
-                valuation.Type = "AssetClass";
-                await _valuationRepository.SaveAsync(valuation, ct);
+                var record = new ValuationSnapshot
+                {
+                    Id = $"{EntityKind.Estate.ToString()}:estate:{period.ToString()}:{date.ToString()}:{ValuationType.AssetClass.ToString()}:{valuation.AssetClass.ToString()}",
+                    Kind = EntityKind.Estate,
+                    Period = period,
+                    Date = date,
+                    Type = ValuationType.AssetClass,
+
+                    Value = valuation.TotalValue,
+                    SecuritiesValue = valuation.SecuritiesValue,
+                    CashValue = valuation.CashValue,
+                    IncomeForDay = valuation.IncomeForDay,
+                    AssetClass = valuation.AssetClass,
+                    Percentage = valuation.Percentage
+                };
+                await _valuationRepository.SaveAsync(record, ct);
             }
         }
 
-        public async Task StoreOwnerValuation(string owner, ValuationSnapshot valuation, DateOnly date, ValuationPeriod period, CancellationToken ct = default)
+        public async Task StoreOwnerValuation(string owner, Valuation valuation, DateOnly date, ValuationPeriod period, CancellationToken ct = default)
         {
-            valuation.Id = $"{EntityKind.Owner.ToString()}:{owner}:{period.ToString()}:{date.ToString()}:Standard";
-            valuation.Kind = EntityKind.Owner;
-            valuation.Period = period;
-            valuation.Owner = owner;
-            valuation.Date = date;
-            valuation.Type = "Standard";
-            await _valuationRepository.SaveAsync(valuation, ct);
+            var record = new ValuationSnapshot
+            {
+                Id = $"{EntityKind.Owner.ToString()}:{owner}:{period.ToString()}:{date.ToString()}:{ValuationType.Standard.ToString()}:{AssetClass.None.ToString()}",
+                Kind = EntityKind.Owner,
+                Owner = owner,
+                Date = date,
+                Period = period,
+                Type = ValuationType.Standard,
+                ReportingCurrency = valuation.ReportingCurrency,
+                AssetClass = AssetClass.None,
+
+                Value = valuation.TotalValue,
+                SecuritiesValue = valuation.SecuritiesValue,
+                CashValue = valuation.CashValue,
+                IncomeForDay = valuation.IncomeForDay
+            };
+            await _valuationRepository.SaveAsync(record, ct);
         }
 
-        public async Task StoreOwnerAssetClassValuation(string owner, IEnumerable<ValuationSnapshot> valuations, DateOnly date, ValuationPeriod period, CancellationToken ct = default)
+        public async Task StoreOwnerAssetClassValuation(string owner, IEnumerable<Valuation> valuations, DateOnly date, ValuationPeriod period, CancellationToken ct = default)
         {
             foreach (var valuation in valuations)
             {
-                valuation.Id = $"{EntityKind.Owner.ToString()}:{owner}:{period.ToString()}:{date.ToString()}:AssetClass";
-                valuation.Kind = EntityKind.Owner;
-                valuation.Period = period;
-                valuation.Owner = owner;
-                valuation.Date = date;
-                valuation.Type = "AssetClass";
-                await _valuationRepository.SaveAsync(valuation, ct);
+                var record = new ValuationSnapshot
+                {
+                    Id = $"{EntityKind.Owner.ToString()}:{owner}:{period.ToString()}:{date.ToString()}:{ValuationType.AssetClass.ToString()}:{valuation.AssetClass.ToString()}",
+                    Kind = EntityKind.Owner,
+                    Period = period,
+                    Owner = owner,
+                    Date = date,
+                    Type = ValuationType.AssetClass,
+                    
+                    Value = valuation.TotalValue,
+                    SecuritiesValue = valuation.SecuritiesValue,
+                    CashValue = valuation.CashValue,
+                    IncomeForDay = valuation.IncomeForDay,
+                    AssetClass = valuation.AssetClass,
+                    Percentage = valuation.Percentage
+                };
+                await _valuationRepository.SaveAsync(record, ct);
             }
         }
 
@@ -209,13 +239,14 @@ namespace PM.Application.Services
         {
             var record = new ValuationSnapshot
             {
-                Id = $"{EntityKind.Portfolio.ToString()}:{portfolioId}:{period.ToString()}:{date.ToString()}:Standard",
+                Id = $"{EntityKind.Portfolio.ToString()}:{portfolioId}:{period.ToString()}:{date.ToString()}:{ValuationType.Standard.ToString()}:{AssetClass.None.ToString()}",
                 Kind = EntityKind.Portfolio,
                 Date = date,
                 Period = period,
                 PortfolioId = portfolioId,
-                Type = "Standard",
+                Type = ValuationType.Standard,
                 ReportingCurrency = valuation.ReportingCurrency,
+                AssetClass = AssetClass.None,
 
                 Value = valuation.TotalValue,
                 SecuritiesValue = valuation.SecuritiesValue,
@@ -226,44 +257,73 @@ namespace PM.Application.Services
             await _valuationRepository.SaveAsync(record, ct);
         }
 
-        public async Task StoreAccountValuation(int portfolioId, int accountId, ValuationSnapshot valuation, DateOnly date, ValuationPeriod period, CancellationToken ct = default)
+        public async Task StoreAccountValuation(int portfolioId, int accountId, Valuation valuation, DateOnly date, ValuationPeriod period, CancellationToken ct = default)
         {
-            valuation.Id = $"{EntityKind.Account.ToString()}:{accountId}:{period.ToString()}:{date.ToString()}:Standard";
-            valuation.Kind = EntityKind.Account;
-            valuation.Period = period;
-            valuation.PortfolioId = portfolioId;
-            valuation.AccountId = accountId;
-            valuation.Date = date;
-            valuation.Type = "Standard";
-            await _valuationRepository.SaveAsync(valuation, ct);
+            var record = new ValuationSnapshot
+            {
+                Id = $"{EntityKind.Account.ToString()}:{accountId}:{period.ToString()}:{date.ToString()}:{ValuationType.Standard.ToString()}:{AssetClass.None.ToString()}",
+                Kind = EntityKind.Account,
+                Period = period,
+                PortfolioId = portfolioId,
+                AccountId = accountId,
+                Date = date,
+                Type = ValuationType.Standard,
+                AssetClass = AssetClass.None,
+
+                Value = valuation.TotalValue,
+                SecuritiesValue = valuation.SecuritiesValue,
+                CashValue = valuation.CashValue,
+                IncomeForDay = valuation.IncomeForDay
+            };
+            await _valuationRepository.SaveAsync(record, ct);
         }
 
-        public async Task StorePortfolioAssetClassValuation(int portfolioId, IEnumerable<ValuationSnapshot> valuations, DateOnly date, ValuationPeriod period, CancellationToken ct = default)
+        public async Task StorePortfolioAssetClassValuation(int portfolioId, IEnumerable<Valuation> valuations, DateOnly date, ValuationPeriod period, CancellationToken ct = default)
         {
             foreach (var v in valuations)
             {
-                v.Id = $"{EntityKind.Portfolio.ToString()}:{portfolioId}:{period.ToString()}:{date.ToString()}:AssetClass";
-                v.Kind = EntityKind.Portfolio;
-                v.Period = period;
-                v.PortfolioId = portfolioId;
-                v.Date = date;
-                v.Type = "AssetClass";
-                await _valuationRepository.SaveAsync(v, ct);
+                var record = new ValuationSnapshot
+                {
+                    Id = $"{EntityKind.Portfolio.ToString()}:{portfolioId}:{period.ToString()}:{date.ToString()}:{ValuationType.AssetClass.ToString()}:{v.AssetClass.ToString()}",
+                    Kind = EntityKind.Portfolio,
+                    Period = period,
+                    PortfolioId = portfolioId,
+                    Date = date,
+                    Type = ValuationType.AssetClass,
+
+                    Value = v.TotalValue,
+                    SecuritiesValue = v.SecuritiesValue,
+                    CashValue = v.CashValue,
+                    IncomeForDay = v.IncomeForDay,
+                    AssetClass = v.AssetClass,
+                    Percentage = v.Percentage
+                };
+                await _valuationRepository.SaveAsync(record, ct);
             }
         }
 
-        public async Task StoreAccountAssetClassValuation(int portfolioId, int accountId, IEnumerable<ValuationSnapshot> valuations, DateOnly date, ValuationPeriod period, CancellationToken ct = default)
+        public async Task StoreAccountAssetClassValuation(int portfolioId, int accountId, IEnumerable<Valuation> valuations, DateOnly date, ValuationPeriod period, CancellationToken ct = default)
         {
             foreach (var v in valuations)
             {
-                v.Id = $"{EntityKind.Account.ToString()}:{accountId}:{period.ToString()}:{date.ToString()}:AssetClass";
-                v.Kind = EntityKind.Account;
-                v.Period = period;
-                v.PortfolioId = portfolioId;
-                v.AccountId = accountId;
-                v.Date = date;
-                v.Type = "AssetClass";
-                await _valuationRepository.SaveAsync(v, ct);
+                var record = new ValuationSnapshot
+                {
+                    Id = $"{EntityKind.Account.ToString()}:{accountId}:{period.ToString()}:{date.ToString()}:{ValuationType.AssetClass.ToString()}:{v.AssetClass.ToString()}",
+                    Kind = EntityKind.Account,
+                    Period = period,
+                    PortfolioId = portfolioId,
+                    AccountId = accountId,
+                    Date = date,
+                    Type = ValuationType.AssetClass,
+
+                    Value = v.TotalValue,
+                    SecuritiesValue = v.SecuritiesValue,
+                    CashValue = v.CashValue,
+                    IncomeForDay = v.IncomeForDay,
+                    AssetClass = v.AssetClass,
+                    Percentage = v.Percentage
+                };
+                await _valuationRepository.SaveAsync(record, ct);
             }
         }
 

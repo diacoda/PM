@@ -5,5 +5,7 @@ public sealed record Valuation(
     Money SecuritiesValue,
     Money CashValue,
     Money IncomeForDay,
-    Currency ReportingCurrency
+    Currency ReportingCurrency,
+    AssetClass AssetClass,
+    decimal Percentage
 );

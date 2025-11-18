@@ -16,6 +16,19 @@ public class ValuationCalculator : IValuationCalculator
         _valuationService = valuationService;
     }
 
+    private Valuation GenerateAggregateValuation(
+        decimal total,
+        decimal cash,
+        decimal income,
+        Currency reportingCurrency)
+    {
+        Money totalValue = new Money(total, reportingCurrency);
+        Money cashValue = new Money(cash, reportingCurrency);
+        Money securitiesValue = new Money(total - cash, reportingCurrency);
+        Money incomeForDay = income == 0m ? null : new Money(income, reportingCurrency);
+        return new Valuation(totalValue, cashValue, securitiesValue, incomeForDay, reportingCurrency, AssetClass.None, 0m);
+    }
+
     private ValuationSnapshot GenerateAggregateSnapshot(
         EntityKind kind,
         string? owner,
@@ -38,36 +51,29 @@ public class ValuationCalculator : IValuationCalculator
         };
     }
 
-    private List<ValuationSnapshot> GenerateAggregateAssetClassSnapshots(
-        EntityKind kind,
-        string? owner,
-        DateOnly date,
+    private List<Valuation> GenerateAggregateAssetClassValuations(
         Currency reportingCurrency,
         Dictionary<AssetClass, Money> classes,
-        ValuationPeriod period,
         decimal total)
     {
         var denom = total <= 0 ? 1 : total;
 
         return classes.Select(kvp =>
-            new ValuationSnapshot
-            {
-                Kind = kind,
-                Owner = owner,
-                Date = date,
-                ReportingCurrency = reportingCurrency,
-                AssetClass = kvp.Key,
-                Value = kvp.Value,
-                Percentage = kvp.Value.Amount / denom,
-                Period = period,
-                Type = "AssetClass"
-            }).ToList();
+            new Valuation(
+                kvp.Value,
+                new Money(0m, reportingCurrency),
+                new Money(0m, reportingCurrency),
+                new Money(0m, reportingCurrency),
+                reportingCurrency,
+                kvp.Key,
+                kvp.Value.Amount / denom))
+            .ToList();
     }
 
     public async Task CalculateAccountValuationAsync(DateOnly date, int portfolioId, int accountId, string reportingCurrency, IEnumerable<ValuationPeriod> periods, CancellationToken ct = default)
     {
         Currency reportCurrency = new Currency(reportingCurrency);
-        var accountValuation = await _valuationService.GenerateAccountValuationSnapshot(
+        var accountValuation = await _valuationService.GenerateAccountValuation(
             portfolioId, accountId, date, reportCurrency, ct);
 
         foreach (var period in periods)
@@ -75,7 +81,7 @@ public class ValuationCalculator : IValuationCalculator
             await _valuationService.StoreAccountValuation(portfolioId, accountId, accountValuation, date, period, ct);
         }
 
-        var accountAssetClassValuation = await _valuationService.GenerateAccountAssetClassValuationSnapshot(
+        var accountAssetClassValuation = await _valuationService.GenerateAccountAssetClassValuation(
             portfolioId, accountId, date, reportCurrency, ct);
 
         foreach (var period in periods)
@@ -104,18 +110,18 @@ public class ValuationCalculator : IValuationCalculator
         foreach (var portfolio in portfolios)
         {
             // Compute portfolio snapshot once
-            var portSnap = await _valuationService.GeneratePortfolioValuationSnapshot(
+            var portVal = await _valuationService.GeneratePortfolioValuation(
                 portfolio.Id, date, reportingCurrency, ct);
 
             foreach (var period in periods)
             {
-                await _valuationService.StorePortfolioValuation(portfolio.Id, portSnap, date, period, ct);
+                await _valuationService.StorePortfolioValuation(portfolio.Id, portVal, date, period, ct);
             }
 
             // Accounts
             foreach (var account in portfolio.Accounts)
             {
-                var accSnap = await _valuationService.GenerateAccountValuationSnapshot(
+                var accSnap = await _valuationService.GenerateAccountValuation(
                     portfolio.Id, account.Id, date, reportingCurrency, ct);
 
                 foreach (var period in periods)
@@ -123,7 +129,7 @@ public class ValuationCalculator : IValuationCalculator
                     await _valuationService.StoreAccountValuation(portfolio.Id, account.Id, accSnap, date, period, ct);
                 }
                 // account by class
-                var accByClass = await _valuationService.GenerateAccountAssetClassValuationSnapshot(
+                var accByClass = await _valuationService.GenerateAccountAssetClassValuation(
                     portfolio.Id, account.Id, date, reportingCurrency, ct);
 
                 foreach (var period in periods)
@@ -133,7 +139,7 @@ public class ValuationCalculator : IValuationCalculator
             }
 
             // Portfolio Asset Class
-            var portByClass = await _valuationService.GeneratePortfolioAssetClassValuationSnapshot(
+            var portByClass = await _valuationService.GeneratePortfolioAssetClassValuation(
                 portfolio.Id, date, reportingCurrency, ct);
 
             foreach (var period in periods)
@@ -142,18 +148,18 @@ public class ValuationCalculator : IValuationCalculator
             }
 
             // accumulate owner and estate aggregates
-            estateTotal += portSnap.TotalValue.Amount;
-            estateCash += portSnap.CashValue?.Amount ?? 0m;
-            estateIncome += portSnap.IncomeForDay?.Amount ?? 0m;
+            estateTotal += portVal.TotalValue.Amount;
+            estateCash += portVal.CashValue?.Amount ?? 0m;
+            estateIncome += portVal.IncomeForDay?.Amount ?? 0m;
 
             // Estate asset-class
             foreach (var cls in portByClass)
             {
-                var key = cls.AssetClass!.Value;
+                var key = cls.AssetClass!;
                 if (estateClassTotals.TryGetValue(key, out var existing))
-                    estateClassTotals[key] = new Money(existing.Amount + cls.Value.Amount, reportingCurrency);
+                    estateClassTotals[key] = new Money(existing.Amount + cls.TotalValue.Amount, reportingCurrency);
                 else
-                    estateClassTotals[key] = cls.Value;
+                    estateClassTotals[key] = cls.TotalValue;
             }
 
             // owner accumulation (assume portfolio.OwnerId exists)
@@ -165,9 +171,9 @@ public class ValuationCalculator : IValuationCalculator
                     ownerTotals[owner] = (0m, 0m, 0m);
 
                 ownerTotals[owner] = (
-                    ownerTotals[owner].total + portSnap.TotalValue.Amount,
-                    ownerTotals[owner].cash + (portSnap.CashValue?.Amount ?? 0m),
-                    ownerTotals[owner].income + (portSnap.IncomeForDay?.Amount ?? 0m)
+                    ownerTotals[owner].total + portVal.TotalValue.Amount,
+                    ownerTotals[owner].cash + (portVal.CashValue?.Amount ?? 0m),
+                    ownerTotals[owner].income + (portVal.IncomeForDay?.Amount ?? 0m)
                 );
 
                 if (!ownerByClass.ContainsKey(owner))
@@ -175,11 +181,11 @@ public class ValuationCalculator : IValuationCalculator
 
                 foreach (var cls in portByClass)
                 {
-                    var c = cls.AssetClass!.Value;
+                    var c = cls.AssetClass!;
                     if (ownerByClass[owner].TryGetValue(c, out var e))
-                        ownerByClass[owner][c] = new Money(e.Amount + cls.Value.Amount, reportingCurrency);
+                        ownerByClass[owner][c] = new Money(e.Amount + cls.TotalValue.Amount, reportingCurrency);
                     else
-                        ownerByClass[owner][c] = cls.Value;
+                        ownerByClass[owner][c] = cls.TotalValue;
                 }
             }
         }
@@ -199,29 +205,20 @@ public class ValuationCalculator : IValuationCalculator
             foreach (var period in periods)
             {
                 // 1) SINGLE owner-level snapshot
-                var ownerSnap = GenerateAggregateSnapshot(
-                    EntityKind.Owner,
-                    owner,
-                    date,
-                    reportingCurrency,
+                var ownerValuation = GenerateAggregateValuation(
                     totals.total,
                     totals.cash,
-                    totals.income);
+                    totals.income,
+                    reportingCurrency);
 
-                ownerSnap.Period = period;
-
-                await _valuationService.StoreOwnerValuation(owner, ownerSnap, date, period, ct);
+                await _valuationService.StoreOwnerValuation(owner, ownerValuation, date, period, ct);
 
                 // 2) ASSET CLASS snapshots
                 if (ownerByClass.TryGetValue(owner, out var cls))
                 {
-                    var snapList = GenerateAggregateAssetClassSnapshots(
-                        EntityKind.Owner,
-                        owner,
-                        date,
+                    var snapList = GenerateAggregateAssetClassValuations(
                         reportingCurrency,
                         cls,
-                        period,
                         totals.total);
 
                     await _valuationService.StoreOwnerAssetClassValuation(owner, snapList, date, period, ct);
@@ -233,27 +230,18 @@ public class ValuationCalculator : IValuationCalculator
         foreach (var period in periods)
         {
             // 1) ESTATE snapshot
-            var estateSnap = GenerateAggregateSnapshot(
-                EntityKind.Estate,
-                null,
-                date,
-                reportingCurrency,
+            var estateValuation = GenerateAggregateValuation(
                 estateTotal,
                 estateCash,
-                estateIncome);
+                estateIncome,
+                reportingCurrency);
 
-            estateSnap.Period = period;
-
-            await _valuationService.StoreEstateValuation(estateSnap, date, period, ct);
+            await _valuationService.StoreEstateValuation(estateValuation, date, period, ct);
 
             // 2) ESTATE ASSET-CLASS snapshots
-            var estateClassSnaps = GenerateAggregateAssetClassSnapshots(
-                EntityKind.Estate,
-                null,
-                date,
+            var estateClassSnaps = GenerateAggregateAssetClassValuations(
                 reportingCurrency,
                 estateClassTotals,
-                period,
                 estateTotal);
 
             await _valuationService.StoreEstateAssetClassValuation(estateClassSnaps, date, period, ct);

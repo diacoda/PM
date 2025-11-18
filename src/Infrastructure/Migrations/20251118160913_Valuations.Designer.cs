@@ -11,7 +11,7 @@ using PM.Infrastructure.Data;
 namespace Infrastructure.Migrations
 {
     [DbContext(typeof(ValuationDbContext))]
-    [Migration("20251118020656_Valuations")]
+    [Migration("20251118160913_Valuations")]
     partial class Valuations
     {
         /// <inheritdoc />
