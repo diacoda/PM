@@ -10,18 +10,29 @@ namespace PM.Infrastructure.Repositories;
 public class ValuationRepository : IValuationRepository
 {
     private readonly ValuationDbContext _context;
+    //private readonly IDbContextFactory<ValuationDbContext> _factory;
 
-    public ValuationRepository(ValuationDbContext context)
+    public ValuationRepository(
+            ValuationDbContext context)//,
+                                       //IDbContextFactory<ValuationDbContext> factory)
     {
         _context = context;
+        //_factory = factory;
+    }
+
+    public async Task SaveRangeAsync(IEnumerable<ValuationSnapshot> records, CancellationToken ct = default)
+    {
+        // disable change tracking for performance
+        _context.ChangeTracker.AutoDetectChangesEnabled = false;
+        _context.ChangeTracker.Clear();
+        await _context.ValuationSnapshots.AddRangeAsync(records, ct);
+        await _context.SaveChangesAsync(ct);
     }
 
     public async Task SaveAsync(ValuationSnapshot record, CancellationToken ct = default)
     {
-        foreach (var entry in _context.ChangeTracker.Entries())
-        {
-            entry.State = EntityState.Detached;
-        }
+        //await using var context = _factory.CreateDbContext();
+        _context.ChangeTracker.Clear();
         await _context.ValuationSnapshots.AddAsync(record, ct);
         await _context.SaveChangesAsync(ct);
     }
